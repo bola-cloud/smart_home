@@ -7,6 +7,10 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
+use App\Mail\ResetPasswordMail;
 
 class AuthController extends Controller
 {
@@ -49,7 +53,13 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        if (!auth()->attempt($request->only('email', 'password'))) {
+        $loginData = $request->only('login', 'password');
+    
+        // Determine if the login field is an email or a phone number
+        $loginType = filter_var($loginData['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'phone_number';
+    
+        // Attempt to log the user in using the email or phone number
+        if (!auth()->attempt([$loginType => $loginData['login'], 'password' => $loginData['password']])) {
             return response()->json([
                 'message' => 'Invalid login details',
                 'status' => false,
@@ -57,7 +67,10 @@ class AuthController extends Controller
             ], 401);
         }
     
-        $user = User::where('email', $request->email)->firstOrFail();
+        // Retrieve the user
+        $user = User::where($loginType, $loginData['login'])->firstOrFail();
+        
+        // Create token
         $token = $user->createToken('auth_token')->plainTextToken;
     
         return response()->json([
@@ -69,8 +82,7 @@ class AuthController extends Controller
                 'token_type' => 'Bearer',
             ],
         ], 200);
-    }
-    
+    }  
 
     public function logout(Request $request)
     {
@@ -78,6 +90,67 @@ class AuthController extends Controller
     
         return response()->json([
             'message' => 'Successfully logged out',
+            'status' => true,
+            'data' => null,
+        ], 200);
+    }
+
+    // Request a password reset and send a reset code to the email
+    public function requestPasswordReset(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+    
+        // Find the user by email
+        $user = User::where('email', $request->email)->first();
+    
+        // Generate a random 6-digit reset code
+        $resetCode = Str::random(6);
+        $user->reset_code = $resetCode;
+        $user->reset_code_expires_at = Carbon::now()->addMinutes(30); // Reset code valid for 30 minutes
+        $user->save();
+    
+        // Instead of sending an email, return the reset code in the API response
+        return response()->json([
+            'message' => 'Reset code generated successfully.',
+            'status' => true,
+            'data' => [
+                'email' => $user->email,
+                'reset_code' => $resetCode, // Return reset code here
+            ],
+        ], 200);
+    }   
+
+    // Reset the password using the reset code
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'reset_code' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        // Find the user by email
+        $user = User::where('email', $request->email)->first();
+
+        // Validate reset code and expiry
+        if ($user->reset_code !== $request->reset_code || Carbon::now()->isAfter($user->reset_code_expires_at)) {
+            return response()->json([
+                'message' => 'Invalid or expired reset code.',
+                'status' => false,
+                'data' => null,
+            ], 400);
+        }
+
+        // Update password and clear reset code
+        $user->password = Hash::make($request->password);
+        $user->reset_code = null;
+        $user->reset_code_expires_at = null;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Password reset successfully.',
             'status' => true,
             'data' => null,
         ], 200);

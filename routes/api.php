@@ -17,6 +17,8 @@ use App\Http\Controllers\Api\AuthController;
 
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
+Route::post('password/request-reset', [AuthController::class, 'requestPasswordReset']);
+Route::post('password/reset', [AuthController::class, 'resetPassword']);
 
 // Protected Routes (Require authentication)
 Route::middleware('auth:sanctum')->group(function () {

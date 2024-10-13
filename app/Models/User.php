@@ -27,7 +27,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'phone',
+        'phone_number',
+        'reset_code',
+        'reset_code_expires_at',
     ];
 
     public function projects(): HasMany
