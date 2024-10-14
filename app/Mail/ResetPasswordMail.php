@@ -28,8 +28,8 @@ class ResetPasswordMail extends Mailable
      */
     public function build()
     {
-        return $this->subject('Your Password Reset Code')
+        return $this->subject('Mazaya - Your Password Reset Request')
                     ->text('emails.reset_password_plain') // Use raw text for the email
                     ->with(['resetCode' => $this->resetCode]);
-    }
+    }    
 }
