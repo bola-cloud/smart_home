@@ -17,20 +17,20 @@ use Illuminate\Support\Facades\Mail;
 */
 
 
-Route::get('/send-test-email', function () {
-    Mail::raw('This is a test email', function ($message) {
-        $message->to('bola.ishak41@gmail.com')
-                ->subject('Test Email');
-    });
+// Route::get('/send-test-email', function () {
+//     Mail::raw('This is a test email', function ($message) {
+//         $message->to('bola.ishak41@gmail.com')
+//                 ->subject('Test Email');
+//     });
 
-    return 'Test email sent!';
-});
+//     return 'Test email sent!';
+// });
 
 
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('password/request-reset', [AuthController::class, 'requestPasswordReset']);
-Route::post('password/reset', [AuthController::class, 'resetPassword']);
+Route::post('new-paswword', [AuthController::class, 'resetPassword']);
 
 // Protected Routes (Require authentication)
 Route::middleware('auth:sanctum')->group(function () {

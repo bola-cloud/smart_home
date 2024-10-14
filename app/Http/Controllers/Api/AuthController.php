@@ -136,7 +136,6 @@ class AuthController extends Controller
             'reset_code' => 'required|string',
             'password' => 'required|string|min:8|confirmed',
         ]);
-
         // Find the user by email
         $user = User::where('email', $request->email)->first();
 
