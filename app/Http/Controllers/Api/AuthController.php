@@ -105,19 +105,25 @@ class AuthController extends Controller
         // Find the user by email
         $user = User::where('email', $request->email)->first();
     
-        // Generate a random 6-digit reset code
+        // Generate a random 6-character reset code
         $resetCode = Str::random(6);
         $user->reset_code = $resetCode;
         $user->reset_code_expires_at = Carbon::now()->addMinutes(30); // Reset code valid for 30 minutes
         $user->save();
     
-        // Instead of sending an email, return the reset code in the API response
+        // Send the reset code to the user via email
+        Mail::raw("Your password reset code is: $resetCode", function ($message) use ($user) {
+            $message->to($user->email)
+                    ->subject('Password Reset Code');
+        });
+    
+        // Return the reset code in the API response (for testing or development purposes)
         return response()->json([
-            'message' => 'Reset code generated successfully.',
+            'message' => 'Reset code sent to your email address.',
             'status' => true,
             'data' => [
                 'email' => $user->email,
-                'reset_code' => $resetCode, // Return reset code here
+                'reset_code' => $resetCode, // You can remove this in production for security
             ],
         ], 200);
     }   

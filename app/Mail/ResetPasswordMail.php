@@ -13,44 +13,23 @@ class ResetPasswordMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $resetCode; // Property to store the reset code
+    public $resetCode; // Store the reset code
 
     /**
      * Create a new message instance.
      */
     public function __construct($resetCode)
     {
-        $this->resetCode = $resetCode; // Assign the reset code
+        $this->resetCode = $resetCode;
     }
 
     /**
-     * Get the message envelope.
+     * Build the message.
      */
-    public function envelope(): Envelope
+    public function build()
     {
-        return new Envelope(
-            subject: 'Your Password Reset Code', // Set the email subject
-        );
-    }
-
-    /**
-     * Get the message content definition.
-     */
-    public function content(): Content
-    {
-        return new Content(
-            view: 'emails.reset_password', // Use the email view template
-            with: ['resetCode' => $this->resetCode], // Pass the reset code to the view
-        );
-    }
-
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
-    public function attachments(): array
-    {
-        return [];
+        return $this->subject('Your Password Reset Code')
+                    ->text('emails.reset_password_plain') // Use raw text for the email
+                    ->with(['resetCode' => $this->resetCode]);
     }
 }
