@@ -11,15 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('components', function (Blueprint $table) {
-            $table->id(); // component_id (Primary Key)
-            $table->foreignId('device_id')->constrained()->onDelete('cascade'); // Foreign Key referencing devices
+        Schema::create('device_types', function (Blueprint $table) {
+            $table->id(); // This will create an unsigned big integer (id)
             $table->string('name');
-            $table->integer('quantity')->default(0);
-            $table->string('type');
-            $table->integer('order');
             $table->timestamps();
         });
+        
     }
 
     /**
@@ -27,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('components');
+        Schema::dropIfExists('device_types');
     }
 };

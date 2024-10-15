@@ -11,31 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('devices', function (Blueprint $table) {
+        Schema::create('channels', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('quantity')->default(0);
-            $table->boolean('activation')->default(0);
-            $table->timestamp('last_updated')->nullable();
-            $table->timestamps();
-    
-            $table->unsignedBigInteger('section_id')->nullable();
-            $table->foreign('section_id')->references('id')->on('sections')
-                ->onUpdate('CASCADE')->onDelete('SET NULL');
-    
+            $table->integer('order')->default(0); // Add the order column with a default value
             // Ensure this is unsignedBigInteger to match the referenced table
             $table->unsignedBigInteger('device_type_id')->nullable();
             $table->foreign('device_type_id')->references('id')->on('device_types')
                 ->onUpdate('CASCADE')->onDelete('SET NULL');
+            $table->timestamps();
         });
     }
-    
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('devices');
+        Schema::dropIfExists('channels');
     }
 };

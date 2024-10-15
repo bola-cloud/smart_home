@@ -4,9 +4,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
-    <title>Screen Video</title>
-    <link rel="apple-touch-icon" href="{{asset("app-assets/images/ico/apple-icon-120.png")}}">
-    <link rel="shortcut icon" type="image/x-icon" href="{{asset("app-assets/images/ico/favicon.ico")}}">
+    <title>Mazaya</title>
+    <link rel="apple-touch-icon" href="{{asset("app-assets/images/logo/mazaya-logo-dark.png")}}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{asset("app-assets/images/logo/mazaya-logo-dark.png")}}">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Quicksand:300,400,500,700"
     rel="stylesheet">
     <link href="https://maxcdn.icons8.com/fonts/line-awesome/1.1/css/line-awesome.min.css"
@@ -58,6 +58,9 @@
     @stack('css')
   	@livewireStyles
     <style>
+        a{
+            text-decoration: none !important;
+        }
         @media (max-width: 720px) {
             .card.p-5 {
                 padding: 0px !important;
@@ -75,7 +78,7 @@
                 <ul class="nav navbar-nav flex-row">
                     <li class="nav-item mobile-menu d-md-none mr-auto"><a class="nav-link nav-menu-main menu-toggle hidden-xs" href="#"><i class="ft-menu font-large-1"></i></a></li>
                     <li class="nav-item d-flex align-items-center">
-                        <a class="navbar-brand p-0" href="{{route('dashboard')}}">
+                        <a class="navbar-brand p-0" href="{{route('admin.dashboard')}}">
                           <img class="brand-logo" alt="modern admin logo" src="{{asset('app-assets/images/logo/mazaya-logo-dark.png')}}"
                           style="height: 80px; width: 90px;">
                           <h3 class="brand-text">Mazaya </h3>
@@ -138,13 +141,80 @@
             <div class="main-menu menu-static menu-light menu-accordion menu-shadow" data-scroll-to-active="true">
                 <div class="main-menu-content">
                     <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
-
-                        <li class="nav-item {{ Route::currentRouteName() == 'dashboard' ? 'active' : '' }}">
-                            <a href="{{ route('dashboard') }}">
+                        <li class="nav-item {{ Route::currentRouteName() == 'admin.dashboard' ? 'active' : '' }}">
+                            <a href="{{ route('admin.dashboard') }}">
                                 <i class="la la-share-alt"></i>
                                 <span class="menu-title" data-i18n="nav.morris_charts.main">{{ __('lang.dashboard') }}</span>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="">
+                                <i class="la la-tv"></i> <!-- Changed icon to represent TVs -->
+                                <span class="menu-title" data-i18n="nav.dash.main">{{ __('lang.users_administration') }}</span>
+                            </a>
+                            <ul class="menu-content">
+                                <li class="{{ Route::currentRouteName() == 'users.index' ? 'active' : '' }}">
+                                    <a class="menu-item" href="{{ route('users.index') }}" data-i18n="nav.dash.crypto">{{ __('lang.index') }}</a>
+                                </li>
+                                <li class="{{ Route::currentRouteName() == 'users.create' ? 'active' : '' }}">
+                                    <a class="menu-item" href="{{ route('users.create') }}" data-i18n="nav.dash.sales">{{ __('lang.create') }}</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a href="">
+                                <i class="la la-tv"></i> <!-- Changed icon to represent TVs -->
+                                <span class="menu-title" data-i18n="nav.dash.main">{{ __('lang.projects_administration') }}</span>
+                            </a>
+                            <ul class="menu-content">
+                                <li class="{{ Route::currentRouteName() == 'projects.index' ? 'active' : '' }}">
+                                    <a class="menu-item" href="{{ route('projects.index') }}" data-i18n="nav.dash.crypto">{{ __('lang.index') }}</a>
+                                </li>
+                                <li class="{{ Route::currentRouteName() == 'projects.create' ? 'active' : '' }}">
+                                    <a class="menu-item" href="{{ route('projects.create') }}" data-i18n="nav.dash.sales">{{ __('lang.create') }}</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a href="">
+                                <i class="la la-tv"></i> <!-- Changed icon to represent TVs -->
+                                <span class="menu-title" data-i18n="nav.dash.main">{{ __('lang.sections_administration') }}</span>
+                            </a>
+                            <ul class="menu-content">
+                                <li class="{{ Route::currentRouteName() == 'sections.index' ? 'active' : '' }}">
+                                    <a class="menu-item" href="{{ route('sections.index') }}" data-i18n="nav.dash.crypto">{{ __('lang.index') }}</a>
+                                </li>
+                                <li class="{{ Route::currentRouteName() == 'sections.create' ? 'active' : '' }}">
+                                    <a class="menu-item" href="{{ route('sections.create') }}" data-i18n="nav.dash.sales">{{ __('lang.create') }}</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a href="">
+                                <i class="la la-tv"></i> <!-- Changed icon to represent TVs -->
+                                <span class="menu-title" data-i18n="nav.dash.main">{{ __('lang.device_types_administration') }}</span>
+                            </a>
+                            <ul class="menu-content">
+                                <li class="{{ Route::currentRouteName() == 'device_types.index' ? 'active' : '' }}">
+                                    <a class="menu-item" href="{{ route('device_types.index') }}" data-i18n="nav.dash.crypto">{{ __('lang.index') }}</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a href="">
+                                <i class="la la-tv"></i> <!-- Changed icon to represent TVs -->
+                                <span class="menu-title" data-i18n="nav.dash.main">{{ __('lang.devices_administration') }}</span>
+                            </a>
+                            <ul class="menu-content">
+                                <li class="{{ Route::currentRouteName() == 'devices.index' ? 'active' : '' }}">
+                                    <a class="menu-item" href="{{ route('devices.index') }}" data-i18n="nav.dash.crypto">{{ __('lang.index') }}</a>
+                                </li>
+                                <li class="{{ Route::currentRouteName() == 'devices.create' ? 'active' : '' }}">
+                                    <a class="menu-item" href="{{ route('devices.create') }}" data-i18n="nav.dash.sales">{{ __('lang.create') }}</a>
+                                </li>
+                            </ul>
+                        </li>
+                        
                     </ul>
                 </div>
             </div>
