@@ -217,6 +217,20 @@
                                 </li>
                             </ul>
                         </li>
+                        <li class="nav-item">
+                            <a href="">
+                                <i class="la la-tv"></i> <!-- Changed icon to represent TVs -->
+                                <span class="menu-title" data-i18n="nav.dash.main">{{ __('lang.blogs_administration') }}</span>
+                            </a>
+                            <ul class="menu-content">
+                                <li class="{{ Route::currentRouteName() == 'blogs.index' ? 'active' : '' }}">
+                                    <a class="menu-item" href="{{ route('blogs.index') }}" data-i18n="nav.dash.crypto">{{ __('lang.index') }}</a>
+                                </li>
+                                <li class="{{ Route::currentRouteName() == 'blogs.create' ? 'active' : '' }}">
+                                    <a class="menu-item" href="{{ route('blogs.create') }}" data-i18n="nav.dash.sales">{{ __('lang.create') }}</a>
+                                </li>
+                            </ul>
+                        </li>
                         
                     </ul>
                 </div>

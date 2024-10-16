@@ -198,4 +198,5 @@ return [
     'delete' => 'Delete',
     'no_blogs_found' => 'No blogs found',
     'success_message' => 'Blog successfully created/updated/deleted',
+    'blogs_administration'=>'Blogs Administration',
 ];

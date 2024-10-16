@@ -2,11 +2,12 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="card">
+    <div class="card p-3">
+        <div class="card-header d-flex justify-content-between">
+            <h1>{{ __('lang.blog_management') }}</h1>
+            <a href="{{ route('blogs.create') }}" class="btn btn-primary">{{ __('lang.create_blog') }}</a>    
+        </div>
 
-        <h1>{{ __('lang.blog_management') }}</h1>
-        <a href="{{ route('blogs.create') }}" class="btn btn-primary">{{ __('lang.create_blog') }}</a>
-        
         @if(session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif

@@ -199,4 +199,5 @@ return [
     'delete' => 'حذف',
     'no_blogs_found' => 'لم يتم العثور على مدونات',
     'success_message' => 'تم إنشاء / تحديث / حذف المدونة بنجاح',
+    'blogs_administration'=>'ادارة المدونات',
 ];
