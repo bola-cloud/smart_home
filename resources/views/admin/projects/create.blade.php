@@ -22,7 +22,7 @@
             <select name="user_id" class="form-control select2" style="width: 100%;" {{ app()->getLocale() == 'ar' ? 'dir=rtl' : '' }} required>
                 <option value="">{{ __('lang.select_user') }}</option>
                 @foreach($users as $user)
-                    <option value="{{ $user->id }}">{{ $user->name }}</option>
+                    <option value="{{ $user->id }}">{{ $user->name }} - {{ $user->phone_number }} </option>
                 @endforeach
             </select>
         </div>

@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('components', function (Blueprint $table) {
             $table->id(); // component_id (Primary Key)
-            $table->foreignId('device_id')->constrained()->onDelete('cascade'); // Foreign Key referencing devices
+            $table->unsignedBigInteger('device_id')->nullable();
+            $table->foreign('device_id')->references('id')->on('devices')
+                ->onUpdate('CASCADE')->onDelete('SET NULL');
             $table->string('name');
             $table->integer('quantity')->default(0);
             $table->string('type');

@@ -25,7 +25,15 @@
                             <td>{{ $device->name }}</td>
                             <td>{{ $device->deviceType->name }}</td> <!-- Reference device type -->
                             <td>{{ $device->activation ? __('lang.active') : __('lang.inactive') }}</td> <!-- Display activation status -->
-                            <td>{{ $device->last_updated ? $device->last_updated->format('Y-m-d H:i:s') : __('lang.not_available') }}</td>
+                            <td>
+                                @if ($device->last_updated && \Carbon\Carbon::hasFormat($device->last_updated, 'Y-m-d H:i:s'))
+                                    <span class="text-success">
+                                        {{ \Carbon\Carbon::parse($device->last_updated)->format('Y-m-d H:i:s') }}
+                                    </span>
+                                @else
+                                    <span class="text-danger">{{ __('lang.not_available') }}</span>
+                                @endif
+                            </td>                                                     
                             <td>{{ $device->section->name ?? __('lang.not_available') }}</td> <!-- Nullable section -->
                             <td>
                                 <a href="{{ route('devices.edit', $device) }}" class="btn btn-warning">{{ __('lang.edit') }}</a>

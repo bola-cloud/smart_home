@@ -92,7 +92,7 @@ return [
     'activation' => 'التفعيل',
     'active' => 'نشط',
     'inactive' => 'غير نشط',
-    'last_updated' => 'آخر تحديث',
+    'last_updated' => 'تاريخ التفعيل',
     'section' => 'القسم',
     'select_device_type' => 'اختر نوع الجهاز',
     'select_section' => 'اختر قسمًا',

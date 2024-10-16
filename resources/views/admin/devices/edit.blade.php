@@ -23,13 +23,13 @@
             </select>
         </div>
 
-        <div class="form-group">
+        {{-- <div class="form-group">
             <label for="activation">{{ __('lang.activation') }}</label>
             <select name="activation" class="form-control select2" style="width: 100%;" {{ app()->getLocale() == 'ar' ? 'dir=rtl' : '' }}>
                 <option value="1" {{ $device->activation ? 'selected' : '' }}>{{ __('lang.active') }}</option>
                 <option value="0" {{ !$device->activation ? 'selected' : '' }}>{{ __('lang.inactive') }}</option>
             </select>
-        </div>
+        </div> --}}
 
         <div class="form-group">
             <label for="section_id">{{ __('lang.assign_section') }}</label>

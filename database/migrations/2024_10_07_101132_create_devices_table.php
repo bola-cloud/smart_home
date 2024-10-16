@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->integer('quantity')->default(0);
             $table->boolean('activation')->default(0);
-            $table->timestamp('last_updated')->nullable();
+            $table->timestamp('last_updated')->nullable(); //date of activation
             $table->timestamps();
     
             $table->unsignedBigInteger('section_id')->nullable();

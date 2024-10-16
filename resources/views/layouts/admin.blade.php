@@ -198,6 +198,9 @@
                                 <li class="{{ Route::currentRouteName() == 'device_types.index' ? 'active' : '' }}">
                                     <a class="menu-item" href="{{ route('device_types.index') }}" data-i18n="nav.dash.crypto">{{ __('lang.index') }}</a>
                                 </li>
+                                <li class="{{ Route::currentRouteName() == 'device_types.create' ? 'active' : '' }}">
+                                    <a class="menu-item" href="{{ route('device_types.create') }}" data-i18n="nav.dash.crypto">{{ __('lang.create') }}</a>
+                                </li>
                             </ul>
                         </li>
                         <li class="nav-item">
