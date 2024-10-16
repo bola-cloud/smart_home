@@ -11,7 +11,7 @@ class Component extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['device_id', 'name', 'type','order','quantity'];
+    protected $fillable = ['device_id', 'name', 'type','order'];
 
     public function device(): BelongsTo
     {

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('devices', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('quantity')->default(0);
+            $table->string('serial')->unique()->nullable();
             $table->boolean('activation')->default(0);
             $table->timestamp('last_updated')->nullable(); //date of activation
             $table->timestamps();

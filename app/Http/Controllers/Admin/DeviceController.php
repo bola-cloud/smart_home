@@ -34,18 +34,32 @@ class DeviceController extends Controller
      */
     public function store(Request $request)
     {
-        // dd($request->all());
         $request->validate([
             'name' => 'required|string|max:255',
             'device_type_id' => 'required',
             'section_id' => 'nullable|exists:sections,id',
-            'activation'=>'boolean',
-            'status' => 'nullable|string',
+            'number_of_devices' => 'required|integer|min:1', // Validate the number of devices
         ]);
-
-        Device::create($request->all());
-
-        return redirect()->route('devices.index')->with('success', 'Device created successfully.');
+    
+        // Number of devices to create
+        $numberOfDevices = $request->input('number_of_devices');
+    
+        for ($i = 1; $i <= $numberOfDevices; $i++) {
+            // Create the device with incremented name
+            $device = Device::create([
+                'name' => $request->input('name') . ' ' . $i, // Append the number to the name
+                'device_type_id' => $request->input('device_type_id'),
+                'section_id' => $request->input('section_id'),
+                'activation' => $request->input('activation', false),
+            ]);
+    
+            // // Generate a unique serial number (based on the device ID)
+            // $device->update([
+            //     'serial' => $device->id . '-' . rand(1000000, 9999999), // Use device ID + random number for serial
+            // ]);
+        }
+    
+        return redirect()->route('devices.index')->with('success', 'Devices created successfully.');
     }
 
     /**
@@ -67,8 +81,6 @@ class DeviceController extends Controller
             'name' => 'required|string|max:255',
             'device_type_id' => 'required',
             'section_id' => 'nullable|exists:sections,id',
-            'activation'=>'boolean',
-            'status' => 'nullable|string',
         ]);
 
         $device->update($request->all());

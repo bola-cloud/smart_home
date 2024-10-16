@@ -4,75 +4,80 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Channel;
+use App\Models\Component;
+use App\Models\Device;
+use App\Models\DeviceType;
 
 class ComponentController extends Controller
 {
-    /**
-     * Display a listing of the components.
-     */
-    public function index()
-    {
-        $components = Component::with('device')->get(); // Get all components with their associated devices
-        return view('admin.components.index', compact('components'));
-    }
-
-    /**
-     * Show the form for creating a new component.
-     */
-    public function create()
-    {
-        $devices = Device::all(); // Get all devices to assign a component
-        return view('admin.components.create', compact('devices'));
-    }
-
-    /**
-     * Store a newly created component in storage.
-     */
-    public function store(Request $request)
+    public function storeForDevice(Request $request, Device $device)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'type' => 'required|string|max:255',
-            'device_id' => 'required|exists:devices,id',
+            'components.*.name' => 'required|string|max:255',
         ]);
-
-        Component::create($request->all());
-
-        return redirect()->route('admin.components.index')->with('success', 'Component created successfully.');
+    
+        // Loop through each component and create it with the same order as the corresponding channel
+        foreach ($request->input('components') as $channelId => $componentData) {
+            Component::create([
+                'name' => $componentData['name'],
+                'device_id' => $device->id,
+                'order' => $componentData['order'], // Use the channel's order for the component
+                'serial' => $device->id . '-' . rand(100000, 999999), // Generate unique serial for each component
+            ]);
+        }
+    
+        return redirect()->route('devices.index')->with('success', __('lang.components_added'));
     }
 
-    /**
-     * Show the form for editing the specified component.
-     */
-    public function edit(Component $component)
+    public function updateOrderAndEdit(Request $request, $deviceId)
     {
-        $devices = Device::all(); // Get all devices to assign a component
-        return view('admin.components.edit', compact('component', 'devices'));
-    }
+        $componentsData = $request->input('components');
+        
+        foreach ($componentsData as $componentData) {
+            $component = Component::find($componentData['id']);
+            if ($component) {
+                $component->update([
+                    'name' => $componentData['name'],
+                    'order' => $componentData['order'],
+                ]);
+            }
+        }
+    
+        return response()->json(['success' => true]);  // Ensure JSON response
+    }    
 
-    /**
-     * Update the specified component in storage.
-     */
     public function update(Request $request, Component $component)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|string|max:255',
-            'device_id' => 'required|exists:devices,id',
+            'order' => 'required|integer',
         ]);
 
         $component->update($request->all());
 
-        return redirect()->route('admin.components.index')->with('success', 'Component updated successfully.');
+        return redirect()->route('components.index_for_device', $component->device_id)
+                        ->with('success', __('Component updated successfully.'));
     }
 
-    /**
-     * Remove the specified component from storage.
-     */
+    public function addComponents($deviceId)
+    {
+        $device = Device::with('deviceType.channels')->findOrFail($deviceId);
+        return view('admin.components.create_for_device', compact('device'));
+    }
+
+    public function showComponents($deviceId)
+    {
+        $device = Device::with('components')->findOrFail($deviceId);
+        return view('admin.components.index_for_device', compact('device'));
+    }
     public function destroy(Component $component)
     {
+        dd($component);
         $component->delete();
 
-        return redirect()->route('admin.components.index')->with('success', 'Component deleted successfully.');
+        return redirect()->route('components.index_for_device', $component->device_id)
+                        ->with('success', __('Component deleted successfully.'));
     }
+
 }
