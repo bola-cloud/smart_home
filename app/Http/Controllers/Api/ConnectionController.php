@@ -16,6 +16,7 @@ class ConnectionController extends Controller
         // Validate the request
         $validator = Validator::make($request->all(), [
             'section_id' => 'required',
+            'device_type_id' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -30,6 +31,7 @@ class ConnectionController extends Controller
 
         // Get the device that hasn't been activated and has no last_updated value
         $device = Device::where('activation', 0)
+                        ->where('device_type_id')
                         ->whereNull('last_updated')
                         ->first();
 
