@@ -13,6 +13,7 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+Route::get('/mqtt/listen', [\App\Http\Controllers\MqttController::class, 'startListening']);
 
 Route::group([
     'prefix' => LaravelLocalization::setLocale(),

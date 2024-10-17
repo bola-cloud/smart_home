@@ -11,11 +11,16 @@ class Device extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['section_id', 'name', 'activation', 'last_updated','device_type_id','serial'];
+    protected $fillable = ['section_id', 'name', 'activation', 'last_updated','device_type_id','serial','user_id'];
 
     public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class,'user_id');
     }
 
     public function components(): HasMany

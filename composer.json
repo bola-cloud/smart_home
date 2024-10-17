@@ -13,6 +13,7 @@
         "laravel/tinker": "^2.8",
         "livewire/livewire": "^3.0",
         "mcamara/laravel-localization": "^2.0",
+        "php-mqtt/client": "^2.1",
         "webklex/laravel-imap": "^5.3"
     },
     "require-dev": {

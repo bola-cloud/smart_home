@@ -27,6 +27,10 @@ return new class extends Migration
             $table->unsignedBigInteger('device_type_id')->nullable();
             $table->foreign('device_type_id')->references('id')->on('device_types')
                 ->onUpdate('CASCADE')->onDelete('SET NULL');
+
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreign('user_id')->references('id')->on('users')
+                ->onUpdate('CASCADE')->onDelete('SET NULL');
         });
     }
     

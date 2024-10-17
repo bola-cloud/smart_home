@@ -40,6 +40,11 @@ class User extends Authenticatable
         return $this->hasMany(Project::class,'user_id');
     }
 
+    public function devices(): HasMany
+    {
+        return $this->hasMany(Device::class,'user_id');
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
