@@ -166,8 +166,7 @@ class AuthController extends Controller
             'reset_code' => 'required|string',
             'password' => 'required|string|min:8|confirmed',
         ]);
-        // Validate the incoming request (this automatically throws an exception if validation fails)
-    
+            
         // Check if the email exists in the users table
         $user = User::where('email', $request->email)->first();
     
