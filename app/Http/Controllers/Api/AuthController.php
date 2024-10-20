@@ -160,12 +160,13 @@ class AuthController extends Controller
     // Reset the password using the reset code
     public function resetPassword(Request $request)
     {
-        // Validate the incoming request (this automatically throws an exception if validation fails)
-        $request->validate([
+
+        $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
             'reset_code' => 'required|string',
             'password' => 'required|string|min:8|confirmed',
         ]);
+        // Validate the incoming request (this automatically throws an exception if validation fails)
     
         // Check if the email exists in the users table
         $user = User::where('email', $request->email)->first();
