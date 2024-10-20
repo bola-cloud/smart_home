@@ -50,7 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // User projects route
     Route::get('/user/projects', [ProjectController::class, 'userProjects']);  // No need for additional middleware here
-    
+    Route::get('/projects/sections', [ProjectController::class, 'getProjectSections']);
     // Logout route
     Route::post('/logout', [AuthController::class, 'logout']);
 });

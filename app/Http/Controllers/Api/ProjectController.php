@@ -28,5 +28,31 @@ class ProjectController extends Controller
             'data' => $projects,
         ]);
     }
+
+    public function getProjectSections(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'project_id' => 'required|numeric',
+        ]);
+        // Find the project by its ID
+        $project = Project::find($projectId);
+
+        // Check if the project exists
+        if (!$project) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Project not found',
+            ], 404);
+        }
+
+        // Get the sections related to the project
+        $sections = $project->sections;
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Sections retrieved successfully',
+            'data' => $sections,
+        ], 200);
+    }
     
 }
