@@ -32,6 +32,7 @@ class ProjectController extends Controller
 
     public function getProjectSections(Request $request)
     {
+        dd($request->project_id);
         $validator = Validator::make($request->all(), [
             'project_id' => 'required|numeric',
         ]);
