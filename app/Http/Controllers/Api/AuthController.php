@@ -141,10 +141,11 @@ class AuthController extends Controller
     
             ---
     
-            Mazaya | www.mazaya-aec.com | support@mazaya-aec.com", function ($message) use ($user) {
-            $message->to($user->email)
-                    ->from('support@mazaya-aec.com', 'Mazaya Smart Home')  // Set the sender email and name here
-                    ->subject('Mazaya - Your Password Reset Request');
+            Mazaya | www.mazaya-aec.com | info@mazaya-aec.com", function ($message) use ($user) {
+                $message->to($user->email)
+                ->from('info@mazaya-aec.com', 'Mazaya Smart Home')  // Authenticated email
+                ->replyTo('support@mazaya-aec.com', 'Mazaya Support')  // The reply-to email address
+                ->subject('Mazaya - Your Password Reset Request');        
         });
     
         // Return the reset code in the API response (for testing or development purposes)
