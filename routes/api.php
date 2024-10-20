@@ -7,7 +7,7 @@ use App\Http\Controllers\Api\ConnectionController;
 use App\Http\Controllers\Api\BlogController;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\Api\MqttController;
-
+use App\Http\Controllers\Api\ProjectController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::post('/mobile/connection', [ConnectionController::class, 'connectMobile']);
     Route::get('/blogs', [BlogController::class, 'index']);
+    Route::get('/user/projects', [ProjectController::class, 'userProjects'])->middleware('auth');
 
     // Logout route
     Route::post('logout', [AuthController::class, 'logout']);

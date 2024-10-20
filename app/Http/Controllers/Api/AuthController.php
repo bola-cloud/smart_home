@@ -209,6 +209,4 @@ class AuthController extends Controller
             'data' => null,
         ], 200);
     }
-    
-    
 }
