@@ -102,7 +102,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'The email field is required and must be a valid email address.',
@@ -110,43 +110,43 @@ class AuthController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-
+    
         // Check if the email exists in the users table
         $user = User::where('email', $request->email)->first();
-
+    
         if (!$user) {
             return response()->json([
                 'message' => 'The email address does not exist in our records.',
                 'status' => false,
             ], 404);
         }
-
+    
         // Generate a random 6-character reset code
         $resetCode = Str::random(6);
         $user->reset_code = $resetCode;
-        $user->reset_code_expires_at = Carbon::now()->addMinutes(10); // Reset code valid for 10 minutes
+        $user->reset_code_expires_at = Carbon::now()->addMinutes(10); // Reset code valid for 30 minutes
         $user->save();
-
+    
         // Send the reset code to the user via email with a professional format
         Mail::raw("Hello,
-
+    
             You have requested a password reset for your Mazaya account. Please use the following code to reset your password:
-
+    
             Reset Code: $resetCode
-
+    
             This code will expire in 30 minutes. If you did not request a password reset, please contact our support team immediately at support@mazaya-aec.com.
-
+    
             Thank you,
             Mazaya Team
-
+    
             ---
-
+    
             Mazaya | www.mazaya-aec.com | support@mazaya-aec.com", function ($message) use ($user) {
             $message->to($user->email)
                     ->from('support@mazaya-aec.com', 'Mazaya Smart Home')  // Set the sender email and name here
                     ->subject('Mazaya - Your Password Reset Request');
         });
-
+    
         // Return the reset code in the API response (for testing or development purposes)
         return response()->json([
             'message' => 'Reset code sent to your email address.',
@@ -156,8 +156,7 @@ class AuthController extends Controller
                 'reset_code' => $resetCode, // You can remove this in production for security
             ],
         ], 200);
-    }
-      
+    }       
 
     // Reset the password using the reset code
     public function resetPassword(Request $request)
