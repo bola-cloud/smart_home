@@ -160,14 +160,25 @@ class AuthController extends Controller
     // Reset the password using the reset code
     public function resetPassword(Request $request)
     {
+        // Validate the incoming request
         $request->validate([
             'email' => 'required|email|exists:users,email',
             'reset_code' => 'required|string',
             'password' => 'required|string|min:8|confirmed',
         ]);
+    
         // Find the user by email
         $user = User::where('email', $request->email)->first();
-
+    
+        // Check if the reset code exists and was sent
+        if (is_null($user->reset_code) || is_null($user->reset_code_expires_at)) {
+            return response()->json([
+                'message' => 'No reset code has been sent to this email address.',
+                'status' => false,
+                'data' => null,
+            ], 400);
+        }
+    
         // Validate reset code and expiry
         if ($user->reset_code !== $request->reset_code || Carbon::now()->isAfter($user->reset_code_expires_at)) {
             return response()->json([
@@ -176,17 +187,18 @@ class AuthController extends Controller
                 'data' => null,
             ], 400);
         }
-
+    
         // Update password and clear reset code
         $user->password = Hash::make($request->password);
         $user->reset_code = null;
         $user->reset_code_expires_at = null;
         $user->save();
-
+    
         return response()->json([
             'message' => 'Password reset successfully.',
             'status' => true,
             'data' => null,
         ], 200);
     }
+    
 }
