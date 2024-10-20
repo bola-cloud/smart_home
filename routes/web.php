@@ -24,6 +24,7 @@ Route::group([
         'auth:sanctum',
         config('jetstream.auth_session'),
         'verified',
+        'admin.category'  // Middleware to restrict access to admin users
     ]
 ], function () {
     Route::get('/', [\App\Http\Controllers\Admin\Dashboard::class, 'index'])->name('admin.dashboard');
