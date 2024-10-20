@@ -160,19 +160,30 @@ class AuthController extends Controller
     // Reset the password using the reset code
     public function resetPassword(Request $request)
     {
-        // Force the request to expect JSON (if not already done by the client)
-        if ($request->expectsJson()) {
-            // Custom validation to handle non-existent email gracefully
-            $request->validate([
-                'email' => 'required|email|exists:users,email',
-                'reset_code' => 'required|string',
-                'password' => 'required|string|min:8|confirmed',
-            ]);
+        // Validate the incoming request
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'reset_code' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+    
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'The email field is required and must be a valid email address.',
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
         }
     
-        // Find the user by email
+        // Check if the email exists in the users table
         $user = User::where('email', $request->email)->first();
     
+        if (!$user) {
+            return response()->json([
+                'message' => 'The email address does not exist in our records.',
+                'status' => false,
+            ], 404);
+        }
         // Check if the reset code exists and was sent
         if (is_null($user->reset_code) || is_null($user->reset_code_expires_at)) {
             return response()->json([
@@ -202,5 +213,6 @@ class AuthController extends Controller
             'status' => true,
             'data' => null,
         ], 200);
-    }   
+    }
+    
 }
