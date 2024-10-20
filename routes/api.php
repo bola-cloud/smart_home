@@ -33,7 +33,7 @@ use App\Http\Controllers\Api\MqttController;
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('password/request-reset', [AuthController::class, 'requestPasswordReset']);
-Route::post('new-paswword', [AuthController::class, 'resetPassword']);
+Route::post('new-paswword', [AuthController::class, 'resetPassword'])->middleware('api');
 
 Route::post('/publish-device', [MqttController::class, 'publishToDevice']);
 
