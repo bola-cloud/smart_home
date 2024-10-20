@@ -36,7 +36,7 @@ class ProjectController extends Controller
             'project_id' => 'required|numeric',
         ]);
         // Find the project by its ID
-        $project = Project::find($projectId);
+        $project = Project::find($request->project_id);
 
         // Check if the project exists
         if (!$project) {
