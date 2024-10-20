@@ -98,12 +98,28 @@ class AuthController extends Controller
     // Request a password reset and send a reset code to the email
     public function requestPasswordReset(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email|exists:users,email',
+        // Custom validation to return a more descriptive error if email doesn't exist
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
         ]);
     
-        // Find the user by email
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'The email field is required and must be a valid email address.',
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+    
+        // Check if the email exists in the users table
         $user = User::where('email', $request->email)->first();
+    
+        if (!$user) {
+            return response()->json([
+                'message' => 'The email address does not exist in our records.',
+                'status' => false,
+            ], 404);
+        }
     
         // Generate a random 6-character reset code
         $resetCode = Str::random(6);
@@ -111,20 +127,20 @@ class AuthController extends Controller
         $user->reset_code_expires_at = Carbon::now()->addMinutes(30); // Reset code valid for 30 minutes
         $user->save();
     
-        // Send the reset code to the user via email with a more professional format
+        // Send the reset code to the user via email with a professional format
         Mail::raw("Hello,
-
+    
             You have requested a password reset for your Mazaya account. Please use the following code to reset your password:
-
+    
             Reset Code: $resetCode
-
+    
             This code will expire in 30 minutes. If you did not request a password reset, please contact our support team immediately at support@mazaya-aec.com.
-
+    
             Thank you,
             Mazaya Team
-
+    
             ---
-
+    
             Mazaya | www.mazaya-aec.com | support@mazaya-aec.com", function ($message) use ($user) {
             $message->to($user->email)
                     ->subject('Mazaya - Your Password Reset Request');
@@ -139,7 +155,7 @@ class AuthController extends Controller
                 'reset_code' => $resetCode, // You can remove this in production for security
             ],
         ], 200);
-    }   
+    }       
 
     // Reset the password using the reset code
     public function resetPassword(Request $request)
