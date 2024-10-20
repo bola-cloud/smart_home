@@ -14,6 +14,9 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 |
 */
 Route::get('/mqtt/listen', [\App\Http\Controllers\MqttController::class, 'startListening']);
+Route::get('/error/not-admin', function () {
+    return view('errors_not_admin');
+})->name('error.not_admin');
 
 Route::group([
     'prefix' => LaravelLocalization::setLocale(),

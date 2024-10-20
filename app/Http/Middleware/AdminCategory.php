@@ -22,6 +22,6 @@ class AdminCategory
         }
 
         // Optionally, redirect or return an error if the user is not an admin
-        return redirect('/')->with('error', 'You do not have access to this section.');
+        return redirect()->route('error.not_admin');
     }
 }
