@@ -124,7 +124,7 @@ class AuthController extends Controller
         // Generate a random 6-character reset code
         $resetCode = Str::random(6);
         $user->reset_code = $resetCode;
-        $user->reset_code_expires_at = Carbon::now()->addMinutes(30); // Reset code valid for 30 minutes
+        $user->reset_code_expires_at = Carbon::now()->addMinutes(10); // Reset code valid for 30 minutes
         $user->save();
     
         // Send the reset code to the user via email with a professional format
