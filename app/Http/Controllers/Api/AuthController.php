@@ -160,12 +160,15 @@ class AuthController extends Controller
     // Reset the password using the reset code
     public function resetPassword(Request $request)
     {
-        // Validate the incoming request
-        $request->validate([
-            'email' => 'required|email|exists:users,email',
-            'reset_code' => 'required|string',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
+        // Force the request to expect JSON (if not already done by the client)
+        if ($request->expectsJson()) {
+            // Custom validation to handle non-existent email gracefully
+            $request->validate([
+                'email' => 'required|email|exists:users,email',
+                'reset_code' => 'required|string',
+                'password' => 'required|string|min:8|confirmed',
+            ]);
+        }
     
         // Find the user by email
         $user = User::where('email', $request->email)->first();
@@ -199,6 +202,5 @@ class AuthController extends Controller
             'status' => true,
             'data' => null,
         ], 200);
-    }
-    
+    }   
 }
