@@ -24,7 +24,7 @@ class MembersTableSeeder extends Seeder
                 'email' => 'johndoe' . rand(1, 1000) . '@example.com',
                 'phone_number' => '+1' . rand(1000000000, 9999999999),
                 'password' => Hash::make('password123'),
-                'devices' => json_encode(['device1', 'device2']),
+                'devices' => json_encode(['3', '4']),
                 'reset_code' => Str::random(6),
                 'reset_code_expires_at' => Carbon::now()->addHour(),
                 'created_at' => Carbon::now(),
