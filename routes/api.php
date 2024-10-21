@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\BlogController;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\Api\MqttController;
 use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\SectionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -52,6 +53,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // User projects route
     Route::get('/user/projects', [ProjectController::class, 'userProjects']);  // No need for additional middleware here
     Route::get('/projects/sections', [ProjectController::class, 'getProjectSections']);
+    Route::post('/projects', [ProjectController::class, 'store']);
+
+    // Create a section for a specific project
+    Route::post('/projects/{project}/sections', [SectionController::class, 'store']);
     // Logout route
     Route::post('/logout', [AuthController::class, 'logout']);
 });

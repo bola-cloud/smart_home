@@ -55,5 +55,32 @@ class ProjectController extends Controller
             'data' => $sections,
         ], 200);
     }
+
+    public function store(Request $request)
+    {
+        // Validate the request
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        // Get the authenticated user
+        $user = $request->user();
+
+        // Create a new project associated with the authenticated user
+        $project = Project::create([
+            'user_id' => $user->id,
+            'name' => $request->name,
+            'description' => $request->description,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Project created successfully',
+            'data' => $project,
+        ], 201);
+    }
+
+    
     
 }
