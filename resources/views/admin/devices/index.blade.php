@@ -24,7 +24,7 @@
                     @foreach($devices as $device)
                         <tr>
                             <td>{{ $device->name }}</td>
-                            <td>{{ $device->deviceType->name }}</td> <!-- Reference device type -->
+                            <td>{{ $device->deviceType ? $device->deviceType->name : "--"}}</td> <!-- Reference device type -->
                             <td>{{ $device->serial }}</td>
                             <td>{{ $device->activation ? __('lang.active') : __('lang.inactive') }}</td> <!-- Display activation status -->
                             <td>

@@ -45,6 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     // Connect Mobile route
     Route::post('/mobile/connection', [ConnectionController::class, 'connectMobile']);
+    Route::post('/confirm/activation', [ConnectionController::class, 'confirmActivation']);
     // Blogs route
     Route::get('/blogs', [BlogController::class, 'index']);
     
