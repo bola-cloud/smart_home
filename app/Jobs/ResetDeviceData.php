@@ -47,6 +47,7 @@ class ResetDeviceData implements ShouldQueue
             $this->device->update([
                 'section_id' => null,
                 'last_updated' => null,
+                'user_id' => null,
                 'activation' => false,
                 'serial' => null,
             ]);

@@ -40,6 +40,16 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        'api' => [
+            'driver' => 'sanctum',
+            'provider' => 'users',
+        ],
+
+        'member' => [
+            'driver' => 'sanctum',
+            'provider' => 'members',  // Using the 'members' provider for member authentication
+        ],
     ],
 
     /*
@@ -65,10 +75,10 @@ return [
             'model' => App\Models\User::class,
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'members' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Member::class,  // Member model provider
+        ],
     ],
 
     /*

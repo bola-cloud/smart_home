@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\Api\MqttController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\SectionController;
+use App\Http\Controllers\Api\MemberController;
+use App\Http\Controllers\Api\DeviceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,14 +35,22 @@ use App\Http\Controllers\Api\SectionController;
 
 
 Route::post('register', [AuthController::class, 'register']);
-Route::post('login', [AuthController::class, 'login']);
+Route::post('login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::post('password/request-reset', [AuthController::class, 'requestPasswordReset']);
 Route::post('new-paswword', [AuthController::class, 'resetPassword']);
+
+
+// Member login and logout routes
+Route::post('/member/login', [MemberController::class, 'login'])->middleware('throttle:5,1');
+Route::post('/member/logout', [MemberController::class, 'logout'])->middleware('auth:sanctum');
+Route::post('/member/password/request-reset', [MemberController::class, 'requestPasswordReset']);
+Route::post('/member/password/reset', [MemberController::class, 'resetPassword']);
+
 
 Route::post('/publish-device', [MqttController::class, 'publishToDevice']);
 
 // Protected Routes (Require authentication)
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
@@ -54,6 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/projects', [ProjectController::class, 'userProjects']);  // No need for additional middleware here
     Route::get('/projects/sections', [ProjectController::class, 'getProjectSections']);
     Route::post('/projects', [ProjectController::class, 'store']);
+    Route::get('/devices', [DeviceController::class, 'getDevices']);
 
     // Create a section for a specific project
     Route::post('/projects/{project}/sections', [SectionController::class, 'store']);

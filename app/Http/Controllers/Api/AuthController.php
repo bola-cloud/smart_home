@@ -53,6 +53,12 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        // Validate the request data
+        $request->validate([
+            'login' => 'required|string',    // Email or phone number
+            'password' => 'required|string', // Password
+        ]);
+    
         $loginData = $request->only('login', 'password');
     
         // Determine if the login field is an email or a phone number
@@ -67,10 +73,10 @@ class AuthController extends Controller
             ], 401);
         }
     
-        // Retrieve the user
+        // Retrieve the authenticated user
         $user = User::where($loginType, $loginData['login'])->firstOrFail();
-        
-        // Create token
+    
+        // Create a personal access token for the user (for API access)
         $token = $user->createToken('auth_token')->plainTextToken;
     
         return response()->json([
@@ -82,7 +88,7 @@ class AuthController extends Controller
                 'token_type' => 'Bearer',
             ],
         ], 200);
-    }  
+    }    
 
     public function logout(Request $request)
     {
