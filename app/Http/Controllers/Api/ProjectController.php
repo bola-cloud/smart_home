@@ -79,8 +79,5 @@ class ProjectController extends Controller
             'message' => 'Project created successfully',
             'data' => $project,
         ], 201);
-    }
-
-    
-    
+    }    
 }
