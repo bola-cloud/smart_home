@@ -11,7 +11,7 @@ class Component extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['device_id', 'name', 'type','order'];
+    protected $fillable = ['device_id', 'name', 'type','order','image_id'];
 
     public function device(): BelongsTo
     {
@@ -21,5 +21,10 @@ class Component extends Model
     public function actions(): HasMany
     {
         return $this->hasMany(Action::class);
+    }
+
+    public function image()
+    {
+        return $this->belongsTo(Image::class,'image_id');
     }
 }

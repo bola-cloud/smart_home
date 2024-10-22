@@ -8,4 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Image extends Model
 {
     use HasFactory;
+
+    protected $fillable = ['image'];
+
+    public function components()
+    {
+        return $this->hasMany(Component::class,'image_id');
+    }
 }
