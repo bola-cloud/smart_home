@@ -2,15 +2,15 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\Auth\User\AuthController;
 use App\Http\Controllers\Api\ConnectionController;
-use App\Http\Controllers\Api\BlogController;
+use App\Http\Controllers\Api\Blogs\BlogController;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\Api\MqttController;
-use App\Http\Controllers\Api\ProjectController;
-use App\Http\Controllers\Api\SectionController;
-use App\Http\Controllers\Api\MemberController;
-use App\Http\Controllers\Api\DeviceController;
+use App\Http\Controllers\Api\Projects\ProjectController;
+use App\Http\Controllers\Api\Sections\SectionController;
+use App\Http\Controllers\Api\Auth\Member\MemberController;
+use App\Http\Controllers\Api\Devices\DeviceController;
 
 /*
 |--------------------------------------------------------------------------
