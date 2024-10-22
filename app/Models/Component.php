@@ -22,9 +22,4 @@ class Component extends Model
     {
         return $this->hasMany(Action::class);
     }
-
-    public function image()
-    {
-        return $this->belongsTo(Image::class,'image_id');
-    }
 }

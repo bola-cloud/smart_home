@@ -11,8 +11,4 @@ class Image extends Model
 
     protected $fillable = ['path'];
 
-    public function components()
-    {
-        return $this->hasMany(Component::class,'image_id');
-    }
 }

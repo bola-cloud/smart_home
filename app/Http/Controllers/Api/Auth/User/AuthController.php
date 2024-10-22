@@ -24,14 +24,14 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'phone_number' => 'required',
         ]);
-    
+        
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation errors',
+                'message' => $validator->errors(),
                 'status' => false,
-                'data' => $validator->errors(),
             ], 422);
         }
+        
     
         // Create the user
         $user = User::create([
@@ -73,16 +73,23 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         // Validate the request data
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'login' => 'required|string',    // Email or phone number
             'password' => 'required|string', // Password
         ]);
-    
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => $validator->errors(),
+                'status' => false,
+            ], 422);
+        }
+        
         $loginData = $request->only('login', 'password');
-    
+        
         // Determine if the login field is an email or a phone number
         $loginType = filter_var($loginData['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'phone_number';
-    
+        
         // Attempt to log the user in using the email or phone number
         if (!auth()->attempt([$loginType => $loginData['login'], 'password' => $loginData['password']])) {
             return response()->json([
