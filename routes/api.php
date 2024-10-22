@@ -35,13 +35,13 @@ use App\Http\Controllers\Api\DeviceController;
 
 
 Route::post('register', [AuthController::class, 'register']);
-Route::post('login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+Route::post('login', [AuthController::class, 'login']);
 Route::post('password/request-reset', [AuthController::class, 'requestPasswordReset']);
 Route::post('new-paswword', [AuthController::class, 'resetPassword']);
 
 
 // Member login and logout routes
-Route::post('/member/login', [MemberController::class, 'login'])->middleware('throttle:5,1');
+Route::post('/member/login', [MemberController::class, 'login']);
 Route::post('/member/logout', [MemberController::class, 'logout'])->middleware('auth:sanctum');
 Route::post('/member/password/request-reset', [MemberController::class, 'requestPasswordReset']);
 Route::post('/member/password/reset', [MemberController::class, 'resetPassword']);
