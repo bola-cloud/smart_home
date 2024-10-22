@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Projects\ProjectController;
 use App\Http\Controllers\Api\Sections\SectionController;
 use App\Http\Controllers\Api\Auth\Member\MemberController;
 use App\Http\Controllers\Api\Devices\DeviceController;
+use App\Http\Controllers\Api\Component\ComponentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -65,7 +66,9 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     Route::get('/projects/sections', [ProjectController::class, 'getProjectSections']);
     Route::post('/projects', [ProjectController::class, 'store']);
     Route::get('/devices', [DeviceController::class, 'getDevices']);
-
+    // Component retrieval routes for both users and members
+    Route::get('/components', [ComponentController::class, 'getComponents']);
+    
     // Create a section for a specific project
     Route::post('/projects/{project}/sections', [SectionController::class, 'store']);
     // Logout route
