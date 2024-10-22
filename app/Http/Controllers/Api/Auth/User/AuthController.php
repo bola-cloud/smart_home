@@ -31,6 +31,7 @@ class AuthController extends Controller
             ], 422);
         }
     
+        // Create the user
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -38,10 +39,25 @@ class AuthController extends Controller
             'phone_number' => $request->phone_number,
         ]);
     
+        // Create a new project "Home 1" for the user
+        $project = Project::create([
+            'user_id' => $user->id,
+            'name' => 'Home 1',
+            'description' => 'Default project for user',
+        ]);
+    
+        // Create two sections "Livingroom" and "Bedroom" under the created project
+        $sections = [
+            ['project_id' => $project->id, 'name' => 'Livingroom', 'description' => 'Livingroom section'],
+            ['project_id' => $project->id, 'name' => 'Bedroom', 'description' => 'Bedroom section'],
+        ];
+        Section::insert($sections);
+    
+        // Generate a token for the newly registered user
         $token = $user->createToken('auth_token')->plainTextToken;
     
         return response()->json([
-            'message' => 'User registered successfully',
+            'message' => 'User registered successfully with a default project and sections',
             'status' => true,
             'data' => [
                 'user' => $user,
@@ -49,7 +65,8 @@ class AuthController extends Controller
                 'token_type' => 'Bearer',
             ],
         ], 201);
-    }    
+    }
+       
 
     public function login(Request $request)
     {
