@@ -22,7 +22,7 @@ class BlogController extends Controller
 
         // Return the blogs with the full image URL as JSON response
         return response()->json([
-            'status' => 'success',
+            'status' => true,
             'data' => $blogs
         ]);
     }
