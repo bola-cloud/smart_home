@@ -15,19 +15,32 @@ class CheckDeviceActivationJob implements ShouldQueue
 
     protected $deviceId;
 
+    /**
+     * Create a new job instance.
+     *
+     * @return void
+     */
     public function __construct($deviceId)
     {
         $this->deviceId = $deviceId;
     }
 
+    /**
+     * Execute the job.
+     *
+     * @return void
+     */
     public function handle()
     {
+        // Fetch the device by ID
         $device = Device::find($this->deviceId);
 
+        // If the device does not exist, return early
         if (!$device) {
             return;
         }
 
+        // If the device has not been activated within the 1-minute window, reset its details
         if ($device->activation == 0) {
             $device->update([
                 'section_id' => null,
