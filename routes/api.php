@@ -68,7 +68,9 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     Route::get('/devices', [DeviceController::class, 'getDevices']);
     // Component retrieval routes for both users and members
     Route::get('/components', [ComponentController::class, 'getComponents']);
-    
+
+    Route::post('/members/add', [AuthController::class, 'addMemberWithPermissions']);
+
     // Create a section for a specific project
     Route::post('/projects/{project}/sections', [SectionController::class, 'store']);
     // Logout route

@@ -241,4 +241,57 @@ class AuthController extends Controller
             'data' => null,
         ], 200);
     }
+
+    public function addMemberWithPermissions(Request $request)
+    {
+        // Validate the incoming request data
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:members',  // Ensure unique email for the member
+            'password' => 'required|string|min:8|confirmed',  // Password and confirmation
+            'phone_number' => 'required|string|max:20',
+            'devices' => 'required|array',  // This will hold the device and component permissions
+            'devices.*' => 'array',  // Each device should have components with permissions
+            'devices.*.*' => 'string|in:view,control',  // Permissions can be either 'view' or 'control'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Get the authenticated user (owner)
+        $user = Auth::user();
+
+        // Ensure only a user can add members
+        if (!$user || !($user instanceof \App\Models\User)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You do not have permission to add a member',
+            ], 403);
+        }
+
+        // Create the new member
+        $member = \App\Models\Member::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'phone_number' => $request->phone_number,
+            'devices' => $request->devices,  // Store the devices as JSON
+            'user_id' => $user->id,  // Save the user (owner) ID in the members table
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Member added successfully',
+            'data' => [
+                'member' => $member,
+                'devices' => $member->devices,  // Return devices with permissions
+            ],
+        ], 201);
+    }
+
 }
