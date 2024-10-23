@@ -264,7 +264,7 @@ class AuthController extends Controller
         }
 
         // Get the authenticated user (owner)
-        $user = Auth::user();
+        $user = auth()->user();
 
         // Ensure only a user can add members
         if (!$user || !($user instanceof \App\Models\User)) {
