@@ -35,9 +35,18 @@ class ProjectController extends Controller
             ], 200);
         } elseif ($authType === 'member') {
             // If authenticated as a member, retrieve projects based on devices
+            $memberDevices = $auth->devices;
     
-            // Assuming 'devices' is stored as an array or JSON in the members table
-            $deviceIds = $auth->devices;
+            if (!$memberDevices || !is_array($memberDevices)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No devices found for the member',
+                    'data' => null,
+                ], 404);
+            }
+    
+            // Extract device IDs
+            $deviceIds = array_keys($memberDevices);
     
             // Find all sections where these devices are located
             $sections = Section::whereHas('devices', function ($query) use ($deviceIds) {
@@ -55,7 +64,7 @@ class ProjectController extends Controller
         }
     
         return response()->json(['message' => 'Unknown authentication type'], 400);
-    }
+    }    
 
     public function getProjectSections(Request $request)
     {
@@ -106,9 +115,18 @@ class ProjectController extends Controller
             ], 200);
         } elseif ($authType === 'member') {
             // For members, get the sections related to the devices they have access to in this project
+            $memberDevices = $auth->devices;
     
-            // Get device IDs from the member's devices column
-            $deviceIds = $auth->devices;
+            if (!$memberDevices || !is_array($memberDevices)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No devices found for the member',
+                    'data' => null,
+                ], 404);
+            }
+    
+            // Extract device IDs
+            $deviceIds = array_keys($memberDevices);
     
             // Find sections in the given project where the member's devices are located
             $sections = Section::where('project_id', $project->id)
@@ -128,7 +146,7 @@ class ProjectController extends Controller
             'status' => false,
             'message' => 'Unknown authentication type',
         ], 400);
-    }
+    }    
 
     public function store(Request $request)
     {

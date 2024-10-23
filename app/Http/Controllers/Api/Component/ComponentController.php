@@ -47,19 +47,35 @@ class ComponentController extends Controller
         } elseif ($authType === 'member') {
             // If authenticated as a member, retrieve components for the devices in the member's devices column
     
-            // Get device IDs from the member's devices column (assuming it's stored as an array or JSON)
-            $deviceIds = $auth->devices;
+            // Get devices data from the member's devices column (stored as JSON or array)
+            $memberDevices = $auth->devices;
+    
+            if (!$memberDevices || !is_array($memberDevices)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No devices found for the member',
+                    'data' => null,
+                ], 404);
+            }
+    
+            // Extract device IDs
+            $deviceIds = array_keys($memberDevices);
     
             // Fetch components for those devices
             $components = Component::with(['device.section'])->whereIn('device_id', $deviceIds)->get();
     
-            // Embed section as part of the component object
-            $componentsWithSections = $components->map(function ($component) {
+            // Embed section and access level for each component
+            $componentsWithSections = $components->map(function ($component) use ($memberDevices) {
+                // Get access level for the component from the member's devices column
+                $deviceComponentsAccess = $memberDevices[$component->device_id] ?? [];
+                $accessibility = $deviceComponentsAccess[$component->id] ?? null;
+    
                 return [
                     'id' => $component->id,
                     'name' => $component->name,
                     'type' => $component->type,
                     'order' => $component->order,
+                    'access' => $accessibility,  // Add access level
                     'section' => [$component->device->section],  // Return section as an array
                     'created_at' => $component->created_at,
                     'updated_at' => $component->updated_at,
@@ -77,6 +93,5 @@ class ComponentController extends Controller
             'status' => false,
             'message' => 'Unknown authentication type',
         ], 400);
-    }     
-    
+    }    
 }

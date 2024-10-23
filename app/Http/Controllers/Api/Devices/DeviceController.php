@@ -49,15 +49,40 @@ class DeviceController extends Controller
     
         } elseif ($authType === 'member') {
             // If authenticated as a member, retrieve devices from the 'devices' column
+            $memberDevices = $auth->devices; // This is assumed to be stored as a JSON/array in the DB
     
-            // Get device IDs from the member's devices column (assuming it's stored as an array or JSON)
-            $deviceIds = $auth->devices;
+            if (!$memberDevices || !is_array($memberDevices)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No devices found for the member',
+                    'data' => null,
+                ], 404);
+            }
+    
+            // Extract device IDs
+            $deviceIds = array_keys($memberDevices);
     
             // Fetch devices based on the member's device IDs and load their related components
             $devices = Device::with('components')->whereIn('id', $deviceIds)->get();
     
-            // Add components to the response
-            $devicesWithComponents = $devices->map(function ($device) {
+            // Add components and accessability to the response
+            $devicesWithComponents = $devices->map(function ($device) use ($memberDevices) {
+                // Get component access levels for this device
+                $deviceComponentsAccess = $memberDevices[$device->id] ?? [];
+    
+                // Map components with access level
+                $componentsWithAccess = $device->components->map(function ($component) use ($deviceComponentsAccess) {
+                    return [
+                        'id' => $component->id,
+                        'name' => $component->name,
+                        'type' => $component->type,
+                        'order' => $component->order,
+                        'access' => $deviceComponentsAccess[$component->id] ?? null, // Add access (view/control)
+                        'created_at' => $component->created_at,
+                        'updated_at' => $component->updated_at,
+                    ];
+                });
+    
                 return [
                     'id' => $device->id,
                     'name' => $device->name,
@@ -66,7 +91,7 @@ class DeviceController extends Controller
                     'last_updated' => $device->last_updated,
                     'created_at' => $device->created_at,
                     'updated_at' => $device->updated_at,
-                    'components' => $device->components // Add the related components
+                    'components' => $componentsWithAccess // Add the related components with access level
                 ];
             });
     
@@ -81,6 +106,6 @@ class DeviceController extends Controller
             'status' => false,
             'message' => 'Unknown authentication type',
         ], 400);
-    }
+    }    
     
 }
