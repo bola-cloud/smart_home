@@ -11,7 +11,6 @@ use App\Models\Section;
 
 class ComponentController extends Controller
 {
-    // Return components for the authenticated user or member
     public function getComponents()
     {
         // Get the currently authenticated user or member
@@ -26,11 +25,16 @@ class ComponentController extends Controller
                 });
             })->get();
     
-            // Return section information directly with each component
+            // Embed section as part of the component object
             $componentsWithSections = $components->map(function ($component) {
                 return [
-                    'component' => $component->only(['id', 'name', 'type', 'order', 'created_at', 'updated_at']),
-                    'section' => $component->device->section,  // Extract section directly from the device
+                    'id' => $component->id,
+                    'name' => $component->name,
+                    'type' => $component->type,
+                    'order' => $component->order,
+                    'section' => [$component->device->section],  // Return section as an array
+                    'created_at' => $component->created_at,
+                    'updated_at' => $component->updated_at,
                 ];
             });
     
@@ -49,11 +53,16 @@ class ComponentController extends Controller
             // Fetch components for those devices
             $components = Component::with(['device.section'])->whereIn('device_id', $deviceIds)->get();
     
-            // Return section information directly with each component
+            // Embed section as part of the component object
             $componentsWithSections = $components->map(function ($component) {
                 return [
-                    'component' => $component->only(['id', 'name', 'type', 'order', 'created_at', 'updated_at']),
-                    'section' => $component->device->section,  // Extract section directly from the device
+                    'id' => $component->id,
+                    'name' => $component->name,
+                    'type' => $component->type,
+                    'order' => $component->order,
+                    'section' => [$component->device->section],  // Return section as an array
+                    'created_at' => $component->created_at,
+                    'updated_at' => $component->updated_at,
                 ];
             });
     
@@ -68,7 +77,6 @@ class ComponentController extends Controller
             'status' => false,
             'message' => 'Unknown authentication type',
         ], 400);
-    }
-    
+    }     
     
 }
