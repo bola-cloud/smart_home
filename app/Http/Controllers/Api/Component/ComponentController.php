@@ -26,11 +26,11 @@ class ComponentController extends Controller
                 });
             })->get();
     
-            // Add section information to each component
+            // Return section information directly with each component
             $componentsWithSections = $components->map(function ($component) {
                 return [
-                    'component' => $component,
-                    'section' => $component->device->section, // Get the section through the device relation
+                    'component' => $component->only(['id', 'name', 'type', 'order', 'created_at', 'updated_at']),
+                    'section' => $component->device->section,  // Extract section directly from the device
                 ];
             });
     
@@ -49,11 +49,11 @@ class ComponentController extends Controller
             // Fetch components for those devices
             $components = Component::with(['device.section'])->whereIn('device_id', $deviceIds)->get();
     
-            // Add section information to each component
+            // Return section information directly with each component
             $componentsWithSections = $components->map(function ($component) {
                 return [
-                    'component' => $component,
-                    'section' => $component->device->section, // Get the section through the device relation
+                    'component' => $component->only(['id', 'name', 'type', 'order', 'created_at', 'updated_at']),
+                    'section' => $component->device->section,  // Extract section directly from the device
                 ];
             });
     
@@ -69,5 +69,6 @@ class ComponentController extends Controller
             'message' => 'Unknown authentication type',
         ], 400);
     }
+    
     
 }
