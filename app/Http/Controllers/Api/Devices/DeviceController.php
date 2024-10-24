@@ -25,7 +25,7 @@ class DeviceController extends Controller
             })->get();
     
             // Get all devices within these sections and load their related components
-            $devices = Device::with('components')->whereIn('section_id', $sections->pluck('id'))->get();
+            $devices = Device::with('components','section.project')->whereIn('section_id', $sections->pluck('id'))->get();
     
             // Add components to the response
             $devicesWithComponents = $devices->map(function ($device) {
@@ -34,6 +34,7 @@ class DeviceController extends Controller
                     'name' => $device->name,
                     'serial' => $device->serial,
                     'section_id' => $device->section_id,
+                    'project_id' => $device->section()->project->id,
                     'activation' => $device->activation,
                     'last_updated' => $device->last_updated,
                     'created_at' => $device->created_at,
