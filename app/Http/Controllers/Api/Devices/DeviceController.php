@@ -33,6 +33,7 @@ class DeviceController extends Controller
                     'id' => $device->id,
                     'name' => $device->name,
                     'serial' => $device->serial,
+                    'section_id' => $device->section_id,
                     'activation' => $device->activation,
                     'last_updated' => $device->last_updated,
                     'created_at' => $device->created_at,
