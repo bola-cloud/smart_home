@@ -15,19 +15,31 @@ class DeviceController extends Controller
     {
         // Get the currently authenticated user
         $user = Auth::user();
-    
+
         // Collection to store devices with their components and access type
         $devicesWithComponents = collect();
-    
+
         // 1. Retrieve devices for projects the user owns
         $ownedDevices = Device::with('components', 'section.project')
             ->whereHas('section.project', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
             ->get();
-    
-        // Map the devices with components for owner
+
+        // Map the devices with components for owner and convert components to objects
         $ownedDevicesWithComponents = $ownedDevices->map(function ($device) {
+            // Convert components to an associative array
+            $componentsAsObject = $device->components->keyBy('id')->map(function ($component) {
+                return [
+                    'id' => $component->id,
+                    'name' => $component->name,
+                    'type' => $component->type,
+                    'order' => $component->order,
+                    'created_at' => $component->created_at,
+                    'updated_at' => $component->updated_at,
+                ];
+            });
+
             return [
                 'id' => $device->id,
                 'name' => $device->name,
@@ -39,54 +51,43 @@ class DeviceController extends Controller
                 'last_updated' => $device->last_updated,
                 'created_at' => $device->created_at,
                 'updated_at' => $device->updated_at,
-                'components' => $device->components,
+                'components' => $componentsAsObject, // Convert components array to object
             ];
         });
         $devicesWithComponents = $devicesWithComponents->merge($ownedDevicesWithComponents);
-    
+
         // 2. Retrieve devices where the user is a member with specific permissions
         $memberProjects = Member::where('member_id', $user->id)->get();
-    
+
         if ($memberProjects->isNotEmpty()) {
             foreach ($memberProjects as $memberProject) {
                 $memberDevices = $memberProject->devices;
                 $deviceIds = array_keys($memberDevices);
-    
+
                 // Fetch devices from the member's device list
                 $devices = Device::with('components', 'section.project')->whereIn('id', $deviceIds)->get();
-    
+
                 // Add components with member-specific permissions
                 $memberDevicesWithComponents = $devices->map(function ($device) use ($memberDevices) {
                     $deviceComponentsAccess = $memberDevices[$device->id] ?? [];
-    
+
                     // Filter components to include only those specified in member's access list
                     $componentsWithAccess = $device->components->filter(function ($component) use ($deviceComponentsAccess) {
                         return array_key_exists($component->id, $deviceComponentsAccess);
-                    })->map(function ($component) use ($deviceComponentsAccess) {
+                    })->mapWithKeys(function ($component) use ($deviceComponentsAccess) {
                         return [
-                            'id' => $component->id,
-                            'name' => $component->name,
-                            'type' => $component->type,
-                            'order' => $component->order,
-                            'access' => $deviceComponentsAccess[$component->id] ?? null, // Add access level
-                            'created_at' => $component->created_at,
-                            'updated_at' => $component->updated_at,
+                            $component->id => [
+                                'id' => $component->id,
+                                'name' => $component->name,
+                                'type' => $component->type,
+                                'order' => $component->order,
+                                'access' => $deviceComponentsAccess[$component->id] ?? null, // Add access level
+                                'created_at' => $component->created_at,
+                                'updated_at' => $component->updated_at,
+                            ]
                         ];
                     });
-    
-                    // Check if all components in the member's access list exist on this device
-                    $requestedComponentIds = array_keys($deviceComponentsAccess);
-                    $actualComponentIds = $device->components->pluck('id')->toArray();
-                    $invalidComponents = array_diff($requestedComponentIds, $actualComponentIds);
-    
-                    if (!empty($invalidComponents)) {
-                        return response()->json([
-                            'status' => false,
-                            'message' => 'Member does not have access to some components on this device',
-                            'invalid_components' => $invalidComponents,
-                        ], 403);
-                    }
-    
+
                     return [
                         'id' => $device->id,
                         'name' => $device->name,
@@ -98,18 +99,19 @@ class DeviceController extends Controller
                         'last_updated' => $device->last_updated,
                         'created_at' => $device->created_at,
                         'updated_at' => $device->updated_at,
-                        'components' => $componentsWithAccess,
+                        'components' => $componentsWithAccess, // Components as objects with access level
                     ];
                 });
-    
+
                 $devicesWithComponents = $devicesWithComponents->merge($memberDevicesWithComponents);
             }
         }
-    
+
         return response()->json([
             'status' => true,
             'message' => 'Devices retrieved successfully',
             'data' => $devicesWithComponents->unique('id')->values(), // Ensure unique devices
         ], 200);
-    }        
+    }
+      
 }
