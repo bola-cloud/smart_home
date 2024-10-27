@@ -38,7 +38,7 @@ class DeviceController extends Controller
                     'created_at' => $component->created_at,
                     'updated_at' => $component->updated_at,
                 ];
-            })->toJson();
+            })->all(); // Convert to an associative array            
 
             return [
                 'id' => $device->id,
