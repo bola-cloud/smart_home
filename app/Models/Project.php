@@ -18,6 +18,11 @@ class Project extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function members()
+    {
+        return $this->hasMany(Member::class);
+    }
+
     public function sections(): HasMany
     {
         return $this->hasMany(Section::class);

@@ -11,29 +11,24 @@ class Member extends Model
 {
     use HasApiTokens, HasFactory;
 
-    protected $fillable = [
-        'user_id', 
-        'name', 
-        'email', 
-        'phone_number', 
-        'password', 
-        'devices',
-        'reset_code_expires_at',
-        'reset_code',
-    ];
-
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-
     protected $casts = [
-        'devices' => 'array',  // Devices stored as JSON
+        'devices' => 'array',  // Cast devices column to array (JSON)
     ];
 
-    // Member belongs to a user
+    protected $fillable = [
+        'owner_id',
+        'member_id',
+        'project_id',
+        'devices',
+    ];
+
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'member_id');
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
     }
 }

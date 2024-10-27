@@ -45,9 +45,11 @@ class User extends Authenticatable
         return $this->hasMany(Device::class,'user_id');
     }
 
-    public function members(): HasMany
+    public function memberProjects()
     {
-        return $this->hasMany(Member::class);
+        return $this->belongsToMany(Project::class, 'members', 'member_id', 'project_id')
+                    ->withPivot('devices')
+                    ->withTimestamps();
     }
 
 

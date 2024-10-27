@@ -24,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('components', function (Blueprint $table) {
-            $table->dropColumn('cancelled');
+            $table->dropColumn('image_id');
         });
     }
 };

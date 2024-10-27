@@ -45,11 +45,6 @@ return [
             'driver' => 'sanctum',
             'provider' => 'users',
         ],
-
-        'member' => [
-            'driver' => 'sanctum',
-            'provider' => 'members',  // Using the 'members' provider for member authentication
-        ],
     ],
 
     /*
@@ -73,11 +68,6 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
-        ],
-
-        'members' => [
-            'driver' => 'eloquent',
-            'model' => App\Models\Member::class,  // Member model provider
         ],
     ],
 

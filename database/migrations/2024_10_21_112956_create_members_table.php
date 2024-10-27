@@ -13,16 +13,19 @@ return new class extends Migration
     {
         Schema::create('members', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->string('phone_number')->nullable();
-            $table->string('password');
-            $table->json('devices')->nullable(); // Can store devices as JSON
-            $table->string('reset_code')->nullable();
-            $table->timestamp('reset_code_expires_at')->nullable();
+            // Ensure devices column is JSON (if not already)
+            $table->json('devices')->nullable()->change();  // Ensures the devices column is JSON
             
-            $table->unsignedBigInteger('user_id')->nullable();
-            $table->foreign('user_id')->references('id')->on('users')
+            $table->unsignedBigInteger('owner_id')->nullable();
+            $table->foreign('owner_id')->references('id')->on('users')
+                ->onUpdate('CASCADE')->onDelete('SET NULL');
+
+            $table->unsignedBigInteger('member_id')->nullable();
+            $table->foreign('member_id')->references('id')->on('users')
+                ->onUpdate('CASCADE')->onDelete('SET NULL');
+
+            $table->unsignedBigInteger('project_id')->nullable();
+            $table->foreign('project_id')->references('id')->on('projects')
                 ->onUpdate('CASCADE')->onDelete('SET NULL');
             $table->timestamps();
         });
