@@ -12,104 +12,94 @@ class DeviceController extends Controller
 {
     public function getDevices()
     {
-        // Get the currently authenticated user or member
-        $auth = Auth::user();
-        $authType = $auth instanceof \App\Models\Member ? 'member' : 'user';
+        // Get the currently authenticated user
+        $user = Auth::user();
     
-        if ($authType === 'user') {
-            // If authenticated as a user, get all devices in the sections of the projects they own
+        // Array to store devices with their related components and access type
+        $devicesWithComponents = collect();
     
-            // Fetch all sections belonging to the user's projects
-            $sections = Section::whereHas('project', function ($query) use ($auth) {
-                $query->where('user_id', $auth->id);
-            })->get();
+        // Check if the user is an owner of any projects
+        $ownedSections = Section::whereHas('project', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })->pluck('id');
     
-            // Get all devices within these sections and load their related components
-            $devices = Device::with('components','section.project')->whereIn('section_id', $sections->pluck('id'))->get();
+        if ($ownedSections->isNotEmpty()) {
+            // Fetch all devices within owned sections
+            $ownedDevices = Device::with('components', 'section.project')
+                ->whereIn('section_id', $ownedSections)
+                ->get();
     
-            // Add components to the response
-            $devicesWithComponents = $devices->map(function ($device) {
+            // Map the devices with components for owner
+            $ownedDevicesWithComponents = $ownedDevices->map(function ($device) {
                 return [
                     'id' => $device->id,
                     'name' => $device->name,
                     'serial' => $device->serial,
                     'section_id' => $device->section_id,
                     'project_id' => $device->section->project->id,
+                    'type' => 'owner', // Access type
                     'activation' => $device->activation,
                     'last_updated' => $device->last_updated,
                     'created_at' => $device->created_at,
                     'updated_at' => $device->updated_at,
-                    'components' => $device->components // Add the related components
+                    'components' => $device->components,
                 ];
             });
     
-            return response()->json([
-                'status' => true,
-                'message' => 'User devices retrieved successfully',
-                'data' => $devicesWithComponents,
-            ], 200);
+            $devicesWithComponents = $devicesWithComponents->merge($ownedDevicesWithComponents);
+        }
     
-        } elseif ($authType === 'member') {
-            // If authenticated as a member, retrieve devices from the 'devices' column
-            $memberDevices = $auth->devices; // This is assumed to be stored as a JSON/array in the DB
+        // Fetch projects where the user is a member
+        $memberProjects = Member::where('member_id', $user->id)->get();
     
-            if (!$memberDevices || !is_array($memberDevices)) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'No devices found for the member',
-                    'data' => null,
-                ], 404);
-            }
+        if ($memberProjects->isNotEmpty()) {
+            foreach ($memberProjects as $memberProject) {
+                $memberDevices = $memberProject->devices;
+                $deviceIds = array_keys($memberDevices);
     
-            // Extract device IDs
-            $deviceIds = array_keys($memberDevices);
+                // Fetch devices from the member's device list
+                $devices = Device::with('components', 'section.project')->whereIn('id', $deviceIds)->get();
     
-            // Fetch devices based on the member's device IDs and load their related components
-            $devices = Device::with('components')->whereIn('id', $deviceIds)->get();
+                // Add components with member-specific permissions
+                $memberDevicesWithComponents = $devices->map(function ($device) use ($memberDevices) {
+                    $deviceComponentsAccess = $memberDevices[$device->id] ?? [];
     
-            // Add components and accessability to the response
-            $devicesWithComponents = $devices->map(function ($device) use ($memberDevices) {
-                // Get component access levels for this device
-                $deviceComponentsAccess = $memberDevices[$device->id] ?? [];
+                    $componentsWithAccess = $device->components->map(function ($component) use ($deviceComponentsAccess) {
+                        return [
+                            'id' => $component->id,
+                            'name' => $component->name,
+                            'type' => $component->type,
+                            'order' => $component->order,
+                            'access' => $deviceComponentsAccess[$component->id] ?? null,
+                            'created_at' => $component->created_at,
+                            'updated_at' => $component->updated_at,
+                        ];
+                    });
     
-                // Map components with access level
-                $componentsWithAccess = $device->components->map(function ($component) use ($deviceComponentsAccess) {
                     return [
-                        'id' => $component->id,
-                        'name' => $component->name,
-                        'type' => $component->type,
-                        'order' => $component->order,
-                        'access' => $deviceComponentsAccess[$component->id] ?? null, // Add access (view/control)
-                        'created_at' => $component->created_at,
-                        'updated_at' => $component->updated_at,
+                        'id' => $device->id,
+                        'name' => $device->name,
+                        'serial' => $device->serial,
+                        'section_id' => $device->section_id,
+                        'project_id' => $device->section->project->id,
+                        'type' => 'member', // Access type
+                        'activation' => $device->activation,
+                        'last_updated' => $device->last_updated,
+                        'created_at' => $device->created_at,
+                        'updated_at' => $device->updated_at,
+                        'components' => $componentsWithAccess,
                     ];
                 });
     
-                return [
-                    'id' => $device->id,
-                    'name' => $device->name,
-                    'serial' => $device->serial,
-                    'section_id' => $device->section_id,
-                    'project_id' => $device->section->project->id,
-                    'activation' => $device->activation,
-                    'last_updated' => $device->last_updated,
-                    'created_at' => $device->created_at,
-                    'updated_at' => $device->updated_at,
-                    'components' => $componentsWithAccess // Add the related components with access level
-                ];
-            });
-    
-            return response()->json([
-                'status' => true,
-                'message' => 'Member devices retrieved successfully',
-                'data' => $devicesWithComponents,
-            ], 200);
+                $devicesWithComponents = $devicesWithComponents->merge($memberDevicesWithComponents);
+            }
         }
     
         return response()->json([
-            'status' => false,
-            'message' => 'Unknown authentication type',
-        ], 400);
-    }    
-    
+            'status' => true,
+            'message' => 'Devices retrieved successfully',
+            'data' => $devicesWithComponents->unique('id')->values(), // Ensure unique devices
+        ], 200);
+    }
+     
 }
