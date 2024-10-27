@@ -16,39 +16,8 @@ class DeviceController extends Controller
         // Get the currently authenticated user
         $user = Auth::user();
     
-        // Array to store devices with their related components and access type
+        // Collection to store devices with their components and access type
         $devicesWithComponents = collect();
-    
-        // Check if the user is an owner of any projects
-        $ownedSections = Section::whereHas('project', function ($query) use ($user) {
-            $query->where('user_id', $user->id);
-        })->pluck('id');
-    
-        if ($ownedSections->isNotEmpty()) {
-            // Fetch all devices within owned sections
-            $ownedDevices = Device::with('components', 'section.project')
-                ->whereIn('section_id', $ownedSections)
-                ->get();
-    
-            // Map the devices with components for owner
-            $ownedDevicesWithComponents = $ownedDevices->map(function ($device) {
-                return [
-                    'id' => $device->id,
-                    'name' => $device->name,
-                    'serial' => $device->serial,
-                    'section_id' => $device->section_id,
-                    'project_id' => $device->section->project->id ?? null, // Ensure project exists
-                    'type' => 'owner', // Access type
-                    'activation' => $device->activation,
-                    'last_updated' => $device->last_updated,
-                    'created_at' => $device->created_at,
-                    'updated_at' => $device->updated_at,
-                    'components' => $device->components,
-                ];
-            });
-    
-            $devicesWithComponents = $devicesWithComponents->merge($ownedDevicesWithComponents);
-        }
     
         // Fetch projects where the user is a member
         $memberProjects = Member::where('member_id', $user->id)->get();
@@ -64,18 +33,34 @@ class DeviceController extends Controller
                 // Add components with member-specific permissions
                 $memberDevicesWithComponents = $devices->map(function ($device) use ($memberDevices) {
                     $deviceComponentsAccess = $memberDevices[$device->id] ?? [];
-    
-                    $componentsWithAccess = $device->components->map(function ($component) use ($deviceComponentsAccess) {
+                    
+                    // Filter components to include only those specified in member's access list
+                    $componentsWithAccess = $device->components->filter(function ($component) use ($deviceComponentsAccess) {
+                        return array_key_exists($component->id, $deviceComponentsAccess);
+                    })->map(function ($component) use ($deviceComponentsAccess) {
                         return [
                             'id' => $component->id,
                             'name' => $component->name,
                             'type' => $component->type,
                             'order' => $component->order,
-                            'access' => $deviceComponentsAccess[$component->id] ?? null,
+                            'access' => $deviceComponentsAccess[$component->id] ?? null, // Add access level
                             'created_at' => $component->created_at,
                             'updated_at' => $component->updated_at,
                         ];
                     });
+    
+                    // Check if all components in the member's access list exist on this device
+                    $requestedComponentIds = array_keys($deviceComponentsAccess);
+                    $actualComponentIds = $device->components->pluck('id')->toArray();
+                    $invalidComponents = array_diff($requestedComponentIds, $actualComponentIds);
+    
+                    if (!empty($invalidComponents)) {
+                        return response()->json([
+                            'status' => false,
+                            'message' => 'Member does not have access to some components on this device',
+                            'invalid_components' => $invalidComponents,
+                        ], 403);
+                    }
     
                     return [
                         'id' => $device->id,
@@ -101,7 +86,5 @@ class DeviceController extends Controller
             'message' => 'Devices retrieved successfully',
             'data' => $devicesWithComponents->unique('id')->values(), // Ensure unique devices
         ], 200);
-    }
-    
-     
+    }     
 }
