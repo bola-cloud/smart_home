@@ -20,7 +20,7 @@ class MemberController extends Controller
     {
         // Validate the incoming request data
         $validator = Validator::make($request->all(), [
-            'member_id' => 'required|exists:users,id',  // Ensure the user receiving permissions exists
+            'member_identifier' => 'required|string',  // Allow email or phone as identifier
             'project_id' => 'required|exists:projects,id',  // Ensure the project exists
             'devices' => 'required|array',  // This will hold the device and component permissions
             'devices.*' => 'array',  // Each device should have components with permissions
@@ -47,8 +47,20 @@ class MemberController extends Controller
             ], 403);
         }
     
+        // Retrieve the member by email or phone number
+        $member = User::where('email', $request->member_identifier)
+                    ->orWhere('phone_number', $request->member_identifier)
+                    ->first();
+    
+        if (!$member) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No user found with this email or phone number',
+            ], 404);
+        }
+    
         // Check if the member already exists in the project
-        $existingMember = Member::where('member_id', $request->member_id)
+        $existingMember = Member::where('member_id', $member->id)
                                 ->where('project_id', $request->project_id)
                                 ->first();
     
@@ -68,9 +80,9 @@ class MemberController extends Controller
         }
     
         // Create a new member entry with the specified permissions
-        $member = Member::create([
+        $newMember = Member::create([
             'owner_id' => $user->id,         // Set the owner to the currently authenticated user
-            'member_id' => $request->member_id, // Set the user receiving the permissions
+            'member_id' => $member->id,      // Set the user receiving the permissions
             'project_id' => $request->project_id,  // Set the project the member has access to
             'devices' => $request->devices,  // Store the devices as JSON
         ]);
@@ -79,9 +91,10 @@ class MemberController extends Controller
             'status' => true,
             'message' => 'Member added successfully with permissions',
             'data' => [
-                'member' => $member,
-                'devices' => $member->devices,  // Return devices with permissions
+                'member' => $newMember,
+                'devices' => $newMember->devices,  // Return devices with permissions
             ],
         ], 201);
     }
+    
 }
