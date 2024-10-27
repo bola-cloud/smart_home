@@ -13,10 +13,6 @@ class DevicesTableSeeder extends Seeder
      */
     public function run()
     {
-        $sections = \App\Models\Section::all();
-
-        foreach ($sections as $section) {
-            Device::factory()->count(3)->create(['section_id' => $section->id]);
-        }
+        Device::factory()->count(5)->create(); // Create 5 device types
     }
 }

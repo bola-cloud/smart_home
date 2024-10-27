@@ -63,7 +63,7 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     
     // User projects route
     Route::get('/user/projects', [ProjectController::class, 'userProjects']);  // No need for additional middleware here
-    Route::get('/projects/sections', [ProjectController::class, 'getProjectSections']);
+    Route::get('/projects/sections', [SectionController::class, 'getProjectSections']);
     Route::post('/projects', [ProjectController::class, 'store']);
     Route::get('/devices', [DeviceController::class, 'getDevices']);
     // Component retrieval routes for both users and members
