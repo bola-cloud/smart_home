@@ -42,9 +42,9 @@ class SectionController extends Controller
 
     public function getProjectSections(Request $request)
     {
-        // Validate request
+        // Validate the request
         $validator = Validator::make($request->all(), [
-            'project_id' => 'required|numeric',
+            'project_id' => 'required|numeric|exists:projects,id',
         ]);
     
         if ($validator->fails()) {
@@ -58,38 +58,34 @@ class SectionController extends Controller
         // Find the project by its ID
         $project = Project::find($request->project_id);
     
-        // Check if the project exists
-        if (!$project) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Project not found',
-            ], 404);
-        }
-    
-        // Check if the authenticated user is a User or Member
+        // Check if the authenticated user is a User or a Member
         $auth = Auth::user();
-        $authType = $auth instanceof Member ? 'member' : 'user';
+        $isOwner = $project->user_id === $auth->id;
     
-        if ($authType === 'user') {
-            // For users, ensure they own the project
-            if ($project->user_id !== $auth->id) {
+        if ($isOwner) {
+            // For owners, retrieve all sections in the project
+            $sections = $project->sections;
+    
+            return response()->json([
+                'status' => true,
+                'message' => 'Sections retrieved successfully for owner',
+                'data' => $sections,
+            ], 200);
+        } else {
+            // For members, get the sections with devices they have access to in this project
+    
+            // Find member entry for the authenticated user and project
+            $member = Member::where('member_id', $auth->id)->where('project_id', $project->id)->first();
+    
+            if (!$member) {
                 return response()->json([
                     'status' => false,
                     'message' => 'You do not have permission to access this project',
                 ], 403);
             }
     
-            // Get all sections of the project
-            $sections = $project->sections;
-    
-            return response()->json([
-                'status' => true,
-                'message' => 'Sections retrieved successfully',
-                'data' => $sections,
-            ], 200);
-        } elseif ($authType === 'member') {
-            // For members, get the sections related to the devices they have access to in this project
-            $memberDevices = $auth->devices;
+            // Extract device IDs from the member's devices JSON column
+            $memberDevices = $member->devices;
     
             if (!$memberDevices || !is_array($memberDevices)) {
                 return response()->json([
@@ -99,10 +95,10 @@ class SectionController extends Controller
                 ], 404);
             }
     
-            // Extract device IDs
+            // Get only sections containing devices the member has access to
             $deviceIds = array_keys($memberDevices);
     
-            // Find sections in the given project where the member's devices are located
+            // Find sections in the project where the member's devices are located
             $sections = Section::where('project_id', $project->id)
                 ->whereHas('devices', function ($query) use ($deviceIds) {
                     $query->whereIn('id', $deviceIds);
@@ -115,10 +111,6 @@ class SectionController extends Controller
                 'data' => $sections,
             ], 200);
         }
-    
-        return response()->json([
-            'status' => false,
-            'message' => 'Unknown authentication type',
-        ], 400);
-    }    
+    }
+     
 }
