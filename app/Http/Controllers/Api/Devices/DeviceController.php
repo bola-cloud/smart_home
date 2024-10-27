@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Device;
+use App\Models\Member;
 use App\Models\Section;
 
 class DeviceController extends Controller
