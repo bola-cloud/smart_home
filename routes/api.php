@@ -12,7 +12,7 @@ use App\Http\Controllers\Api\Sections\SectionController;
 use App\Http\Controllers\Api\Auth\Member\MemberController;
 use App\Http\Controllers\Api\Devices\DeviceController;
 use App\Http\Controllers\Api\Component\ComponentController;
-
+use App\Http\Controllers\Api\User\UserController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -70,6 +70,7 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     Route::get('/components', [ComponentController::class, 'getComponents']);
 
     Route::post('/members/add', [MemberController::class, 'addMemberWithPermissions']);
+    Route::put('/user/profile', [UserController::class, 'updateProfile']);
 
     // Create a section for a specific project
     Route::post('/projects/{project}/sections', [SectionController::class, 'store']);
