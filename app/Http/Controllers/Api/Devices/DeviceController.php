@@ -87,7 +87,7 @@ class DeviceController extends Controller
                                 'updated_at' => $component->updated_at,
                             ]
                         ];
-                    });
+                    })->values();
 
                     return [
                         'id' => $device->id,
