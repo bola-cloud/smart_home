@@ -38,7 +38,7 @@ class DeviceController extends Controller
                     'created_at' => $component->created_at,
                     'updated_at' => $component->updated_at,
                 ];
-            });
+            })->toJson();
 
             return [
                 'id' => $device->id,
