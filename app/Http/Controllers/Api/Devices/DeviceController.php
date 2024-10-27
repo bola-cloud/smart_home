@@ -37,7 +37,7 @@ class DeviceController extends Controller
                     'name' => $device->name,
                     'serial' => $device->serial,
                     'section_id' => $device->section_id,
-                    'project_id' => $device->section->project->id,
+                    'project_id' => $device->section->project->id ?? null, // Ensure project exists
                     'type' => 'owner', // Access type
                     'activation' => $device->activation,
                     'last_updated' => $device->last_updated,
@@ -82,7 +82,7 @@ class DeviceController extends Controller
                         'name' => $device->name,
                         'serial' => $device->serial,
                         'section_id' => $device->section_id,
-                        'project_id' => $device->section->project->id,
+                        'project_id' => optional($device->section)->project->id ?? null, // Ensure project exists
                         'type' => 'member', // Access type
                         'activation' => $device->activation,
                         'last_updated' => $device->last_updated,
@@ -102,5 +102,6 @@ class DeviceController extends Controller
             'data' => $devicesWithComponents->unique('id')->values(), // Ensure unique devices
         ], 200);
     }
+    
      
 }
