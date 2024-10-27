@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Auth\Member;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Member;
+use App\Models\Project;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Validator;
