@@ -11,157 +11,76 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class MemberController extends Controller
 {
-    public function login(Request $request)
+    public function addMemberWithPermissions(Request $request)
     {
-        // Validate the request data
-        $request->validate([
-            'login' => 'required|string',    // Accept email or phone number
-            'password' => 'required|string', // Password
+        // Validate the incoming request data
+        $validator = Validator::make($request->all(), [
+            'member_id' => 'required|exists:users,id',  // Ensure the user receiving permissions exists
+            'project_id' => 'required|exists:projects,id',  // Ensure the project exists
+            'devices' => 'required|array',  // This will hold the device and component permissions
+            'devices.*' => 'array',  // Each device should have components with permissions
+            'devices.*.*' => 'string|in:view,control',  // Permissions can be either 'view' or 'control'
         ]);
     
-        $loginData = $request->only('login', 'password');
-    
-        // Determine if the login field is an email or phone number
-        $loginType = filter_var($loginData['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'phone_number';
-    
-        // Attempt to find the member by email or phone number
-        $member = Member::where($loginType, $loginData['login'])->first();
-    
-        // Validate credentials
-        if (! $member || ! Hash::check($loginData['password'], $member->password)) {
+        if ($validator->fails()) {
             return response()->json([
                 'status' => false,
-                'message' => 'Invalid login details',
-            ], 401);
+                'message' => 'Validation errors',
+                'errors' => $validator->errors(),
+            ], 422);
         }
     
-        // Create a Sanctum token for the member
-        $token = $member->createToken('member-token')->plainTextToken;
+        // Get the authenticated user (owner)
+        $user = Auth::user();
+    
+        // Check if the authenticated user owns the project
+        $project = Project::where('id', $request->project_id)->where('user_id', $user->id)->first();
+        if (!$project) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You do not have permission to add members to this project',
+            ], 403);
+        }
+    
+        // Check if the member already exists in the project
+        $existingMember = Member::where('member_id', $request->member_id)
+                                ->where('project_id', $request->project_id)
+                                ->first();
+    
+        if ($existingMember) {
+            // Update the devices permissions if the member already exists
+            $existingMember->devices = $request->devices;
+            $existingMember->save();
+    
+            return response()->json([
+                'status' => true,
+                'message' => 'Member permissions updated successfully',
+                'data' => [
+                    'member' => $existingMember,
+                    'devices' => $existingMember->devices,  // Return devices with permissions
+                ],
+            ], 200);
+        }
+    
+        // Create a new member entry with the specified permissions
+        $member = Member::create([
+            'owner_id' => $user->id,         // Set the owner to the currently authenticated user
+            'member_id' => $request->member_id, // Set the user receiving the permissions
+            'project_id' => $request->project_id,  // Set the project the member has access to
+            'devices' => $request->devices,  // Store the devices as JSON
+        ]);
     
         return response()->json([
-            'status' => 'success',
-            'message' => 'Login successful',
+            'status' => true,
+            'message' => 'Member added successfully with permissions',
             'data' => [
                 'member' => $member,
-                'access_token' => $token,
-                'token_type' => 'Bearer',
+                'devices' => $member->devices,  // Return devices with permissions
             ],
-        ], 200);
-    }    
-
-    // Member logout
-    public function logout(Request $request)
-    {
-        $request->user()->currentAccessToken()->delete();
-        
-        return response()->json(['message' => 'Logged out successfully'], 200);
-    }
-
-    public function requestPasswordReset(Request $request)
-    {
-        // Validate the email field
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'The email field is required and must be a valid email address.',
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        // Check if the email exists in the members table
-        $member = Member::where('email', $request->email)->first();
-
-        if (!$member) {
-            return response()->json([
-                'message' => 'The email address does not exist in our records.',
-                'status' => false,
-            ], 404);
-        }
-
-        // Generate a random 6-character reset code
-        $resetCode = Str::random(6);
-        $member->reset_code = $resetCode;
-        $member->reset_code_expires_at = Carbon::now()->addMinutes(10); // Reset code valid for 10 minutes
-        $member->save();
-
-        // Send the reset code to the member via email
-        Mail::raw("Hello,
-
-            You have requested a password reset for your account. Please use the following code to reset your password:
-
-            Reset Code: $resetCode
-
-            This code will expire in 10 minutes. If you did not request a password reset, please contact our support team immediately.
-
-            Thank you!", function ($message) use ($member) {
-                $message->to($member->email)
-                    ->from('info@mazaya-aec.com', 'Mazaya Smart Home')  // Authenticated email
-                    ->replyTo('support@mazaya-aec.com', 'Mazaya Support')  // The reply-to email address
-                    ->subject('Password Reset Request');
-        });
-
-        return response()->json([
-            'message' => 'Reset code sent to your email address.',
-            'status' => true,
-            'data' => [
-                'email' => $member->email,
-                'reset_code' => $resetCode, // For testing, remove in production
-            ],
-        ], 200);
-    }
-
-    // Reset the password for a member using the reset code
-    public function resetPassword(Request $request)
-    {
-        // Validate the request data
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:members,email',
-            'reset_code' => 'required|string',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        // Retrieve the member
-        $member = Member::where('email', $request->email)->first();
-
-        if (!$member) {
-            return response()->json([
-                'message' => 'The email address does not exist in our records.',
-                'status' => false,
-            ], 404);
-        }
-
-        // Check if the reset code is valid and not expired
-        if ($member->reset_code !== $request->reset_code || Carbon::now()->isAfter($member->reset_code_expires_at)) {
-            return response()->json([
-                'message' => 'Invalid or expired reset code.',
-                'status' => false,
-            ], 400);
-        }
-
-        // Update the member's password and clear the reset code
-        $member->password = Hash::make($request->password);
-        $member->reset_code = null;
-        $member->reset_code_expires_at = null;
-        $member->save();
-
-        return response()->json([
-            'message' => 'Password reset successfully.',
-            'status' => true,
-        ], 200);
+        ], 201);
     }
 }

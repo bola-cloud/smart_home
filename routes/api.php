@@ -69,7 +69,7 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     // Component retrieval routes for both users and members
     Route::get('/components', [ComponentController::class, 'getComponents']);
 
-    Route::post('/members/add', [AuthController::class, 'addMemberWithPermissions']);
+    Route::post('/members/add', [MemberController::class, 'addMemberWithPermissions']);
 
     // Create a section for a specific project
     Route::post('/projects/{project}/sections', [SectionController::class, 'store']);
