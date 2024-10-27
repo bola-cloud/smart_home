@@ -23,14 +23,20 @@ class ProjectController extends Controller
         // Get the authenticated user
         $user = Auth::user();
     
-        // Retrieve projects owned by the user
-        $ownedProjects = $user->projects;
+        // Retrieve projects owned by the user and add 'type' as 'owner'
+        $ownedProjects = $user->projects->map(function ($project) {
+            $project->type = 'owner';
+            return $project;
+        });
     
-        // Retrieve projects where the user is a member
+        // Retrieve projects where the user is a member and add 'type' as 'member'
         $memberProjectIds = Member::where('member_id', $user->id)->pluck('project_id')->unique();
-        $projectsAsMember = Project::whereIn('id', $memberProjectIds)->get();
+        $projectsAsMember = Project::whereIn('id', $memberProjectIds)->get()->map(function ($project) {
+            $project->type = 'member';
+            return $project;
+        });
     
-        // Combine owned projects and member-access projects, removing duplicates
+        // Combine both collections and remove duplicates, if any
         $allAccessibleProjects = $ownedProjects->merge($projectsAsMember)->unique('id')->values();
     
         return response()->json([
@@ -38,8 +44,7 @@ class ProjectController extends Controller
             'message' => 'Accessible projects retrieved successfully',
             'data' => $allAccessibleProjects,
         ], 200);
-    }
-      
+    }    
 
     public function getProjectSections(Request $request)
     {
