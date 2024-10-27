@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Api\Sections;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use App\Models\Project;
 use App\Models\Section;
-use Illuminate\Http\Request;
+use App\Models\Device;
+use App\Models\Member;
 
 class SectionController extends Controller
 {
