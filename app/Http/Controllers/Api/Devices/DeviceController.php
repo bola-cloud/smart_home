@@ -29,7 +29,7 @@ class DeviceController extends Controller
         // Map the devices with components for owner and convert components to objects
         $ownedDevicesWithComponents = $ownedDevices->map(function ($device) {
             // Convert components to an associative array
-            $componentsAsObject = $device->components->keyBy('id')->map(function ($component) {
+            $componentsAsArray = $device->components->map(function ($component) {
                 return [
                     'id' => $component->id,
                     'name' => $component->name,
@@ -38,7 +38,8 @@ class DeviceController extends Controller
                     'created_at' => $component->created_at,
                     'updated_at' => $component->updated_at,
                 ];
-            })->all(); // Convert to an associative array            
+            })->values(); // Ensure it's a simple array without keys
+                  
 
             return [
                 'id' => $device->id,
