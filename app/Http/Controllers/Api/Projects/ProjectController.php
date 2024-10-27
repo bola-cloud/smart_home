@@ -15,56 +15,31 @@ class ProjectController extends Controller
 {
     public function userProjects()
     {
-        // Check if the user is authenticated
+        // Ensure the user is authenticated
         if (!Auth::check()) {
             return response()->json(['message' => 'You are not logged in'], 401);
         }
     
-        // Get the currently authenticated user or member
-        $auth = Auth::user();
-        $authType = $auth instanceof Member ? 'member' : 'user';
+        // Get the authenticated user
+        $user = Auth::user();
     
-        if ($authType === 'user') {
-            // If authenticated as a user, retrieve all projects associated with the user
-            $projects = $auth->projects;
+        // Retrieve projects owned by the user
+        $ownedProjects = $user->projects;
     
-            return response()->json([
-                'status' => true,
-                'message' => 'User projects retrieved successfully',
-                'data' => $projects,
-            ], 200);
-        } elseif ($authType === 'member') {
-            // If authenticated as a member, retrieve projects based on devices
-            $memberDevices = $auth->devices;
+        // Retrieve projects where the user is a member
+        $memberProjectIds = Member::where('member_id', $user->id)->pluck('project_id')->unique();
+        $projectsAsMember = Project::whereIn('id', $memberProjectIds)->get();
     
-            if (!$memberDevices || !is_array($memberDevices)) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'No devices found for the member',
-                    'data' => null,
-                ], 404);
-            }
+        // Combine owned projects and member-access projects, removing duplicates
+        $allAccessibleProjects = $ownedProjects->merge($projectsAsMember)->unique('id')->values();
     
-            // Extract device IDs
-            $deviceIds = array_keys($memberDevices);
-    
-            // Find all sections where these devices are located
-            $sections = Section::whereHas('devices', function ($query) use ($deviceIds) {
-                $query->whereIn('id', $deviceIds);
-            })->get();
-    
-            // Retrieve the unique projects associated with these sections
-            $projects = Project::whereIn('id', $sections->pluck('project_id'))->distinct()->get();
-    
-            return response()->json([
-                'status' => true,
-                'message' => 'Member projects retrieved successfully',
-                'data' => $projects,
-            ], 200);
-        }
-    
-        return response()->json(['message' => 'Unknown authentication type'], 400);
-    }    
+        return response()->json([
+            'status' => true,
+            'message' => 'Accessible projects retrieved successfully',
+            'data' => $allAccessibleProjects,
+        ], 200);
+    }
+      
 
     public function getProjectSections(Request $request)
     {
