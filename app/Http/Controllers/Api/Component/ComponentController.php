@@ -13,85 +13,75 @@ class ComponentController extends Controller
 {
     public function getComponents()
     {
-        // Get the currently authenticated user or member
-        $auth = Auth::user();
-        $authType = $auth instanceof \App\Models\Member ? 'member' : 'user';
+        // Get the currently authenticated user
+        $user = Auth::user();
     
-        if ($authType === 'user') {
-            // If authenticated as a user, get components for all devices in the user's projects
-            $components = Component::with(['device.section'])->whereHas('device', function ($query) use ($auth) {
-                $query->whereHas('section.project', function ($projectQuery) use ($auth) {
-                    $projectQuery->where('user_id', $auth->id);
+        // Array to store components with their section and access information
+        $componentsWithSections = collect();
+    
+        // Check if the user is the owner of any projects
+        $ownedComponents = Component::with(['device.section'])
+            ->whereHas('device.section.project', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->get();
+    
+        if ($ownedComponents->isNotEmpty()) {
+            // Map through owned components
+            $ownedComponentsWithSections = $ownedComponents->map(function ($component) {
+                return [
+                    'id' => $component->id,
+                    'name' => $component->name,
+                    'type' => $component->type,
+                    'order' => $component->order,
+                    'access' => 'owner', // Access type for owner
+                    'section' => [$component->device->section],
+                    'created_at' => $component->created_at,
+                    'updated_at' => $component->updated_at,
+                ];
+            });
+    
+            $componentsWithSections = $componentsWithSections->merge($ownedComponentsWithSections);
+        }
+    
+        // Retrieve projects where the user is a member
+        $memberProjects = Member::where('member_id', $user->id)->get();
+    
+        if ($memberProjects->isNotEmpty()) {
+            foreach ($memberProjects as $memberProject) {
+                $memberDevices = $memberProject->devices;
+                $deviceIds = array_keys($memberDevices);
+    
+                // Fetch components for the devices the member has access to
+                $components = Component::with(['device.section'])
+                    ->whereIn('device_id', $deviceIds)
+                    ->get();
+    
+                // Add access levels for each component based on the devices' data
+                $memberComponentsWithSections = $components->map(function ($component) use ($memberDevices) {
+                    $deviceComponentsAccess = $memberDevices[$component->device_id] ?? [];
+                    $accessibility = $deviceComponentsAccess[$component->id] ?? null;
+    
+                    return [
+                        'id' => $component->id,
+                        'name' => $component->name,
+                        'type' => $component->type,
+                        'order' => $component->order,
+                        'access' => $accessibility, // Access level from member's devices data
+                        'section' => [$component->device->section],
+                        'created_at' => $component->created_at,
+                        'updated_at' => $component->updated_at,
+                    ];
                 });
-            })->get();
     
-            // Embed section as part of the component object
-            $componentsWithSections = $components->map(function ($component) {
-                return [
-                    'id' => $component->id,
-                    'name' => $component->name,
-                    'type' => $component->type,
-                    'order' => $component->order,
-                    'section' => [$component->device->section],  // Return section as an array
-                    'created_at' => $component->created_at,
-                    'updated_at' => $component->updated_at,
-                ];
-            });
-    
-            return response()->json([
-                'status' => true,
-                'message' => 'User components retrieved successfully',
-                'data' => $componentsWithSections,
-            ], 200);
-    
-        } elseif ($authType === 'member') {
-            // If authenticated as a member, retrieve components for the devices in the member's devices column
-    
-            // Get devices data from the member's devices column (stored as JSON or array)
-            $memberDevices = $auth->devices;
-    
-            if (!$memberDevices || !is_array($memberDevices)) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'No devices found for the member',
-                    'data' => null,
-                ], 404);
+                $componentsWithSections = $componentsWithSections->merge($memberComponentsWithSections);
             }
-    
-            // Extract device IDs
-            $deviceIds = array_keys($memberDevices);
-    
-            // Fetch components for those devices
-            $components = Component::with(['device.section'])->whereIn('device_id', $deviceIds)->get();
-    
-            // Embed section and access level for each component
-            $componentsWithSections = $components->map(function ($component) use ($memberDevices) {
-                // Get access level for the component from the member's devices column
-                $deviceComponentsAccess = $memberDevices[$component->device_id] ?? [];
-                $accessibility = $deviceComponentsAccess[$component->id] ?? null;
-    
-                return [
-                    'id' => $component->id,
-                    'name' => $component->name,
-                    'type' => $component->type,
-                    'order' => $component->order,
-                    'access' => $accessibility,  // Add access level
-                    'section' => [$component->device->section],  // Return section as an array
-                    'created_at' => $component->created_at,
-                    'updated_at' => $component->updated_at,
-                ];
-            });
-    
-            return response()->json([
-                'status' => true,
-                'message' => 'Member components retrieved successfully',
-                'data' => $componentsWithSections,
-            ], 200);
         }
     
         return response()->json([
-            'status' => false,
-            'message' => 'Unknown authentication type',
-        ], 400);
+            'status' => true,
+            'message' => 'Components retrieved successfully',
+            'data' => $componentsWithSections->unique('id')->values(), // Ensure unique components
+        ], 200);
     }    
 }
