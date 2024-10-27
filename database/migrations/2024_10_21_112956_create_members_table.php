@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('members', function (Blueprint $table) {
             $table->id();
             // Ensure devices column is JSON (if not already)
-            $table->json('devices')->nullable()->change();  // Ensures the devices column is JSON
+            $table->json('devices')->nullable();    // Ensures the devices column is JSON
             
             $table->unsignedBigInteger('owner_id')->nullable();
             $table->foreign('owner_id')->references('id')->on('users')
