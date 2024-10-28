@@ -134,4 +134,46 @@ class ProjectController extends Controller
         ], 401);
     }
 
+    public function getProjectAccessDetails(Project $project)
+    {
+        // Ensure the authenticated user has access to view this project
+        if (auth()->id() !== $project->user_id && !Member::where('project_id', $project->id)->where('member_id', auth()->id())->exists()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You do not have permission to view this project',
+            ], 403);
+        }
+
+        // Get project owner
+        $owner = $project->user()->select('id', 'name', 'email')->first();
+
+        // Get all members with access to the project and their permissions
+        $members = $project->members()->with('user:id,name,email')->get()->map(function ($member) {
+            return [
+                'id' => $member->user->id,
+                'name' => $member->user->name,
+                'email' => $member->user->email,
+                'devices' => collect($member->devices)->mapWithKeys(function ($components, $deviceId) {
+                    return [
+                        $deviceId => collect($components)->map(function ($access, $componentId) {
+                            return [
+                                'component_id' => $componentId,
+                                'access' => $access,
+                            ];
+                        })->values()
+                    ];
+                })
+            ];
+        });
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Project access details retrieved successfully',
+            'data' => [
+                'project_id' => $project->id,
+                'owner' => $owner,
+                'members' => $members,
+            ],
+        ], 200);
+    }
 }
