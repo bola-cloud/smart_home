@@ -145,7 +145,7 @@ class ProjectController extends Controller
         }
 
         // Get project owner
-        $owner = $project->user()->select('id', 'name', 'email')->first()->map(function ($user) {
+        $owner = $project->user()->select('id', 'name', 'email')->get()->map(function ($user) {
             return [
                 'id' => $user->id,
                 'name' => $user->name,
