@@ -117,4 +117,30 @@ class SectionController extends Controller
         }
     }
      
+    public function editSectionName(Request $request, Section $section)
+    {
+        // Validate input
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        // Check if the authenticated user is the owner of the project this section belongs to
+        if ($section->project->user_id !== Auth::id()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You do not have permission to edit this section',
+            ], 403);
+        }
+
+        // Update the section name
+        $section->name = $request->name;
+        $section->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Section name updated successfully',
+            'data' => $section,
+        ], 200);
+    }
+
 }

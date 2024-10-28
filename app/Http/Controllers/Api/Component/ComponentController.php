@@ -85,4 +85,30 @@ class ComponentController extends Controller
             'data' => $componentsWithSections->unique('id')->values(), // Ensure unique components
         ], 200);
     }    
+
+    public function editComponentName(Request $request, Component $component)
+    {
+        // Validate input
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        // Check if the authenticated user is the owner of the project this component belongs to
+        if ($component->device->section->project->user_id !== Auth::id()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You do not have permission to edit this component',
+            ], 403);
+        }
+
+        // Update the component name
+        $component->name = $request->name;
+        $component->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Component name updated successfully',
+            'data' => $component,
+        ], 200);
+    }
 }

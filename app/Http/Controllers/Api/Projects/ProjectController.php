@@ -70,4 +70,30 @@ class ProjectController extends Controller
             'data' => $project,
         ], 201);
     }    
+
+    public function editProjectName(Request $request, Project $project)
+    {
+        // Validate input
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        // Check if the authenticated user is the project owner
+        if ($project->user_id !== Auth::id()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You do not have permission to edit this project',
+            ], 403);
+        }
+
+        // Update the project name
+        $project->name = $request->name;
+        $project->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Project name updated successfully',
+            'data' => $project,
+        ], 200);
+    }
 }
