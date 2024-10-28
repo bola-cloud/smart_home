@@ -72,7 +72,7 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     Route::post('/members/add', [MemberController::class, 'addMemberWithPermissions']);
     Route::put('/edit/user/profile', [UserController::class, 'updateProfile']);
     Route::get('/project/{project}/access', [ProjectController::class, 'getProjectAccessDetails']);
-
+    
     // Create a section for a specific project
     Route::post('/projects/{project}/sections', [SectionController::class, 'store']);
     //edit apis
