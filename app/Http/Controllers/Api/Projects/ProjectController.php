@@ -163,14 +163,17 @@ class ProjectController extends Controller
                 'access'=>"member",
             ];
         });
+        // Merge owner and members into a single collection
+        $users = $owner->merge($members);
+        // Optionally reset keys
+        $users = $users->values();
 
         return response()->json([
             'status' => true,
             'message' => 'Project access details retrieved successfully',
             'data' => [
                 'project_id' => $project->id,
-                'owner' => $owner,
-                'members' => $members,
+                'users' => $users,
             ],
         ], 200);
     }
