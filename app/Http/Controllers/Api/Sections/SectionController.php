@@ -44,78 +44,37 @@ class SectionController extends Controller
         ], 201);
     }
 
-    public function getProjectSections(Request $request)
+    public function getAccessibleSections()
     {
-        // Validate the request
-        $validator = Validator::make($request->all(), [
-            'project_id' => 'required|numeric|exists:projects,id',
-        ]);
-    
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-    
-        // Find the project by its ID
-        $project = Project::find($request->project_id);
-    
-        // Check if the authenticated user is a User or a Member
         $auth = Auth::user();
-        $isOwner = $project->user_id === $auth->id;
+        
+        // Retrieve sections from projects the user owns
+        $ownedSections = Section::whereHas('project', function ($query) use ($auth) {
+            $query->where('user_id', $auth->id);
+        })->get();
+        
+        // Retrieve sections for projects where the user is a member
+        $memberSections = Member::where('member_id', $auth->id)
+            ->with('project.sections.devices')  // Load project sections and their devices
+            ->get()
+            ->flatMap(function ($member) {
+                $deviceIds = array_keys($member->devices);
     
-        if ($isOwner) {
-            // For owners, retrieve all sections in the project
-            $sections = $project->sections;
+                // Filter sections to only include those with devices the member has access to
+                return $member->project->sections->filter(function ($section) use ($deviceIds) {
+                    return $section->devices->pluck('id')->intersect($deviceIds)->isNotEmpty();
+                });
+            });
     
-            return response()->json([
-                'status' => true,
-                'message' => 'Sections retrieved successfully for owner',
-                'data' => $sections,
-            ], 200);
-        } else {
-            // For members, get the sections with devices they have access to in this project
+        // Merge owned sections and member-accessible sections, ensuring no duplicates
+        $sections = $ownedSections->merge($memberSections)->unique('id')->values();
     
-            // Find member entry for the authenticated user and project
-            $member = Member::where('member_id', $auth->id)->where('project_id', $project->id)->first();
-    
-            if (!$member) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'You do not have permission to access this project',
-                ], 403);
-            }
-    
-            // Extract device IDs from the member's devices JSON column
-            $memberDevices = $member->devices;
-    
-            if (!$memberDevices || !is_array($memberDevices)) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'No devices found for the member',
-                    'data' => null,
-                ], 404);
-            }
-    
-            // Get only sections containing devices the member has access to
-            $deviceIds = array_keys($memberDevices);
-    
-            // Find sections in the project where the member's devices are located
-            $sections = Section::where('project_id', $project->id)
-                ->whereHas('devices', function ($query) use ($deviceIds) {
-                    $query->whereIn('id', $deviceIds);
-                })
-                ->get();
-    
-            return response()->json([
-                'status' => true,
-                'message' => 'Sections retrieved successfully for the member',
-                'data' => $sections,
-            ], 200);
-        }
-    }
+        return response()->json([
+            'status' => true,
+            'message' => 'Accessible sections retrieved successfully',
+            'data' => $sections,
+        ], 200);
+    }    
      
     public function editSectionName(Request $request, Section $section)
     {
