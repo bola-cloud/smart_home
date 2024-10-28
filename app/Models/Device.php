@@ -11,7 +11,7 @@ class Device extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['section_id', 'name', 'activation', 'last_updated','device_type_id','serial','user_id','cancelled'];
+    protected $fillable = ['section_id', 'name', 'activation', 'last_updated','device_type_id','serial','user_id','cancelled','ip'];
 
     public function section(): BelongsTo
     {
