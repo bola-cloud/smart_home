@@ -109,6 +109,7 @@ class ProjectController extends Controller
                             'section_id' => null,
                             'serial' => null,
                             'last_updated' => null,
+                            'activation' => 0 ,
                         ]);
                     }
                 }

@@ -151,11 +151,12 @@ class DeviceController extends Controller
                     'section_id'=> null ,
                     'serial'=> null ,
                     'last_updated' => null ,
+                    'activation' => 0 ,
                 ]);
                 return response()->json([
                     'status' => true,
                     'message' => 'Project created successfully',
-                    'data' => $project,
+                    'data' => $device,
                 ], 200);
             }
         } else{
