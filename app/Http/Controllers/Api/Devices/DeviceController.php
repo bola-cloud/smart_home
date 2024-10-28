@@ -151,12 +151,11 @@ class DeviceController extends Controller
                     'section_id'=> null ,
                     'serial'=> null ,
                     'last_updated' => null ,
-                    'activation' => 0 ,
+                    'activation' => false ,
                 ]);
                 return response()->json([
                     'status' => true,
-                    'message' => 'Project created successfully',
-                    'data' => $device,
+                    'message' => 'Section has been delted successfully',
                 ], 200);
             }
         } else{
