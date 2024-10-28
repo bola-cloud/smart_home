@@ -145,7 +145,14 @@ class ProjectController extends Controller
         }
 
         // Get project owner
-        $owner = $project->user()->select('id', 'name', 'email')->first();
+        $owner = $project->user()->select('id', 'name', 'email')->first()->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'access'=>"owner",
+            ];
+        });
 
         // Get all members with access to the project and their permissions
         $members = $project->members()->with('user:id,name,email')->get()->map(function ($member) {
@@ -153,16 +160,7 @@ class ProjectController extends Controller
                 'id' => $member->user->id,
                 'name' => $member->user->name,
                 'email' => $member->user->email,
-                'devices' => collect($member->devices)->mapWithKeys(function ($components, $deviceId) {
-                    return [
-                        $deviceId => collect($components)->map(function ($access, $componentId) {
-                            return [
-                                'component_id' => $componentId,
-                                'access' => $access,
-                            ];
-                        })->values()
-                    ];
-                })
+                'access'=>"member",
             ];
         });
 
