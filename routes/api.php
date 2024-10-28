@@ -83,7 +83,6 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     //delete apis
     Route::delete('/project/{project}/delete', [ProjectController::class, 'deleteProject']);
     Route::delete('/section/{section}/delete', [SectionController::class, 'deleteSection']);
-    Route::delete('/component/{component}/delete', [ComponentController::class, 'deleteComponent']);
     Route::delete('/device/{component}/delete', [DeviceController::class, 'deleteDevice']);
 
     // Logout route
