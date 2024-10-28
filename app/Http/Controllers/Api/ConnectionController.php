@@ -72,6 +72,7 @@ class ConnectionController extends Controller
         // Validate the request
         $validator = Validator::make($request->all(), [
             'device_id' => 'required|exists:devices,id',
+            'ip' => "required|ip"
         ]);
     
         if ($validator->fails()) {
@@ -94,6 +95,7 @@ class ConnectionController extends Controller
             // All required columns are not null, proceed with activation
             $device->update([
                 'activation' => true, // Final confirmation of activation
+                'ip' => $request->ip,
             ]);
     
             return response()->json([
