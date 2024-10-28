@@ -47,12 +47,12 @@ class SectionController extends Controller
     public function getAccessibleSections()
     {
         $auth = Auth::user();
-        
+    
         // Retrieve sections from projects the user owns
         $ownedSections = Section::whereHas('project', function ($query) use ($auth) {
             $query->where('user_id', $auth->id);
-        })->get();
-        
+        })->get(['id', 'name', 'created_at', 'updated_at', 'project_id']);  // Select specific fields
+    
         // Retrieve sections for projects where the user is a member
         $memberSections = Member::where('member_id', $auth->id)
             ->with('project.sections.devices')  // Load project sections and their devices
@@ -69,12 +69,24 @@ class SectionController extends Controller
         // Merge owned sections and member-accessible sections, ensuring no duplicates
         $sections = $ownedSections->merge($memberSections)->unique('id')->values();
     
+        // Transform sections to include only the required fields
+        $sectionsData = $sections->map(function ($section) {
+            return [
+                'section_id' => $section->id,
+                'name' => $section->name,
+                'created_at' => $section->created_at,
+                'updated_at' => $section->updated_at,
+                'project_id' => $section->project_id,
+            ];
+        });
+    
         return response()->json([
             'status' => true,
             'message' => 'Accessible sections retrieved successfully',
-            'data' => $sections,
+            'data' => $sectionsData,
         ], 200);
-    }    
+    }
+      
      
     public function editSectionName(Request $request, Section $section)
     {

@@ -145,21 +145,21 @@ class ProjectController extends Controller
         }
 
         // Get project owner
-        $owner = $project->user()->select('id', 'name', 'email')->get()->map(function ($user) {
+        $owner = $project->user()->select('id', 'email', 'created_at')->get()->map(function ($user) {
             return [
                 'id' => $user->id,
-                'name' => $user->name,
                 'email' => $user->email,
+                'created_at' => $user->created_at,
                 'access'=>"owner",
             ];
         });
 
         // Get all members with access to the project and their permissions
-        $members = $project->members()->with('user:id,name,email')->get()->map(function ($member) {
+        $members = $project->members()->with('user:id,created_at,email')->get()->map(function ($member) {
             return [
                 'id' => $member->user->id,
-                'name' => $member->user->name,
                 'email' => $member->user->email,
+                'created_at' => $member->created_at,
                 'access'=>"member",
             ];
         });

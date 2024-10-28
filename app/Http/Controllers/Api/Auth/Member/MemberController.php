@@ -97,4 +97,54 @@ class MemberController extends Controller
             ],
         ], 201);
     }
+
+    public function removeMember(Request $request)
+    {
+        // Validate the incoming request data
+        $validator = Validator::make($request->all(), [
+            'project_id' => 'required|exists:projects,id',
+            'member_id' => 'required|exists:users,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Get the authenticated user
+        $user = Auth::user();
+
+        // Check if the user is the owner of the project
+        $project = Project::where('id', $request->project_id)->where('user_id', $user->id)->first();
+
+        if (!$project) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You do not have permission to remove members from this project',
+            ], 403);
+        }
+
+        // Find the member in the project
+        $member = Member::where('project_id', $request->project_id)
+                        ->where('member_id', $request->member_id)
+                        ->first();
+
+        if (!$member) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Member not found in this project',
+            ], 404);
+        }
+
+        // Delete the member from the project
+        $member->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Member removed from the project successfully',
+        ], 200);
+    }
 }
