@@ -114,5 +114,50 @@ class DeviceController extends Controller
             'data' => $devicesWithComponents->unique('id')->values(), // Ensure unique devices
         ], 200);
     }
-      
+    
+    public function editDeviceName(Request $request, Device $device)
+    {
+        // Validate input
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        // Check if the authenticated user is the owner of the project this device belongs to
+        if ($device->section->project->user_id !== Auth::id()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You do not have permission to edit this device',
+            ], 403);
+        }
+
+        // Update the device name
+        $device->name = $request->name;
+        $device->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Device name updated successfully',
+            'data' => $device,
+        ], 200);
+    }
+
+    public function deleteDevice(Device $device)
+    {
+        if(auth()->check()) {
+            if(auth()->user()->id == $device->user_id){
+                //inactivate device from the user
+                $device->update([
+                    'user_id'=> null ,
+                    'section_id'=> null ,
+                    'serial'=> null ,
+                    'last_updated' => null ,
+                ]);
+            }
+        } else{
+            return response()->json([
+                'status' => false,
+                'message' => 'You must be logged in to delete a device',
+            ], 401);
+        }
+    }
 }

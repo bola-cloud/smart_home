@@ -74,9 +74,17 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
 
     // Create a section for a specific project
     Route::post('/projects/{project}/sections', [SectionController::class, 'store']);
+    //edit apis
     Route::put('/project/{project}/edit-name', [ProjectController::class, 'editProjectName']);
     Route::put('/section/{section}/edit-name', [SectionController::class, 'editSectionName']);
     Route::put('/component/{component}/edit-name', [ComponentController::class, 'editComponentName']);
+    Route::put('/device/{device}/edit-name', [DeviceController::class, 'editDeviceName']);
+
+    //delete apis
+    Route::delete('/project/{project}/delete', [ProjectController::class, 'deleteProject']);
+    Route::delete('/section/{section}/delete', [SectionController::class, 'deleteSection']);
+    Route::delete('/component/{component}/delete', [ComponentController::class, 'deleteComponent']);
+    Route::delete('/device/{component}/delete', [DeviceController::class, 'deleteDevice']);
 
     // Logout route
     Route::post('/logout', [AuthController::class, 'logout']);

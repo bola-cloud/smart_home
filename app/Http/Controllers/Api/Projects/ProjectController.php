@@ -65,7 +65,7 @@ class ProjectController extends Controller
         ]);
 
         return response()->json([
-            'status' => 'success',
+            'status' => true,
             'message' => 'Project created successfully',
             'data' => $project,
         ], 201);
@@ -96,4 +96,41 @@ class ProjectController extends Controller
             'data' => $project,
         ], 200);
     }
+
+    public function deleteProject(Project $project)
+    {
+        if (auth()->check()) {
+            if (auth()->user()->id == $project->user_id) {
+                // Loop through each section and its devices
+                foreach ($project->sections as $section) {
+                    foreach ($section->devices as $device) {
+                        $device->update([
+                            'user_id' => null,
+                            'section_id' => null,
+                            'serial' => null,
+                            'last_updated' => null,
+                        ]);
+                    }
+                }
+
+                // you may want to delete the project or mark it inactive here if needed
+                $project->delete(); // or any other inactivation logic
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Project has been deleted successfully',
+                ], 200);
+            }
+
+            return response()->json([
+                'status' => false,
+                'message' => 'You do not have permission to delete this project',
+            ], 403);
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => 'You must be logged in to delete a project',
+        ], 401);
+    }
+
 }

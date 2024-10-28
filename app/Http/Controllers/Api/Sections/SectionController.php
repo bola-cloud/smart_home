@@ -143,4 +143,38 @@ class SectionController extends Controller
         ], 200);
     }
 
+    public function deleteSection(Section $section)
+    {
+        if (auth()->check()) {
+            if (auth()->user()->id == $section->project->user_id) {
+                // Loop through each device in the section and inactivate it
+                foreach ($section->devices as $device) {
+                    $device->update([
+                        'user_id' => null,
+                        'section_id' => null,
+                        'serial' => null,
+                        'last_updated' => null,
+                    ]);
+                }
+
+                // Delete or mark the section as inactive
+                $section->delete(); // or any other inactivation logic
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Section has been delted successfully',
+                ], 200);
+            }
+
+            return response()->json([
+                'status' => false,
+                'message' => 'You do not have permission to delete this section',
+            ], 403);
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => 'You must be logged in to delete a section',
+        ], 401);
+    }
+
 }
