@@ -86,6 +86,7 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     Route::delete('/section/{section}/delete', [SectionController::class, 'deleteSection']);
     Route::delete('/device/{device}/delete', [DeviceController::class, 'deleteDevice']);
     Route::delete('/projects/remove-member', [MemberController::class, 'removeMember']);
+    Route::post('/project/grant-full-access', [MemberController::class, 'grantFullAccessToMember']);
 
     // Logout route
     Route::post('/logout', [AuthController::class, 'logout']);
