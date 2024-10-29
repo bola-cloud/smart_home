@@ -89,11 +89,18 @@ class ProjectController extends Controller
             'status' => true,
             'message' => 'Project created successfully',
             'data' => [
-                'project' => $project,
+                'project' => [
+                    'project_id' => $project->id,  // Rename id to project_id
+                    'user_id' => $project->user_id,
+                    'name' => $project->name,
+                    'description' => $project->description,
+                    'created_at' => $project->created_at,
+                    'updated_at' => $project->updated_at,
+                ],
                 'sections' => $createdSections,
             ],
         ], 201);
-    }    
+    }     
 
     public function editProjectName(Request $request, Project $project)
     {
