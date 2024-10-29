@@ -77,7 +77,7 @@ class ProjectController extends Controller
             ->map(function ($section) {
                 return [
                     'section_id' => $section->id,
-                    'projet_id' => $section->project_id,
+                    'project_id' => $section->project_id,
                     'name' => $section->name,
                     'description' => $section->description,
                     'created_at' => $section->created_at,
