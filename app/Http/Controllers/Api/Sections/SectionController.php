@@ -40,7 +40,12 @@ class SectionController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Section created successfully',
-            'data' => $section,
+            'data' => [
+                'name' => $section->name,
+                'created_at' => $section->created_at,
+                'section_id' => $section->id,
+                'project_id' => $section->project_id,
+            ],
         ], 201);
     }
 
