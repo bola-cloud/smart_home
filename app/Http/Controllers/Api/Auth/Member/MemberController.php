@@ -65,72 +65,73 @@ class MemberController extends Controller
                                 ->where('project_id', $request->project_id)
                                 ->first();
     
-        // Scenario 1: If member already exists, update devices and components as needed
         if ($existingMember) {
+            // Get current permissions stored in the devices column
             $existingDevices = $existingMember->devices;
+            $allDevicesMatch = true;
     
             foreach ($request->devices as $deviceId => $components) {
-                // Check if the device already exists for the member
+                $missingComponents = [];
+                $deviceFullyMatched = true;
+    
+                // Check if the device already exists in the member's devices
                 if (isset($existingDevices[$deviceId])) {
-                    $missingComponents = [];
-                    $allComponentsMatch = true;
-            
-                    // Iterate through each component and check if it matches the existing permissions
                     foreach ($components as $componentId => $permission) {
                         if (isset($existingDevices[$deviceId][$componentId])) {
                             // Check if the existing permission matches
                             if ($existingDevices[$deviceId][$componentId] !== $permission) {
-                                // Update the permission if it differs
+                                // Update permission if it does not match
                                 $existingDevices[$deviceId][$componentId] = $permission;
-                                $allComponentsMatch = false;
+                                $deviceFullyMatched = false;
                             }
                         } else {
-                            // Component does not exist, mark it as missing
+                            // Component does not exist, add it
                             $missingComponents[$componentId] = $permission;
-                            $allComponentsMatch = false;
+                            $deviceFullyMatched = false;
                         }
                     }
-            
-                    // If all components match for the device, return the 'already exists' message
-                    if ($allComponentsMatch) {
-                        return response()->json([
-                            'status' => false,
-                            'message' => 'All components for this device already have the specified permissions',
-                            'device_id' => $deviceId,
-                        ], 409);
-                    } elseif (!empty($missingComponents)) {
-                        // Add missing components if they were not previously set
-                        foreach ($missingComponents as $componentId => $permission) {
-                            $existingDevices[$deviceId][$componentId] = $permission;
-                        }
+    
+                    // Add any missing components for this device
+                    foreach ($missingComponents as $componentId => $permission) {
+                        $existingDevices[$deviceId][$componentId] = $permission;
                     }
                 } else {
-                    // If the device does not exist, add it with all specified components
+                    // Device does not exist, so add it entirely
                     $existingDevices[$deviceId] = $components;
+                    $deviceFullyMatched = false;
+                }
+    
+                // If this device fully matched, keep `allDevicesMatch` as true; otherwise, set to false
+                if (!$deviceFullyMatched) {
+                    $allDevicesMatch = false;
                 }
             }
-                    
     
-            // Update the devices in the database
+            // After looping, check if all devices matched exactly
+            if ($allDevicesMatch) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'All components for all devices already have the specified permissions',
+                ], 409);
+            }
+    
+            // Save the updated devices data for the member
             $existingMember->devices = $existingDevices;
             $existingMember->save();
     
             return response()->json([
                 'status' => true,
-                'message' => 'Member permissions updated successfully',
-                'data' => [
-                    'member' => $existingMember,
-                    'devices' => $existingMember->devices,
-                ],
+                'message' => 'Permissions updated successfully',
+                'data' => $existingDevices,
             ], 200);
         }
     
-        // Scenario 5: Member does not exist, create new member entry with permissions
+        // If member does not exist, create a new member entry with specified permissions
         $newMember = Member::create([
-            'owner_id' => $user->id,
-            'member_id' => $member->id,
-            'project_id' => $request->project_id,
-            'devices' => $request->devices,
+            'owner_id' => $user->id,         // Set the owner to the currently authenticated user
+            'member_id' => $member->id,      // Set the user receiving the permissions
+            'project_id' => $request->project_id,  // Set the project the member has access to
+            'devices' => $request->devices,  // Store the devices as JSON
         ]);
     
         return response()->json([
@@ -138,11 +139,10 @@ class MemberController extends Controller
             'message' => 'Member added successfully with permissions',
             'data' => [
                 'member' => $newMember,
-                'devices' => $newMember->devices,
+                'devices' => $newMember->devices,  // Return devices with permissions
             ],
         ], 201);
-    }
-    
+    }   
 
     public function removeMember(Request $request)
     {
