@@ -68,51 +68,10 @@ class MemberController extends Controller
         if ($existingMember) {
             // Get current permissions stored in the devices column
             $existingDevices = $existingMember->devices;
-            $allDevicesMatch = true;
     
+            // Replace each device's components entirely if specified in the new request
             foreach ($request->devices as $deviceId => $components) {
-                $missingComponents = [];
-                $deviceFullyMatched = true;
-    
-                // Check if the device already exists in the member's devices
-                if (isset($existingDevices[$deviceId])) {
-                    foreach ($components as $componentId => $permission) {
-                        if (isset($existingDevices[$deviceId][$componentId])) {
-                            // Check if the existing permission matches
-                            if ($existingDevices[$deviceId][$componentId] !== $permission) {
-                                // Update permission if it does not match
-                                $existingDevices[$deviceId][$componentId] = $permission;
-                                $deviceFullyMatched = false;
-                            }
-                        } else {
-                            // Component does not exist, add it
-                            $missingComponents[$componentId] = $permission;
-                            $deviceFullyMatched = false;
-                        }
-                    }
-    
-                    // Add any missing components for this device
-                    foreach ($missingComponents as $componentId => $permission) {
-                        $existingDevices[$deviceId][$componentId] = $permission;
-                    }
-                } else {
-                    // Device does not exist, so add it entirely
-                    $existingDevices[$deviceId] = $components;
-                    $deviceFullyMatched = false;
-                }
-    
-                // If this device fully matched, keep `allDevicesMatch` as true; otherwise, set to false
-                if (!$deviceFullyMatched) {
-                    $allDevicesMatch = false;
-                }
-            }
-    
-            // After looping, check if all devices matched exactly
-            if ($allDevicesMatch) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'All components for all devices already have the specified permissions',
-                ], 409);
+                $existingDevices[$deviceId] = $components;
             }
     
             // Save the updated devices data for the member
@@ -142,7 +101,8 @@ class MemberController extends Controller
                 'devices' => $newMember->devices,  // Return devices with permissions
             ],
         ], 201);
-    }   
+    }
+    
 
     public function removeMember(Request $request)
     {
