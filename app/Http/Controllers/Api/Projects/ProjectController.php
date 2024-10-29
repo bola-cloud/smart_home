@@ -69,14 +69,14 @@ class ProjectController extends Controller
             ['project_id' => $project->id, 'name' => 'Livingroom', 'description' => 'Livingroom section'],
             ['project_id' => $project->id, 'name' => 'Bedroom', 'description' => 'Bedroom section'],
         ];
-        Section::insert($sections);
+        $createdSections = Section::insert($sections);
 
         return response()->json([
             'status' => true,
             'message' => 'Project created successfully',
             'data' => [
                 'project' => $project,
-                'sections' => $sections,
+                'sections' => $createdSections,
             ],
         ], 201);
     }    
@@ -186,5 +186,17 @@ class ProjectController extends Controller
                 'users' => $users,
             ],
         ], 200);
+    }
+
+    protected function logAction($action, $model, $modelId, $beforeData = null, $afterData = null)
+    {
+        Log::create([
+            'user_id' => Auth::id(),
+            'action' => $action,
+            'model' => get_class($model),
+            'model_id' => $modelId,
+            'before_data' => $beforeData,
+            'after_data' => $afterData,
+        ]);
     }
 }
