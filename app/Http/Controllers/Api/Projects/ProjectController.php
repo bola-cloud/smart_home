@@ -71,8 +71,19 @@ class ProjectController extends Controller
         ];
         Section::insert($sections);
     
-        // Fetch the sections to return in the response
-        $createdSections = Section::where('project_id', $project->id)->get();
+        // Fetch the sections, renaming keys
+        $createdSections = Section::where('project_id', $project->id)
+            ->get()
+            ->map(function ($section) {
+                return [
+                    'section_id' => $section->id,
+                    'projet_id' => $section->project_id,
+                    'name' => $section->name,
+                    'description' => $section->description,
+                    'created_at' => $section->created_at,
+                    'updated_at' => $section->updated_at,
+                ];
+            });
     
         return response()->json([
             'status' => true,
@@ -82,8 +93,7 @@ class ProjectController extends Controller
                 'sections' => $createdSections,
             ],
         ], 201);
-    }
-     
+    }    
 
     public function editProjectName(Request $request, Project $project)
     {
