@@ -95,7 +95,96 @@ class MemberController extends Controller
         ], 201);
     }
     
+    public function grantFullAccessToMember(Request $request)
+    {
+        // Validate the incoming request data
+        $validator = Validator::make($request->all(), [
+            'member_identifier' => 'required|string',  // Allow email or phone as identifier
+            'project_id' => 'required|exists:projects,id',  // Ensure the project exists
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Get the authenticated user (owner)
+        $user = Auth::user();
+
+        // Check if the authenticated user owns the project
+        $project = Project::where('id', $request->project_id)->where('user_id', $user->id)->first();
+        if (!$project) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You do not have permission to add members to this project',
+            ], 403);
+        }
+
+        // Retrieve the member by email or phone number
+        $member = User::where('email', $request->member_identifier)
+                    ->orWhere('phone_number', $request->member_identifier)
+                    ->first();
+
+        if (!$member) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No user found with this email or phone number',
+            ], 404);
+        }
+
+        // Retrieve all devices and components in the project
+        $devices = $project->sections()->with('devices.components')->get()
+            ->pluck('devices')
+            ->flatten();
+
+        // Prepare the devices data with full access permissions
+        $devicesWithFullAccess = [];
+        foreach ($devices as $device) {
+            $devicePermissions = [];
+            foreach ($device->components as $component) {
+                $devicePermissions[$component->id] = 'control';  // Grant full 'control' access to each component
+            }
+            $devicesWithFullAccess[$device->id] = $devicePermissions;
+        }
+
+        // Check if the member already exists in the project
+        $existingMember = Member::where('member_id', $member->id)
+                                ->where('project_id', $request->project_id)
+                                ->first();
+
+        if ($existingMember) {
+            // Update the devices with full access permissions if the member already exists
+            $existingMember->devices = $devicesWithFullAccess;
+            $existingMember->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Full access permissions granted successfully',
+                'data' => $existingMember->devices,
+            ], 200);
+        }
+
+        // If the member does not already exist, create a new entry with full access permissions
+        $newMember = Member::create([
+            'owner_id' => $user->id,         // Set the owner to the currently authenticated user
+            'member_id' => $member->id,      // Set the user receiving the permissions
+            'project_id' => $request->project_id,  // Set the project the member has access to
+            'devices' => $devicesWithFullAccess,   // Store the devices with full access as JSON
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Member granted full access successfully',
+            'data' => [
+                'member' => $newMember,
+                'devices' => $newMember->devices,  // Return devices with full access permissions
+            ],
+        ], 201);
+    }
+    
     public function removeMember(Request $request)
     {
         // Validate the incoming request data
