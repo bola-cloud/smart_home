@@ -66,10 +66,12 @@ class ProjectController extends Controller
 
         // Create two sections "Livingroom" and "Bedroom" under the created project
         $sections = [
+
+        ];
+        $createdSections = Section::create([            
             ['project_id' => $project->id, 'name' => 'Livingroom', 'description' => 'Livingroom section'],
             ['project_id' => $project->id, 'name' => 'Bedroom', 'description' => 'Bedroom section'],
-        ];
-        $createdSections = Section::create([$sections]);
+        ]);
 
         return response()->json([
             'status' => true,
