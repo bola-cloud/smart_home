@@ -50,8 +50,8 @@ class MemberController extends Controller
     
         // Retrieve the member by email or phone number
         $member = User::where('email', $request->member_identifier)
-                    ->orWhere('phone_number', $request->member_identifier)
-                    ->first();
+                      ->orWhere('phone_number', $request->member_identifier)
+                      ->first();
     
         if (!$member) {
             return response()->json([
@@ -66,26 +66,18 @@ class MemberController extends Controller
                                 ->first();
     
         if ($existingMember) {
-            // Get current permissions stored in the devices column
-            $existingDevices = $existingMember->devices;
-    
-            // Replace each device's components entirely if specified in the new request
-            foreach ($request->devices as $deviceId => $components) {
-                $existingDevices[$deviceId] = $components;
-            }
-    
-            // Save the updated devices data for the member
-            $existingMember->devices = $existingDevices;
+            // Clear existing devices and set the new devices format
+            $existingMember->devices = $request->devices;
             $existingMember->save();
     
             return response()->json([
                 'status' => true,
                 'message' => 'Permissions updated successfully',
-                'data' => $existingDevices,
+                'data' => $existingMember->devices,
             ], 200);
         }
     
-        // If member does not exist, create a new member entry with specified permissions
+        // If the member does not already exist, create a new entry with the specified permissions
         $newMember = Member::create([
             'owner_id' => $user->id,         // Set the owner to the currently authenticated user
             'member_id' => $member->id,      // Set the user receiving the permissions
