@@ -65,9 +65,37 @@ class MemberController extends Controller
                                 ->where('project_id', $request->project_id)
                                 ->first();
     
+        // Scenario 1: If member already exists, update devices and components as needed
         if ($existingMember) {
-            // Update the devices permissions if the member already exists
-            $existingMember->devices = $request->devices;
+            $existingDevices = $existingMember->devices;
+    
+            foreach ($request->devices as $deviceId => $components) {
+                if (isset($existingDevices[$deviceId])) {
+                    // Scenario 2: Device exists, check components
+                    foreach ($components as $componentId => $permission) {
+                        if (isset($existingDevices[$deviceId][$componentId])) {
+                            // Component exists, continue to next if permission matches
+                            if ($existingDevices[$deviceId][$componentId] === $permission) {
+                                return response()->json([
+                                    'status' => false,
+                                    'message' => 'Component already has the specified permission',
+                                    'device_id' => $deviceId,
+                                    'component_id' => $componentId,
+                                ], 409);
+                            }
+                        } else {
+                            // Scenario 3: Component does not exist, add it
+                            $existingDevices[$deviceId][$componentId] = $permission;
+                        }
+                    }
+                } else {
+                    // Scenario 4: Device does not exist, add it with all components
+                    $existingDevices[$deviceId] = $components;
+                }
+            }
+    
+            // Update the devices in the database
+            $existingMember->devices = $existingDevices;
             $existingMember->save();
     
             return response()->json([
@@ -75,17 +103,17 @@ class MemberController extends Controller
                 'message' => 'Member permissions updated successfully',
                 'data' => [
                     'member' => $existingMember,
-                    'devices' => $existingMember->devices,  // Return devices with permissions
+                    'devices' => $existingMember->devices,
                 ],
             ], 200);
         }
     
-        // Create a new member entry with the specified permissions
+        // Scenario 5: Member does not exist, create new member entry with permissions
         $newMember = Member::create([
-            'owner_id' => $user->id,         // Set the owner to the currently authenticated user
-            'member_id' => $member->id,      // Set the user receiving the permissions
-            'project_id' => $request->project_id,  // Set the project the member has access to
-            'devices' => $request->devices,  // Store the devices as JSON
+            'owner_id' => $user->id,
+            'member_id' => $member->id,
+            'project_id' => $request->project_id,
+            'devices' => $request->devices,
         ]);
     
         return response()->json([
@@ -93,10 +121,11 @@ class MemberController extends Controller
             'message' => 'Member added successfully with permissions',
             'data' => [
                 'member' => $newMember,
-                'devices' => $newMember->devices,  // Return devices with permissions
+                'devices' => $newMember->devices,
             ],
         ], 201);
     }
+    
 
     public function removeMember(Request $request)
     {
