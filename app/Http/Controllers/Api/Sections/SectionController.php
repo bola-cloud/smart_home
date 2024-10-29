@@ -38,7 +38,7 @@ class SectionController extends Controller
         ]);
 
         return response()->json([
-            'status' => 'success',
+            'status' => true,
             'message' => 'Section created successfully',
             'data' => [
                 'name' => $section->name,
