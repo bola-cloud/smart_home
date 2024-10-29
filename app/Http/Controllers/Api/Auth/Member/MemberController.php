@@ -71,28 +71,33 @@ class MemberController extends Controller
     
             foreach ($request->devices as $deviceId => $components) {
                 if (isset($existingDevices[$deviceId])) {
-                    // Scenario 2: Device exists, check components
+                    $allComponentsExist = true;
+            
+                    // Check each component for the device
                     foreach ($components as $componentId => $permission) {
-                        if (isset($existingDevices[$deviceId][$componentId])) {
-                            // Component exists, continue to next if permission matches
-                            if ($existingDevices[$deviceId][$componentId] === $permission) {
-                                return response()->json([
-                                    'status' => false,
-                                    'message' => 'Component already has the specified permission',
-                                    'device_id' => $deviceId,
-                                    'component_id' => $componentId,
-                                ], 409);
-                            }
-                        } else {
-                            // Scenario 3: Component does not exist, add it
+                        if (!isset($existingDevices[$deviceId][$componentId])) {
+                            // If any component does not exist, set the flag to false
+                            $allComponentsExist = false;
+                            $existingDevices[$deviceId][$componentId] = $permission; // Add the missing component with permission
+                        } elseif ($existingDevices[$deviceId][$componentId] !== $permission) {
+                            // Update permission if it doesn't match the existing one
                             $existingDevices[$deviceId][$componentId] = $permission;
                         }
+                    }
+            
+                    // If all components already exist with the correct permissions
+                    if ($allComponentsExist) {
+                        return response()->json([
+                            'status' => false,
+                            'message' => 'All components for this device already have the specified permissions',
+                            'device_id' => $deviceId,
+                        ], 409);
                     }
                 } else {
                     // Scenario 4: Device does not exist, add it with all components
                     $existingDevices[$deviceId] = $components;
                 }
-            }
+            }            
     
             // Update the devices in the database
             $existingMember->devices = $existingDevices;
