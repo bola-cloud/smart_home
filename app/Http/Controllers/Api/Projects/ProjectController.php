@@ -74,7 +74,10 @@ class ProjectController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Project created successfully',
-            'data' => [$project,$sections],
+            'data' => [
+                'project' => $project,
+                'sections' => $sections,
+            ],
         ], 201);
     }    
 
