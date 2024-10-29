@@ -64,6 +64,13 @@ class ProjectController extends Controller
             'description' => $request->description,
         ]);
 
+        // Create two sections "Livingroom" and "Bedroom" under the created project
+        $sections = [
+            ['project_id' => $project->id, 'name' => 'Livingroom', 'description' => 'Livingroom section'],
+            ['project_id' => $project->id, 'name' => 'Bedroom', 'description' => 'Bedroom section'],
+        ];
+        Section::insert($sections);
+
         return response()->json([
             'status' => true,
             'message' => 'Project created successfully',
