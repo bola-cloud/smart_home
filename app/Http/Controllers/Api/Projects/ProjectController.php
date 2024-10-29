@@ -53,26 +53,27 @@ class ProjectController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
         ]);
-
+    
         // Get the authenticated user
         $user = $request->user();
-
+    
         // Create a new project associated with the authenticated user
         $project = Project::create([
             'user_id' => $user->id,
             'name' => $request->name,
             'description' => $request->description,
         ]);
-
+    
         // Create two sections "Livingroom" and "Bedroom" under the created project
         $sections = [
-
-        ];
-        $createdSections = Section::create([            
             ['project_id' => $project->id, 'name' => 'Livingroom', 'description' => 'Livingroom section'],
             ['project_id' => $project->id, 'name' => 'Bedroom', 'description' => 'Bedroom section'],
-        ]);
-
+        ];
+        Section::insert($sections);
+    
+        // Fetch the sections to return in the response
+        $createdSections = Section::where('project_id', $project->id)->get();
+    
         return response()->json([
             'status' => true,
             'message' => 'Project created successfully',
@@ -81,7 +82,8 @@ class ProjectController extends Controller
                 'sections' => $createdSections,
             ],
         ], 201);
-    }    
+    }
+     
 
     public function editProjectName(Request $request, Project $project)
     {
