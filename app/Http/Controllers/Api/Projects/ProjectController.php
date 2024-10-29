@@ -69,7 +69,7 @@ class ProjectController extends Controller
             ['project_id' => $project->id, 'name' => 'Livingroom', 'description' => 'Livingroom section'],
             ['project_id' => $project->id, 'name' => 'Bedroom', 'description' => 'Bedroom section'],
         ];
-        $createdSections = Section::insert($sections);
+        $createdSections = Section::create($sections);
 
         return response()->json([
             'status' => true,
