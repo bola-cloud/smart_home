@@ -52,10 +52,10 @@ class ConnectionController extends Controller
         if (!$device->save()) {
             return response()->json(['message' => 'Failed to update device'], 500);
         }
-    
+        dd("jjj");
         // Schedule the CheckDeviceActivationJob to run after 1 minute
         CheckDeviceActivationJob::dispatch($device->id)->delay(now()->addMinute());
-    
+      
         shell_exec('php /home/george/htdocs/smartsystem.mazaya-iot.org/artisan queue:work --stop-when-empty > /dev/null 2>&1 &');
     
         // Respond with the device details
