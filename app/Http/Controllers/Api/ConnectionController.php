@@ -13,55 +13,66 @@ use App\Jobs\CheckDeviceActivationJob;
 class ConnectionController extends Controller
 {
     public function connectMobile(Request $request)
-    {
-        // Validate the request
-        $validator = Validator::make($request->all(), [
-            'section_id' => 'required|exists:sections,id',
-            'device_type_id' => 'required|exists:device_types,id',
-        ]);
-    
-        if ($validator->fails()) {
-            return response()->json(['message' => $validator->errors()], 400);
-        }
-    
-        // Get the authenticated user
-        $user = auth()->user();
-        if (!$user) {
-            return response()->json(['message' => 'User not authenticated'], 401);
-        }
-    
-        $updated = Device::where('id', $device->id)->update([
-            'section_id' => $request->section_id,
-            'last_updated' => Carbon::now(),
-            'activation' => false,  // Initially not activated
-            'user_id'=> $user->id,
-            'serial' => $device->id . '-' . rand(1000000, 9999999),
-        ]);
-        
-        if (!$updated) {
-            return response()->json(['message' => 'Failed to update device'], 500);
-        }
-        
-        // Retrieve the updated device instance
-        $device = Device::find($device->id);
-        
-        // Schedule the CheckDeviceActivationJob to run after 1 minute
-        CheckDeviceActivationJob::dispatch($device->id)->delay(now()->addMinute());
-        
-        shell_exec('php /home/george/htdocs/smartsystem.mazaya-iot.org/artisan queue:work --stop-when-empty > /dev/null 2>&1 &');
-        
-        // Respond with the device details
-        return response()->json([
-            'status' => 'Success',
-            'message' => 'Device found and activation initiated',
-            'data' => [
-                'device_id' => $device->id,
-                'device_serial' => $device->serial,
-                'section_id' => $device->section_id,
-            ]
-        ]);
-        
-    }    
+{
+    // Validate the request
+    $validator = Validator::make($request->all(), [
+        'section_id' => 'required|exists:sections,id',
+        'device_type_id' => 'required|exists:device_types,id',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['message' => $validator->errors()], 400);
+    }
+
+    // Get the authenticated user
+    $user = auth()->user();
+    if (!$user) {
+        return response()->json(['message' => 'User not authenticated'], 401);
+    }
+
+    // Find an inactive device that matches the criteria
+    $device = Device::where('activation', 0)
+                    ->where('device_type_id', $request->device_type_id)
+                    ->whereNull('last_updated')
+                    ->whereNull('section_id')
+                    ->first();
+
+    if (!$device) {
+        return response()->json(['message' => 'No available device found'], 404);
+    }
+
+    // Update the device with section, timestamp, and other details
+    $updated = Device::where('id', $device->id)->update([
+        'section_id' => $request->section_id,
+        'last_updated' => Carbon::now(),
+        'activation' => false,  // Initially not activated
+        'user_id'=> $user->id,
+        'serial' => $device->id . '-' . rand(1000000, 9999999),
+    ]);
+
+    if (!$updated) {
+        return response()->json(['message' => 'Failed to update device'], 500);
+    }
+
+    // Retrieve the updated device instance
+    $device = Device::find($device->id);
+
+    // Schedule the CheckDeviceActivationJob to run after 1 minute
+    CheckDeviceActivationJob::dispatch($device->id)->delay(now()->addMinute());
+
+    shell_exec('php /home/george/htdocs/smartsystem.mazaya-iot.org/artisan queue:work --stop-when-empty > /dev/null 2>&1 &');
+
+    // Respond with the device details
+    return response()->json([
+        'status' => 'Success',
+        'message' => 'Device found and activation initiated',
+        'data' => [
+            'device_id' => $device->id,
+            'device_serial' => $device->serial,
+            'section_id' => $device->section_id,
+        ]
+    ]);
+}
 
     public function confirmActivation(Request $request)
     {
