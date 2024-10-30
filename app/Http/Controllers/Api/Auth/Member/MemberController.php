@@ -111,7 +111,7 @@ class MemberController extends Controller
                 'devices' => $devicesArray,
             ]);
         }
-    
+        dd('bola');
         // Send notification
         $this->sendNotificationToUser($member->notification, $deviceNames);
     
