@@ -79,7 +79,7 @@ class ProjectController extends Controller
                     'section_id' => $section->id,
                     'project_id' => $section->project_id,
                     'name' => $section->name,
-                    'description' => $section->description,
+                    'type' => "owner",
                     'created_at' => $section->created_at,
                     'updated_at' => $section->updated_at,
                 ];
@@ -96,6 +96,7 @@ class ProjectController extends Controller
                     'description' => $project->description,
                     'created_at' => $project->created_at,
                     'updated_at' => $project->updated_at,
+                    'type' => "owner",
                 ],
                 'sections' => $createdSections,
             ],
