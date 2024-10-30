@@ -36,7 +36,7 @@ class MemberController extends Controller
                     $deviceId = data_get($request, "devices.{$deviceIndex}.device_id");
         
                     if (!Component::where('id', $value)->where('device_id', $deviceId)->exists()) {
-                        $fail("The specified component with ID $value does not belong to the device with ID $deviceId or does not exist.");
+                        $fail("The specified device does not exist.");
                     }
                 }
             ],
