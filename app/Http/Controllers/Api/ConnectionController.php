@@ -41,57 +41,24 @@ class ConnectionController extends Controller
             return response()->json(['message' => 'No available device found'], 404);
         }
     
-        // Update section_id and verify it
-        $device->section_id = $request->section_id;
-        $device->save();
-    
-        // Check section_id by querying directly from the database
-        $confirmedDevice = Device::find($device->id);
-        if ($confirmedDevice->section_id != $request->section_id) {
-            return response()->json(['message' => 'Failed to update section_id'], 500);
-        }
-    
-        // Update last_updated and verify
-        $device->last_updated = Carbon::now();
-        $device->save();
-    
-        $confirmedDevice = Device::find($device->id);
-        if (!$confirmedDevice->last_updated) {
-            return response()->json(['message' => 'Failed to update last_updated'], 500);
-        }
-    
-        // Update activation and verify
-        $device->activation = false;
-        $device->save();
-    
-        $confirmedDevice = Device::find($device->id);
-        if ($confirmedDevice->activation !== false) {
-            return response()->json(['message' => 'Failed to update activation'], 500);
-        }
-    
-        // Update user_id and verify
-        $device->user_id = $user->id;
-        $device->save();
-    
-        $confirmedDevice = Device::find($device->id);
-        if ($confirmedDevice->user_id != $user->id) {
-            return response()->json(['message' => 'Failed to update user_id'], 500);
-        }
-    
-        // Update serial and verify
-        $device->serial = $device->id . '-' . rand(1000000, 9999999);
-        $device->save();
-    
-        $confirmedDevice = Device::find($device->id);
-        if (!$confirmedDevice->serial) {
-            return response()->json(['message' => 'Failed to update serial'], 500);
+        
+        $updated = Device::where('id', $device->id)->update([
+            'section_id' => $request->section_id,
+            'last_updated' => Carbon::now(),
+            'activation' => false,  // Initially not activated
+            'user_id'=> $user->id,
+            'serial' => $device->id . '-' . rand(1000000, 9999999),
+        ]);
+        
+        if (!$updated) {
+            return response()->json(['message' => 'Failed to update device'], 500);
         }
     
         // Schedule the CheckDeviceActivationJob to run after 1 minute
         CheckDeviceActivationJob::dispatch($device->id)->delay(now()->addMinute());
     
         shell_exec('php /home/george/htdocs/smartsystem.mazaya-iot.org/artisan queue:work --stop-when-empty > /dev/null 2>&1 &');
-    
+        
         // Respond with the device details
         return response()->json([
             'status' => 'Success',
@@ -99,13 +66,10 @@ class ConnectionController extends Controller
             'data' => [
                 'device_id' => $device->id,
                 'device_serial' => $device->serial,
-                'section_id' => $device->section_id,
+                'section_id' => $request->section_id,
             ]
         ]);
-    }
-    
-
-     
+    }    
 
     public function confirmActivation(Request $request)
     {
