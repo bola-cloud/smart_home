@@ -236,7 +236,8 @@ class MemberController extends Controller
     
             return response()->json([
                 'status' => true,
-                'message' => 'Full access permissions granted successfully',
+                'exist' => true,
+                'message' => 'Full access permissions granted already exists',
                 'data' => $existingMember->devices,
             ], 200);
         }
@@ -253,7 +254,10 @@ class MemberController extends Controller
             'status' => true,
             'message' => 'Member granted full access successfully',
             'data' => [
-                '' => $newMember->devices,
+                'id' => $member->id,
+                'email' => $member->email,
+                'created_at' => $member->created_at,
+                'access' => "member",
             ],
         ], 201);
     }
