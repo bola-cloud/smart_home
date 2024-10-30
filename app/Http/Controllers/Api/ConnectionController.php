@@ -64,7 +64,7 @@ class ConnectionController extends Controller
             'status' => 'Success',
             'message' => 'Device found and activation initiated',
             'data' => [
-                // 'device_id' => $updated->id,
+                'device_id' => $device->id,
                 'device_serial' =>  $updated->serial,
                 'section_id' => $updated->section_id,
             ]
