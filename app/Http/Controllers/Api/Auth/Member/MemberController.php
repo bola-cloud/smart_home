@@ -111,10 +111,9 @@ class MemberController extends Controller
                 'devices' => $devicesArray,
             ]);
         }
-        dd('bola');
         // Send notification
         $this->sendNotificationToUser($member->notification, $deviceNames);
-    
+        dd('bola');
         return response()->json([
             'status' => true,
             'message' => 'Member added successfully with permissions and notification sent',
