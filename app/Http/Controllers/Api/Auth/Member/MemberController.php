@@ -128,14 +128,14 @@ class MemberController extends Controller
         ];
     
         // Send notification
-        OneSignal::sendNotificationUsingTags($notificationData);
+        OneSignal::sendNotificationCustom($notificationData);
     
         return response()->json([
             'status' => true,
             'message' => 'Member added successfully with permissions and notification sent',
             'data' => $existingMember->devices,
         ], 200);
-    }
+    }    
     
     public function grantFullAccessToMember(Request $request)
     {
