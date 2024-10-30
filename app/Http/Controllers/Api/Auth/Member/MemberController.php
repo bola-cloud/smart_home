@@ -113,7 +113,7 @@ class MemberController extends Controller
         }
         // Send notification
         $this->sendNotificationToUser($member->notification, $deviceNames);
-        dd('bola');
+
         return response()->json([
             'status' => true,
             'message' => 'Member added successfully with permissions and notification sent',
@@ -126,6 +126,7 @@ class MemberController extends Controller
      */
     protected function sendNotificationToUser($notificationId, $deviceNames)
     {
+        dd($notificationId, $deviceNames);
         // Check for valid notification ID
         if (empty($notificationId)) {
             return response()->json([
