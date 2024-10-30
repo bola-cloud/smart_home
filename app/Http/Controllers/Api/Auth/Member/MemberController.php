@@ -155,7 +155,8 @@ class MemberController extends Controller
         $client->post('https://onesignal.com/api/v1/notifications', [
             'headers' => [
                 'Authorization' => 'Bearer ' . env('ONESIGNAL_REST_API_KEY'),
-                'Content-Type'  => 'application/json'
+                'Content-Type'  => 'application/json',
+                'accept'  => 'application/json',
             ],
             'json' => $notificationData,
         ]);
