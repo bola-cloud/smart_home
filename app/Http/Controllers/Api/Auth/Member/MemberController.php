@@ -126,7 +126,7 @@ class MemberController extends Controller
      */
     protected function sendNotificationToUser($notificationId, $deviceNames)
     {
-        dd($notificationId, $deviceNames);
+        // dd($notificationId, $deviceNames);
         // Check for valid notification ID
         if (empty($notificationId)) {
             return response()->json([
