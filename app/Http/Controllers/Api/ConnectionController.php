@@ -41,20 +41,32 @@ class ConnectionController extends Controller
             return response()->json(['message' => 'No available device found'], 404);
         }
     
-        dd($request->section_id);
-        $device->update([
-            'section_id' => $request->section_id,
-            'last_updated' => Carbon::now(),
-            'activation' => false,  // Initially not activated
-            'user_id'=> $user->id,
-            'serial' => $device->id . '-' . rand(1000000, 9999999),
-        ]);
+      
+        $device->section_id = $request->section_id;
+        $device->last_updated = Carbon::now();
+        $device->activation = false;  // Initially not activated
+        $device->user_id = $user->id;
+        $device->serial = $device->id . '-' . rand(1000000, 9999999);
+        $device->save();
+    
+        // Confirm that the fields have been updated
+        $device->refresh();  // Reload the instance with fresh data from the database
+    
+        if (
+            $device->section_id !== $request->section_id ||
+            !$device->last_updated ||
+            $device->activation !== false ||
+            $device->user_id !== $user->id ||
+            !$device->serial
+        ) {
+            return response()->json(['message' => 'Device update failed'], 500);
+        }
     
         // Schedule the CheckDeviceActivationJob to run after 1 minute
         CheckDeviceActivationJob::dispatch($device->id)->delay(now()->addMinute());
     
         shell_exec('php /home/george/htdocs/smartsystem.mazaya-iot.org/artisan queue:work --stop-when-empty > /dev/null 2>&1 &');
-        
+    
         // Respond with the device details
         return response()->json([
             'status' => 'Success',
@@ -62,10 +74,11 @@ class ConnectionController extends Controller
             'data' => [
                 'device_id' => $device->id,
                 'device_serial' => $device->serial,
-                'section_id' => $request->section_id,
+                'section_id' => $device->section_id,
             ]
         ]);
-    }    
+    }
+     
 
     public function confirmActivation(Request $request)
     {
