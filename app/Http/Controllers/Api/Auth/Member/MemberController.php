@@ -20,15 +20,27 @@ class MemberController extends Controller
     public function addMemberWithPermissions(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'member_identifier' => 'required|string',  // Allow email or phone as identifier
-            'project_id' => 'required|exists:projects,id',  // Ensure the project exists
-            'devices' => 'required|array',  // This will hold the device and component permissions
-            'devices.*.device_id' => 'required|integer|exists:devices,id',  // Each device should have a valid ID
-            'devices.*.components' => 'required|array',  // Each device should contain components
-            'devices.*.components.*.component_id' => 'required|integer|exists:components,id',  // Component ID must exist
-            'devices.*.components.*.permission' => 'required|string|in:view,control',  // Permissions can be either 'view' or 'control'
-        ]);
+            'member_identifier' => 'required|string',
+            'project_id' => 'required|exists:projects,id',
+            'devices' => 'required|array',
+            'devices.*.device_id' => 'required|integer|exists:devices,id',
+            'devices.*.components' => 'required|array',
+            'devices.*.components.*.component_id' => [
+                'required',
+                'integer',
+                function ($attribute, $value, $fail) use ($request) {
+                    // Extract device index from the attribute string
+                    preg_match('/devices\.(\d+)\.components\.(\d+)\.component_id/', $attribute, $matches);
+                    $deviceIndex = $matches[1];
+                    $deviceId = data_get($request, "devices.{$deviceIndex}.device_id");
         
+                    if (!Component::where('id', $value)->where('device_id', $deviceId)->exists()) {
+                        $fail("The specified component with ID $value does not belong to the device with ID $deviceId or does not exist.");
+                    }
+                }
+            ],
+            'devices.*.components.*.permission' => 'required|string|in:view,control',
+        ]);
     
         if ($validator->fails()) {
             return response()->json([
