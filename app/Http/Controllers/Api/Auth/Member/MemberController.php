@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Member;
 use App\Models\User;
 use App\Models\Project;
+use App\Models\Device;
 use App\Models\Component;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
