@@ -122,19 +122,35 @@ class MemberController extends Controller
             ],
             "data" => [
                 "type" => "access_granted",
-                "devices" => "sdxsddsdsx"
+                "devices" => $deviceNames
             ],
-            "include_external_user_ids" => [(string)$member->notification], // External ID from users table, casted to string
+            "include_external_user_ids" => [(string)$member->notification], // External ID from users table
         ];
 
-        // Send notification
-        OneSignal::sendNotificationCustom($notificationData);
-    
-        return response()->json([
-            'status' => true,
-            'message' => 'Member added successfully with permissions and notification sent',
-            'data' => $existingMember->devices,
-        ], 200);
+        // Send notification with authorization token
+        $client = new \GuzzleHttp\Client();
+
+        $response = $client->post('https://onesignal.com/api/v1/notifications', [
+            'headers' => [
+                'Authorization' => 'Bearer YzU4YTFmOWYtMjFiZi00ODM4LTgxMGYtMTU2MzY1MWE4ZDRk',
+                'Content-Type'  => 'application/json'
+            ],
+            'json' => $notificationData,
+        ]);
+
+        // Check if response is successful
+        if ($response->getStatusCode() == 200) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Notification sent successfully',
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to send notification',
+            ], 500);
+        }
+
     }    
     
     public function grantFullAccessToMember(Request $request)
