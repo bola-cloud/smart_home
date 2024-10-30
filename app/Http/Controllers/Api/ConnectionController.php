@@ -16,8 +16,8 @@ class ConnectionController extends Controller
     {
         // Validate the request
         $validator = Validator::make($request->all(), [
-            'section_id' => 'required',
-            'device_type_id' => 'required',
+            'section_id' => 'required|exists:sections,id',
+            'device_type_id' => 'required|exists:device_types,id',
         ]);
     
         if ($validator->fails()) {
