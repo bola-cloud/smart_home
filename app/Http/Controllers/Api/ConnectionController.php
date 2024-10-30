@@ -13,71 +13,87 @@ use App\Jobs\CheckDeviceActivationJob;
 class ConnectionController extends Controller
 {
     public function connectMobile(Request $request)
-    {
-        // Validate the request
-        $validator = Validator::make($request->all(), [
-            'section_id' => 'required|exists:sections,id',
-            'device_type_id' => 'required|exists:device_types,id',
-        ]);
-    
-        if ($validator->fails()) {
-            return response()->json(['message' => $validator->errors()], 400);
-        }
-    
-        // Get the authenticated user
-        $user = auth()->user();
-        if (!$user) {
-            return response()->json(['message' => 'User not authenticated'], 401);
-        }
-    
-        // Find an inactive device that matches the criteria
-        $device = Device::where('activation', 0)
-                        ->where('device_type_id', $request->device_type_id)
-                        ->whereNull('last_updated')
-                        ->whereNull('section_id')
-                        ->first();
-    
-        if (!$device) {
-            return response()->json(['message' => 'No available device found'], 404);
-        }
-    
-      
-        $device->section_id = $request->section_id;
-        $device->last_updated = Carbon::now();
-        $device->activation = false;  // Initially not activated
-        $device->user_id = $user->id;
-        $device->serial = $device->id . '-' . rand(1000000, 9999999);
-        $device->save();
-    
-        // Confirm that the fields have been updated
-        $device->refresh();  // Reload the instance with fresh data from the database
-    
-        // if (
-        //     $device->section_id !== $request->section_id ||
-        //     !$device->last_updated ||
-        //     $device->activation !== false ||
-        //     $device->user_id !== $user->id ||
-        //     !$device->serial
-        // ) {
-        //     return response()->json(['message' => 'Device update failed'], 500);
-        // }
-    
-        // Schedule the CheckDeviceActivationJob to run after 1 minute
-        CheckDeviceActivationJob::dispatch($device->id)->delay(now()->addMinute());
-    
-        shell_exec('php /home/george/htdocs/smartsystem.mazaya-iot.org/artisan queue:work --stop-when-empty > /dev/null 2>&1 &');
-    
-        // Respond with the device details
-        return response()->json([
-            'status' => 'Success',
-            'message' => 'Device found and activation initiated',
-            'data' => [
-                'device_id' => $device->id,
-                'device_serial' => $device->serial,
-                'section_id' => $device->section_id,
-            ]
-        ]);
+{
+    // Validate the request
+    $validator = Validator::make($request->all(), [
+        'section_id' => 'required|exists:sections,id',
+        'device_type_id' => 'required|exists:device_types,id',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['message' => $validator->errors()], 400);
     }
+
+    // Get the authenticated user
+    $user = auth()->user();
+    if (!$user) {
+        return response()->json(['message' => 'User not authenticated'], 401);
+    }
+
+    // Find an inactive device that matches the criteria
+    $device = Device::where('activation', 0)
+                    ->where('device_type_id', $request->device_type_id)
+                    ->whereNull('last_updated')
+                    ->whereNull('section_id')
+                    ->first();
+
+    if (!$device) {
+        return response()->json(['message' => 'No available device found'], 404);
+    }
+
+    // Update each field one by one with confirmation
+    $device->section_id = $request->section_id;
+    $device->save();
+    $device->refresh();
+    if ($device->section_id !== $request->section_id) {
+        return response()->json(['message' => 'Failed to update section_id'], 500);
+    }
+
+    $device->last_updated = Carbon::now();
+    $device->save();
+    $device->refresh();
+    if (!$device->last_updated) {
+        return response()->json(['message' => 'Failed to update last_updated'], 500);
+    }
+
+    $device->activation = false;
+    $device->save();
+    $device->refresh();
+    if ($device->activation !== false) {
+        return response()->json(['message' => 'Failed to update activation'], 500);
+    }
+
+    $device->user_id = $user->id;
+    $device->save();
+    $device->refresh();
+    if ($device->user_id !== $user->id) {
+        return response()->json(['message' => 'Failed to update user_id'], 500);
+    }
+
+    $device->serial = $device->id . '-' . rand(1000000, 9999999);
+    $device->save();
+    $device->refresh();
+    if (!$device->serial) {
+        return response()->json(['message' => 'Failed to update serial'], 500);
+    }
+
+    // Schedule the CheckDeviceActivationJob to run after 1 minute
+    CheckDeviceActivationJob::dispatch($device->id)->delay(now()->addMinute());
+
+    shell_exec('php /home/george/htdocs/smartsystem.mazaya-iot.org/artisan queue:work --stop-when-empty > /dev/null 2>&1 &');
+
+    // Respond with the device details
+    return response()->json([
+        'status' => 'Success',
+        'message' => 'Device found and activation initiated',
+        'data' => [
+            'device_id' => $device->id,
+            'device_serial' => $device->serial,
+            'section_id' => $device->section_id,
+        ]
+    ]);
+}
+
      
 
     public function confirmActivation(Request $request)
