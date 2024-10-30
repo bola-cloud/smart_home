@@ -56,7 +56,17 @@ class SectionController extends Controller
         // Retrieve sections from projects the user owns
         $ownedSections = Section::whereHas('project', function ($query) use ($auth) {
             $query->where('user_id', $auth->id);
-        })->get(['id', 'name', 'created_at', 'updated_at', 'project_id']);  // Select specific fields
+        })->get(['id', 'name', 'created_at', 'updated_at', 'project_id'])  // Select specific fields
+          ->map(function ($section) {
+              return [
+                  'section_id' => $section->id,
+                  'name' => $section->name,
+                  'created_at' => $section->created_at,
+                  'updated_at' => $section->updated_at,
+                  'project_id' => $section->project_id,
+                  'type' => 'owner',  // Mark as owned
+              ];
+          });
     
         // Retrieve sections for projects where the user is a member
         $memberSections = Member::where('member_id', $auth->id)
@@ -68,30 +78,27 @@ class SectionController extends Controller
                 // Filter sections to only include those with devices the member has access to
                 return $member->project->sections->filter(function ($section) use ($deviceIds) {
                     return $section->devices->pluck('id')->intersect($deviceIds)->isNotEmpty();
+                })->map(function ($section) {
+                    return [
+                        'section_id' => $section->id,
+                        'name' => $section->name,
+                        'created_at' => $section->created_at,
+                        'updated_at' => $section->updated_at,
+                        'project_id' => $section->project_id,
+                        'type' => 'member',  // Mark as accessed by member
+                    ];
                 });
             });
     
         // Merge owned sections and member-accessible sections, ensuring no duplicates
-        $sections = $ownedSections->merge($memberSections)->unique('id')->values();
-    
-        // Transform sections to include only the required fields
-        $sectionsData = $sections->map(function ($section) {
-            return [
-                'section_id' => $section->id,
-                'name' => $section->name,
-                'created_at' => $section->created_at,
-                'updated_at' => $section->updated_at,
-                'project_id' => $section->project_id,
-            ];
-        });
+        $sections = $ownedSections->merge($memberSections)->unique('section_id')->values();
     
         return response()->json([
             'status' => true,
             'message' => 'Accessible sections retrieved successfully',
-            'data' => $sectionsData,
+            'data' => $sections,
         ], 200);
-    }
-      
+    }     
      
     public function editSectionName(Request $request, Section $section)
     {
