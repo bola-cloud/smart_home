@@ -56,7 +56,7 @@ class ConnectionController extends Controller
         CheckDeviceActivationJob::dispatch($device->id)->delay(now()->addMinutes(2));
     
         // Immediately run the queue worker
-        shell_exec('php /path/to/artisan queue:work --stop-when-empty > /dev/null 2>&1 &');
+        shell_exec('php /home/george/htdocs/smartsystem.mazaya-iot.org/artisan queue:work --stop-when-empty > /dev/null 2>&1 &');
     
         return response()->json([
             'status' => 'Success',
