@@ -46,6 +46,7 @@ class CheckDeviceActivationJob implements ShouldQueue
                 'section_id' => null,
                 'last_updated' => null,
                 'serial' => null,
+                'user_id' => null,
             ]);
         }
     }

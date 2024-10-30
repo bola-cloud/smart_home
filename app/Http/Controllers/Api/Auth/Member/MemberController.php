@@ -252,7 +252,9 @@ class MemberController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Member granted full access successfully',
-            'data' => $newMember->devices,
+            'data' => [
+                '' => $newMember->devices,
+            ],
         ], 201);
     }
     
