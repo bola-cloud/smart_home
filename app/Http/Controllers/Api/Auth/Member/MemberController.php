@@ -122,14 +122,13 @@ class MemberController extends Controller
             ],
             "data" => [
                 "type" => "access_granted",
-                "devices" => $deviceNames
+                "devices" => "sdxsddsdsx"
             ],
             "include_external_user_ids" => [(string)$member->notification], // External ID from users table, casted to string
         ];
 
         // Send notification
         OneSignal::sendNotificationCustom($notificationData);
-
     
         return response()->json([
             'status' => true,
