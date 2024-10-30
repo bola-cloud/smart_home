@@ -60,14 +60,30 @@ class MemberController extends Controller
             ], 404);
         }
     
+        // Format the devices array into an array of objects for storage
+        $devicesArray = [];
+        foreach ($request->devices as $deviceId => $components) {
+            $componentsArray = [];
+            foreach ($components as $componentId => $permission) {
+                $componentsArray[] = [
+                    'component_id' => $componentId,
+                    'permission' => $permission,
+                ];
+            }
+            $devicesArray[] = [
+                'device_id' => $deviceId,
+                'components' => $componentsArray,
+            ];
+        }
+    
         // Check if the member already exists in the project
         $existingMember = Member::where('member_id', $member->id)
                                 ->where('project_id', $request->project_id)
                                 ->first();
     
         if ($existingMember) {
-            // Clear existing devices and set the new devices format
-            $existingMember->devices = $request->devices;
+            // Update the devices with the new format if the member already exists
+            $existingMember->devices = $devicesArray;
             $existingMember->save();
     
             return response()->json([
@@ -82,16 +98,13 @@ class MemberController extends Controller
             'owner_id' => $user->id,         // Set the owner to the currently authenticated user
             'member_id' => $member->id,      // Set the user receiving the permissions
             'project_id' => $request->project_id,  // Set the project the member has access to
-            'devices' => $request->devices,  // Store the devices as JSON
+            'devices' => $devicesArray,  // Store the devices as an array of objects
         ]);
     
         return response()->json([
             'status' => true,
             'message' => 'Member added successfully with permissions',
-            'data' => [
-                'member' => $newMember,
-                'devices' => $newMember->devices,  // Return devices with permissions
-            ],
+            'data' => $newMember->devices,  // Return devices with permissions
         ], 201);
     }
     
@@ -102,7 +115,7 @@ class MemberController extends Controller
             'member_identifier' => 'required|string',  // Allow email or phone as identifier
             'project_id' => 'required|exists:projects,id',  // Ensure the project exists
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
@@ -110,10 +123,10 @@ class MemberController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-
+    
         // Get the authenticated user (owner)
         $user = Auth::user();
-
+    
         // Check if the authenticated user owns the project
         $project = Project::where('id', $request->project_id)->where('user_id', $user->id)->first();
         if (!$project) {
@@ -122,66 +135,69 @@ class MemberController extends Controller
                 'message' => 'You do not have permission to add members to this project',
             ], 403);
         }
-
+    
         // Retrieve the member by email or phone number
         $member = User::where('email', $request->member_identifier)
-                    ->orWhere('phone_number', $request->member_identifier)
-                    ->first();
-
+                      ->orWhere('phone_number', $request->member_identifier)
+                      ->first();
+    
         if (!$member) {
             return response()->json([
                 'status' => false,
                 'message' => 'No user found with this email or phone number',
             ], 404);
         }
-
+    
         // Retrieve all devices and components in the project
         $devices = $project->sections()->with('devices.components')->get()
             ->pluck('devices')
             ->flatten();
-
-        // Prepare the devices data with full access permissions
+    
+        // Format the devices array with full access for all components
         $devicesWithFullAccess = [];
         foreach ($devices as $device) {
-            $devicePermissions = [];
+            $componentsArray = [];
             foreach ($device->components as $component) {
-                $devicePermissions[$component->id] = 'control';  // Grant full 'control' access to each component
+                $componentsArray[] = [
+                    'component_id' => $component->id,
+                    'permission' => 'control',  // Grant full 'control' access to each component
+                ];
             }
-            $devicesWithFullAccess[$device->id] = $devicePermissions;
+            $devicesWithFullAccess[] = [
+                'device_id' => $device->id,
+                'components' => $componentsArray,
+            ];
         }
-
+    
         // Check if the member already exists in the project
         $existingMember = Member::where('member_id', $member->id)
                                 ->where('project_id', $request->project_id)
                                 ->first();
-
+    
         if ($existingMember) {
-            // Update the devices with full access permissions if the member already exists
+            // Update the devices with full access if the member already exists
             $existingMember->devices = $devicesWithFullAccess;
             $existingMember->save();
-
+    
             return response()->json([
                 'status' => true,
                 'message' => 'Full access permissions granted successfully',
                 'data' => $existingMember->devices,
             ], 200);
         }
-
+    
         // If the member does not already exist, create a new entry with full access permissions
         $newMember = Member::create([
-            'owner_id' => $user->id,         // Set the owner to the currently authenticated user
-            'member_id' => $member->id,      // Set the user receiving the permissions
-            'project_id' => $request->project_id,  // Set the project the member has access to
-            'devices' => $devicesWithFullAccess,   // Store the devices with full access as JSON
+            'owner_id' => $user->id,
+            'member_id' => $member->id,
+            'project_id' => $request->project_id,
+            'devices' => $devicesWithFullAccess,  // Store devices with full access as an array of objects
         ]);
-
+    
         return response()->json([
             'status' => true,
             'message' => 'Member granted full access successfully',
-            'data' => [
-                'member' => $newMember,
-                'devices' => $newMember->devices,  // Return devices with full access permissions
-            ],
+            'data' => $newMember->devices,
         ], 201);
     }
     
