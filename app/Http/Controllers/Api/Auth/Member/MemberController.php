@@ -238,7 +238,12 @@ class MemberController extends Controller
                 'status' => true,
                 'exist' => true,
                 'message' => 'Full access permissions granted already exists',
-                'data' => $existingMember->devices,
+                'data' => [
+                    'id' => $member->id,
+                    'email' => $member->email,
+                    'created_at' => $member->created_at,
+                    'access' => "member",
+                ],
             ], 200);
         }
     
