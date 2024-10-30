@@ -45,6 +45,7 @@ class SectionController extends Controller
                 'created_at' => $section->created_at,
                 'section_id' => $section->id,
                 'project_id' => $section->project_id,
+                'type' => "owner",
             ],
         ], 201);
     }
