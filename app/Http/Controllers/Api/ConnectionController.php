@@ -52,15 +52,15 @@ class ConnectionController extends Controller
         // Confirm that the fields have been updated
         $device->refresh();  // Reload the instance with fresh data from the database
     
-        if (
-            $device->section_id !== $request->section_id ||
-            !$device->last_updated ||
-            $device->activation !== false ||
-            $device->user_id !== $user->id ||
-            !$device->serial
-        ) {
-            return response()->json(['message' => 'Device update failed'], 500);
-        }
+        // if (
+        //     $device->section_id !== $request->section_id ||
+        //     !$device->last_updated ||
+        //     $device->activation !== false ||
+        //     $device->user_id !== $user->id ||
+        //     !$device->serial
+        // ) {
+        //     return response()->json(['message' => 'Device update failed'], 500);
+        // }
     
         // Schedule the CheckDeviceActivationJob to run after 1 minute
         CheckDeviceActivationJob::dispatch($device->id)->delay(now()->addMinute());
