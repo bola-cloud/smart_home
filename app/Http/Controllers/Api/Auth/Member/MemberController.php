@@ -15,11 +15,13 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use OneSignal;
 
 class MemberController extends Controller
 {
     public function addMemberWithPermissions(Request $request)
     {
+        // Validation
         $validator = Validator::make($request->all(), [
             'member_identifier' => 'required|string',
             'project_id' => 'required|exists:projects,id',
@@ -30,13 +32,12 @@ class MemberController extends Controller
                 'required',
                 'integer',
                 function ($attribute, $value, $fail) use ($request) {
-                    // Extract device index from the attribute string
                     preg_match('/devices\.(\d+)\.components\.(\d+)\.component_id/', $attribute, $matches);
                     $deviceIndex = $matches[1];
                     $deviceId = data_get($request, "devices.{$deviceIndex}.device_id");
-        
+    
                     if (!Component::where('id', $value)->where('device_id', $deviceId)->exists()) {
-                        $fail("The specified device does not exist.");
+                        $fail("The specified component does not exist on this device.");
                     }
                 }
             ],
@@ -51,10 +52,8 @@ class MemberController extends Controller
             ], 422);
         }
     
-        // Get the authenticated user (owner)
+        // Authenticate user and verify project ownership
         $user = Auth::user();
-    
-        // Check if the authenticated user owns the project
         $project = Project::where('id', $request->project_id)->where('user_id', $user->id)->first();
         if (!$project) {
             return response()->json([
@@ -63,7 +62,7 @@ class MemberController extends Controller
             ], 403);
         }
     
-        // Retrieve the member by email or phone number
+        // Identify member by email or phone
         $member = User::where('email', $request->member_identifier)
                       ->orWhere('phone_number', $request->member_identifier)
                       ->first();
@@ -75,52 +74,66 @@ class MemberController extends Controller
             ], 404);
         }
     
-        // Format the devices array into an array of objects for storage
+        // Format devices array for storage
         $devicesArray = [];
-        foreach ($request->devices as $deviceId => $components) {
+        $deviceNames = [];
+        foreach ($request->devices as $deviceData) {
+            $device = Device::find($deviceData['device_id']);
+            $deviceNames[] = $device->name; // Collect device names for notification
+    
             $componentsArray = [];
-            foreach ($components as $componentId => $permission) {
+            foreach ($deviceData['components'] as $componentData) {
+                $component = Component::find($componentData['component_id']);
                 $componentsArray[] = [
-                    'component_id' => $componentId,
-                    'permission' => $permission,
+                    'component_id' => $component->id,
+                    'permission' => $componentData['permission'],
                 ];
             }
             $devicesArray[] = [
-                'device_id' => $deviceId,
+                'device_id' => $device->id,
                 'components' => $componentsArray,
             ];
         }
     
-        // Check if the member already exists in the project
+        // Save or update the member with permissions
         $existingMember = Member::where('member_id', $member->id)
                                 ->where('project_id', $request->project_id)
                                 ->first();
     
         if ($existingMember) {
-            // Update the devices with the new format if the member already exists
             $existingMember->devices = $devicesArray;
             $existingMember->save();
-    
-            return response()->json([
-                'status' => true,
-                'message' => 'Permissions updated successfully',
-                'data' => $existingMember->devices,
-            ], 200);
+        } else {
+            $existingMember = Member::create([
+                'owner_id' => $user->id,
+                'member_id' => $member->id,
+                'project_id' => $request->project_id,
+                'devices' => $devicesArray,
+            ]);
         }
     
-        // If the member does not already exist, create a new entry with the specified permissions
-        $newMember = Member::create([
-            'owner_id' => $user->id,         // Set the owner to the currently authenticated user
-            'member_id' => $member->id,      // Set the user receiving the permissions
-            'project_id' => $request->project_id,  // Set the project the member has access to
-            'devices' => $devicesArray,  // Store the devices as an array of objects
-        ]);
+        // Prepare notification data
+        $notificationData = [
+            "app_id" => env('ONESIGNAL_APP_ID'),
+            "headings" => ["en" => "Access Granted to Project Devices"],
+            "contents" => [
+                "en" => "You have been granted access to devices: " . implode(', ', $deviceNames)
+            ],
+            "data" => [
+                "type" => "access_granted",
+                "devices" => $deviceNames
+            ],
+            "include_external_user_ids" => [$member->notification], // External ID from users table
+        ];
+    
+        // Send notification
+        OneSignal::sendNotificationUsingTags($notificationData);
     
         return response()->json([
             'status' => true,
-            'message' => 'Member added successfully with permissions',
-            'data' => $newMember->devices,  // Return devices with permissions
-        ], 201);
+            'message' => 'Member added successfully with permissions and notification sent',
+            'data' => $existingMember->devices,
+        ], 200);
     }
     
     public function grantFullAccessToMember(Request $request)
