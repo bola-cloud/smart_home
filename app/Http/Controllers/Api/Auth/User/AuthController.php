@@ -75,6 +75,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'login' => 'required|string',    // Email or phone number
             'password' => 'required|string', // Password
+            'notification' => 'required', // Notification
         ]);
         
         if ($validator->fails()) {
@@ -103,7 +104,12 @@ class AuthController extends Controller
     
         // Create a personal access token for the user (for API access)
         $token = $user->createToken('auth_token')->plainTextToken;
-    
+
+        //Update the notification id every login
+        $user->update([
+            'notification' => $request->notification,
+        ]);
+        
         return response()->json([
             'message' => 'Login successful',
             'status' => true,
