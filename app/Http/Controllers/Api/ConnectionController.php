@@ -47,14 +47,13 @@ class ConnectionController extends Controller
         $device->activation = false;
         $device->user_id = $user->id;
         $device->serial = $device->id . '-' . rand(1000000, 9999999);
-        
+        $device->save();
         // Save the device and check if the save was successful
         if (!$device->save()) {
             return response()->json(['message' => 'Failed to update device'], 500);
         }
-        dd("jjj");
-        // Schedule the CheckDeviceActivationJob to run after 1 minute
-        CheckDeviceActivationJob::dispatch($device->id)->delay(now()->addMinute());
+
+        CheckDeviceActivationJob::dispatch($device->id)->delay(now()->addMinutes(2));
       
         shell_exec('php /home/george/htdocs/smartsystem.mazaya-iot.org/artisan queue:work --stop-when-empty > /dev/null 2>&1 &');
     
