@@ -41,7 +41,7 @@ class ConnectionController extends Controller
             return response()->json(['message' => 'No available device found'], 404);
         }
     
-        // Update the device details with section_id, last_updated, and activation
+        dd($request->section_id);
         $device->update([
             'section_id' => $request->section_id,
             'last_updated' => Carbon::now(),
