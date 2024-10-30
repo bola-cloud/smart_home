@@ -75,18 +75,17 @@ class MemberController extends Controller
             ], 404);
         }
     
-        // Format devices array for storage
+        // Format devices array for storage and gather device names
         $devicesArray = [];
         $deviceNames = [];
         foreach ($request->devices as $deviceData) {
-            $device = Device::find($deviceData['device_id']);
+            $device = Device::with('components')->find($deviceData['device_id']);
             $deviceNames[] = $device->name; // Collect device names for notification
     
             $componentsArray = [];
             foreach ($deviceData['components'] as $componentData) {
-                $component = Component::find($componentData['component_id']);
                 $componentsArray[] = [
-                    'component_id' => $component->id,
+                    'component_id' => $componentData['component_id'],
                     'permission' => $componentData['permission'],
                 ];
             }
@@ -113,6 +112,29 @@ class MemberController extends Controller
             ]);
         }
     
+        // Send notification
+        $this->sendNotificationToUser($member->notification, $deviceNames);
+    
+        return response()->json([
+            'status' => true,
+            'message' => 'Member added successfully with permissions and notification sent',
+            'data' => $existingMember->devices,
+        ], 200);
+    }
+    
+    /**
+     * Helper method to send notification using OneSignal.
+     */
+    protected function sendNotificationToUser($notificationId, $deviceNames)
+    {
+        // Check for valid notification ID
+        if (empty($notificationId)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User does not have a valid notification ID',
+            ], 400);
+        }
+    
         // Prepare notification data
         $notificationData = [
             "app_id" => env('ONESIGNAL_APP_ID'),
@@ -124,34 +146,21 @@ class MemberController extends Controller
                 "type" => "access_granted",
                 "devices" => $deviceNames
             ],
-            "include_external_user_ids" => [(string)$member->notification], // External ID from users table
+            "include_external_user_ids" => [$notificationId], // External ID from users table
         ];
-
+    
         // Send notification with authorization token
         $client = new \GuzzleHttp\Client();
-
-        $response = $client->post('https://onesignal.com/api/v1/notifications', [
+    
+        $client->post('https://onesignal.com/api/v1/notifications', [
             'headers' => [
-                'Authorization' => 'Bearer YzU4YTFmOWYtMjFiZi00ODM4LTgxMGYtMTU2MzY1MWE4ZDRk',
+                'Authorization' => 'Bearer ' . env('ONESIGNAL_REST_API_KEY'),
                 'Content-Type'  => 'application/json'
             ],
             'json' => $notificationData,
         ]);
-
-        // Check if response is successful
-        if ($response->getStatusCode() == 200) {
-            return response()->json([
-                'status' => true,
-                'message' => 'Notification sent successfully',
-            ], 200);
-        } else {
-            return response()->json([
-                'status' => false,
-                'message' => 'Failed to send notification',
-            ], 500);
-        }
-
-    }    
+    }
+      
     
     public function grantFullAccessToMember(Request $request)
     {
