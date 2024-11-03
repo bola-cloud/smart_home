@@ -58,6 +58,11 @@ class User extends Authenticatable
         return $this->hasMany(Condition::class,'user_id');
     }
 
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class,'user_id');
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
