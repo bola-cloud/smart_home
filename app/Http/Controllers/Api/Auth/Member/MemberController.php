@@ -351,4 +351,64 @@ class MemberController extends Controller
             'message' => 'Member removed from the project successfully',
         ], 200);
     }
+
+    public function getUsersWithComponentPermission(Request $request)
+    {
+        // Validate the incoming request data
+        $validator = Validator::make($request->all(), [
+            'project_id' => 'required|exists:projects,id',
+            'device_id' => 'required|integer|exists:devices,id',
+            'component_id' => 'required|integer|exists:components,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $projectId = $request->project_id;
+        $deviceId = $request->device_id;
+        $componentId = $request->component_id;
+
+        // Retrieve all members in the project who have device permissions
+        $members = Member::where('project_id', $projectId)->get();
+
+        $usersWithPermission = [];
+
+        foreach ($members as $member) {
+            // Check if the member has the specified device and component in their permissions
+            $devices = collect($member->devices);
+
+            $devicePermissions = $devices->firstWhere('device_id', $deviceId);
+
+            if ($devicePermissions) {
+                // Check if component_id exists in this device's components array
+                $componentPermissions = collect($devicePermissions['components'])
+                    ->firstWhere('component_id', $componentId);
+
+                if ($componentPermissions) {
+                    // Fetch user information and add it to the result
+                    $user = User::find($member->member_id);
+                    if ($user) {
+                        $usersWithPermission[] = [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'email' => $user->email,
+                            'permission' => $componentPermissions['permission'], // e.g., view, control
+                        ];
+                    }
+                }
+            }
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Users with specific component permissions retrieved successfully',
+            'data' => $usersWithPermission,
+        ], 200);
+    }
+
 }
