@@ -411,4 +411,51 @@ class MemberController extends Controller
         ], 200);
     }
 
+    public function checkPermissions(Request $request)
+    {
+        // Validate the incoming request
+        $validator = Validator::make($request->all(), [
+            'member_identifier' => 'required|email|exists:users,email',
+            'project_id' => 'required|exists:projects,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()], 400);
+        }
+
+        // Retrieve the member based on the email identifier
+        $member = Member::whereHas('user', function($query) use ($request) {
+            $query->where('email', $request->member_identifier);
+        })->where('project_id', $request->project_id)->first();
+
+        // Check if the member exists for the specified project
+        if (!$member) {
+            return response()->json(['message' => 'Member does not have access to this project'], 403);
+        }
+
+        // Load devices and permissions for the member within the specified project
+        $devices = $member->devices()->with(['components' => function ($query) {
+            $query->select('id', 'permission');
+        }])->get();
+
+        // Format the response data
+        $response = [
+            'member_identifier' => $request->member_identifier,
+            'project_id' => $request->project_id,
+            'devices' => $devices->map(function ($device) {
+                return [
+                    'device_id' => $device->id,
+                    'components' => $device->components->map(function ($component) {
+                        return [
+                            'component_id' => $component->id,
+                            'permission' => $component->pivot->permission,  // Assuming permissions are stored in a pivot table
+                        ];
+                    }),
+                ];
+            }),
+        ];
+
+        return response()->json($response, 200);
+    }
+
 }
