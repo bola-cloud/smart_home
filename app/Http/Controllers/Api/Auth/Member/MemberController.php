@@ -123,7 +123,7 @@ class MemberController extends Controller
     
     /**
      * Helper method to send notification using OneSignal.
-     */
+    */
     protected function sendNotificationToUser($notificationId, $deviceNames)
     {
         // dd($notificationId, $deviceNames);
@@ -160,8 +160,7 @@ class MemberController extends Controller
             ],
             'json' => $notificationData,
         ]);
-    }
-      
+    } 
     
     public function grantFullAccessToMember(Request $request)
     {

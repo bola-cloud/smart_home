@@ -20,6 +20,7 @@ class Member extends Model
         'member_id',
         'project_id',
         'devices',
+        'full_access',
     ];
 
     public function user()
