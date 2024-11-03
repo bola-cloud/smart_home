@@ -2,12 +2,12 @@
 
 namespace App\Jobs;
 
+use App\Models\Device;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Device;
 
 class CheckDeviceActivationJob implements ShouldQueue
 {
@@ -15,32 +15,21 @@ class CheckDeviceActivationJob implements ShouldQueue
 
     protected $deviceId;
 
-    /**
-     * Create a new job instance.
-     *
-     * @return void
-     */
     public function __construct($deviceId)
     {
         $this->deviceId = $deviceId;
     }
 
-    /**
-     * Execute the job.
-     *
-     * @return void
-     */
     public function handle()
     {
-        // Fetch the device by ID
         $device = Device::find($this->deviceId);
 
-        // If the device does not exist, return early
+        // Return early if the device doesn't exist
         if (!$device) {
             return;
         }
 
-        // If the device has not been activated within the 1-minute window, reset its details
+        // Reset device details if it hasn't been activated within the 1-minute window
         if ($device->activation == 0) {
             $device->update([
                 'section_id' => null,

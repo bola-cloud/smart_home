@@ -14,7 +14,6 @@ class ConnectionController extends Controller
 {
     public function connectMobile(Request $request)
     {
-        // Validate the request
         $validator = Validator::make($request->all(), [
             'section_id' => 'required|exists:sections,id',
             'device_type_id' => 'required|exists:device_types,id',
@@ -24,7 +23,6 @@ class ConnectionController extends Controller
             return response()->json(['message' => $validator->errors()], 400);
         }
     
-        // Get the authenticated user
         $user = auth()->user();
         if (!$user) {
             return response()->json(['message' => 'User not authenticated'], 401);
@@ -41,7 +39,7 @@ class ConnectionController extends Controller
             return response()->json(['message' => 'No available device found'], 404);
         }
     
-        // Manually set fields and save
+        // Set fields and save
         $device->section_id = $request->section_id;
         $device->last_updated = Carbon::now();
         $device->activation = false;
@@ -55,9 +53,6 @@ class ConnectionController extends Controller
         // Dispatch the job with a 2-minute delay
         CheckDeviceActivationJob::dispatch($device->id)->delay(now()->addMinutes(2));
     
-        // Immediately run the queue worker
-        // shell_exec('php /home/george/htdocs/smartsystem.mazaya-iot.org/artisan queue:work --stop-when-empty > /dev/null 2>&1 &');
-    
         return response()->json([
             'status' => 'Success',
             'message' => 'Device found and activation initiated',
@@ -69,10 +64,8 @@ class ConnectionController extends Controller
         ]);
     }
     
-
     public function confirmActivation(Request $request)
     {
-        // Validate the request
         $validator = Validator::make($request->all(), [
             'device_id' => 'required|exists:devices,id',
             'ip' => "required|ip"
@@ -82,10 +75,8 @@ class ConnectionController extends Controller
             return response()->json(['message' => $validator->errors()], 400);
         }
     
-        // Get the device
         $device = Device::findOrFail($request->device_id);
     
-        // Check if the device is already activated
         if ($device->activation) {
             return response()->json([
                 'status' => 'Already Activated',
@@ -93,11 +84,9 @@ class ConnectionController extends Controller
             ], 200);
         }
     
-        // Confirm activation within the 1-minute window
-        if ($device->section_id !== null && $device->last_updated !== null && $device->serial !== null ) {
-            // All required columns are not null, proceed with activation
+        if ($device->section_id !== null && $device->last_updated !== null && $device->serial !== null) {
             $device->update([
-                'activation' => true, // Final confirmation of activation
+                'activation' => true,
                 'ip' => $request->ip,
             ]);
     
@@ -106,7 +95,6 @@ class ConnectionController extends Controller
                 'message' => 'Device activation confirmed',
             ]);
         } else {
-            // If any of the columns are null, return an error response
             return response()->json([
                 'status' => 'Failed',
                 'message' => 'Device cannot be activated because required fields are missing',
