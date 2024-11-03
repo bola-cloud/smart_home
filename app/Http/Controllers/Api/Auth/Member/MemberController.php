@@ -167,9 +167,7 @@ class MemberController extends Controller
             "data" => [
                 "type" => "access_granted",
             ],
-            "included_segments" => [
-                "Total Subscriptions"
-            ]
+            "include_external_user_ids" => ["08397726-fe36-42d6-bf67-d6bcd84b8016"],  // Use external ID
         ];
     
         // Send notification with authorization token
