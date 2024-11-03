@@ -146,7 +146,7 @@ class MemberController extends Controller
     
         // Concatenate device names into a comma-separated string
         $deviceNamesString = implode(', ', $deviceNames);
-    
+        dd($deviceNamesString);
         // Prepare notification data
         $notificationData = [
             "app_id" => env('ONESIGNAL_APP_ID'),
