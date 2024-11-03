@@ -383,12 +383,13 @@ class MemberController extends Controller
     
             // Filter to find all device permissions matching the specified device_id
             $devicePermissions = $devices->filter(function ($device) use ($deviceId) {
-                return $device['device_id'] == $deviceId;
+                // Ensure 'device_id' exists to prevent undefined index errors
+                return isset($device['device_id']) && $device['device_id'] == $deviceId;
             });
     
             foreach ($devicePermissions as $devicePermission) {
                 // Check if component_id exists in this device's components array
-                $componentPermissions = collect($devicePermission['components'])
+                $componentPermissions = collect($devicePermission['components'] ?? [])
                     ->firstWhere('component_id', $componentId);
     
                 if ($componentPermissions) {
@@ -411,8 +412,7 @@ class MemberController extends Controller
             'message' => 'Users with specific component permissions retrieved successfully',
             'data' => $usersWithPermission,
         ], 200);
-    }
-      
+    }    
 
     public function getMemberPermissions(Request $request)
     {
