@@ -165,8 +165,8 @@ class MemberController extends Controller
             "data" => [
                 "type" => "access_granted",
             ],
-            "include_external_user_ids" => [
-                $notificationId
+            "included_segments" => [
+                "Total Subscriptions"
             ]
         ];
     
