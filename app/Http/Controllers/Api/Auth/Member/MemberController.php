@@ -165,7 +165,9 @@ class MemberController extends Controller
             "data" => [
                 "type" => "access_granted",
             ],
-            "include_external_user_ids" => [$notificationId], // External ID from users table
+            "include_external_user_ids" => [
+                $notificationId
+            ]
         ];
     
         // Send notification with authorization token
