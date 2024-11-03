@@ -411,51 +411,50 @@ class MemberController extends Controller
         ], 200);
     }
 
-    public function checkPermissions(Request $request)
+    public function getMemberPermissions(Request $request)
     {
         // Validate the incoming request
         $validator = Validator::make($request->all(), [
-            'member_identifier' => 'required|email|exists:users,email',
+            'member_identifier' => 'required|string',
             'project_id' => 'required|exists:projects,id',
         ]);
-
+    
         if ($validator->fails()) {
-            return response()->json(['message' => $validator->errors()], 400);
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors(),
+            ], 422);
         }
-
-        // Retrieve the member based on the email identifier
-        $member = Member::whereHas('user', function($query) use ($request) {
-            $query->where('email', $request->member_identifier);
-        })->where('project_id', $request->project_id)->first();
-
-        // Check if the member exists for the specified project
+    
+        // Retrieve the member by email or phone
+        $member = User::where('email', $request->member_identifier)
+                      ->orWhere('phone_number', $request->member_identifier)
+                      ->first();
+    
         if (!$member) {
-            return response()->json(['message' => 'Member does not have access to this project'], 403);
+            return response()->json([
+                'status' => false,
+                'message' => 'No user found with this email or phone number',
+            ], 404);
         }
-
-        // Load devices and permissions for the member within the specified project
-        $devices = $member->devices()->with(['components' => function ($query) {
-            $query->select('id', 'permission');
-        }])->get();
-
-        // Format the response data
-        $response = [
-            'member_identifier' => $request->member_identifier,
-            'project_id' => $request->project_id,
-            'devices' => $devices->map(function ($device) {
-                return [
-                    'device_id' => $device->id,
-                    'components' => $device->components->map(function ($component) {
-                        return [
-                            'component_id' => $component->id,
-                            'permission' => $component->pivot->permission,  // Assuming permissions are stored in a pivot table
-                        ];
-                    }),
-                ];
-            }),
-        ];
-
-        return response()->json($response, 200);
-    }
-
+    
+        // Retrieve the member's permissions for the specified project
+        $memberProject = Member::where('member_id', $member->id)
+                               ->where('project_id', $request->project_id)
+                               ->first();
+    
+        if (!$memberProject) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No permissions found for this member in the specified project',
+            ], 404);
+        }
+    
+        return response()->json([
+            'status' => true,
+            'message' => 'Member permissions retrieved successfully',
+            'data' => $memberProject->devices,  // Return devices data with permissions
+        ], 200);
+    }    
 }
