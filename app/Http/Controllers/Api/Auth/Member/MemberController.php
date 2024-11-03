@@ -229,22 +229,40 @@ class MemberController extends Controller
                                 ->first();
     
         if ($existingMember) {
-            // Update the devices with full access if the member already exists
-            $existingMember->devices = $devicesWithFullAccess;
-            $existingMember->save();
-    
-            return response()->json([
-                'status' => true,
-                'exist' => true,
-                'message' => 'Full access permissions granted already exists',
-                'data' => [
-                    'id' => $member->id,
-                    'email' => $member->email,
-                    'created_at' => $member->created_at,
-                    'access' => "member",
-                ],
-            ], 200);
+            // Check if the member already has full access
+            if ($existingMember->full_access) {
+                // Member already has full access
+                return response()->json([
+                    'status' => true,
+                    'exist' => true,
+                    'message' => 'Full access permissions granted already exists',
+                    'data' => [
+                        'id' => $member->id,
+                        'email' => $member->email,
+                        'created_at' => $member->created_at,
+                        'access' => "member",
+                    ],
+                ], 200);
+            } else {
+                // Member has limited access; update to full access
+                $existingMember->devices = $devicesWithFullAccess;  // Overwrite existing limited devices
+                $existingMember->full_access = true;  // Set full access to true
+                $existingMember->save();
+        
+                return response()->json([
+                    'status' => true,
+                    'exist' => false,
+                    'message' => 'Full access permissions granted successfully',
+                    'data' => [
+                        'id' => $member->id,
+                        'email' => $member->email,
+                        'created_at' => $member->created_at,
+                        'access' => "member",
+                    ],
+                ], 200);
+            }
         }
+                                
     
         // If the member does not already exist, create a new entry with full access permissions
         $newMember = Member::create([
@@ -252,11 +270,13 @@ class MemberController extends Controller
             'member_id' => $member->id,
             'project_id' => $request->project_id,
             'devices' => $devicesWithFullAccess,  // Store devices with full access as an array of objects
+            'full_access' => true,  // Set full access to true
         ]);
     
         return response()->json([
             'status' => true,
             'message' => 'Member granted full access successfully',
+            'exist' => false,
             'data' => [
                 'id' => $member->id,
                 'email' => $member->email,
