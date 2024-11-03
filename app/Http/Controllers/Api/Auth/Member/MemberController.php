@@ -412,7 +412,6 @@ class MemberController extends Controller
 
     public function getMemberPermissions(Request $request)
     {
-        // Validate the incoming request
         $validator = Validator::make($request->all(), [
             'member_identifier' => 'required|string',
             'project_id' => 'required|exists:projects,id',
@@ -426,7 +425,6 @@ class MemberController extends Controller
             ], 422);
         }
     
-        // Retrieve the member by email or phone
         $member = User::where('email', $request->member_identifier)
                       ->orWhere('phone_number', $request->member_identifier)
                       ->first();
@@ -438,7 +436,6 @@ class MemberController extends Controller
             ], 404);
         }
     
-        // Retrieve the member's permissions for the specified project
         $memberProject = Member::where('member_id', $member->id)
                                ->where('project_id', $request->project_id)
                                ->first();
@@ -451,10 +448,28 @@ class MemberController extends Controller
             ], 200);
         }
     
+        // Consolidate components by device ID
+        $consolidatedDevices = collect($memberProject->devices)->groupBy('device_id')->map(function ($deviceGroup) {
+            $components = [];
+            foreach ($deviceGroup as $device) {
+                foreach ($device['components'] as $component) {
+                    $components[] = [
+                        'component_id' => $component['component_id'],
+                        'permission' => $component['permission'],
+                    ];
+                }
+            }
+            return [
+                'device_id' => $deviceGroup->first()['device_id'],
+                'components' => $components,
+            ];
+        })->values()->toArray();
+    
         return response()->json([
             'status' => true,
             'message' => 'Member permissions retrieved successfully',
-            'data' => $memberProject->devices,  // Return devices data with permissions
+            'data' => $consolidatedDevices,  // Return consolidated devices with permissions
         ], 200);
-    }    
+    }
+    
 }
