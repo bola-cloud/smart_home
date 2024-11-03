@@ -381,15 +381,16 @@ class MemberController extends Controller
             // Ensure the devices array is properly handled as an associative array
             $devices = collect($member->devices);
     
-            // Check for the device permissions
-            $devicePermissions = $devices->firstWhere('device_id', $deviceId);
+            // Filter to find all device permissions matching the specified device_id
+            $devicePermissions = $devices->filter(function ($device) use ($deviceId) {
+                return $device['device_id'] == $deviceId;
+            });
     
-            // Verify device permissions exist and continue to check components
-            if ($devicePermissions && isset($devicePermissions['components'])) {
-                $componentPermissions = collect($devicePermissions['components'])
+            foreach ($devicePermissions as $devicePermission) {
+                // Check if component_id exists in this device's components array
+                $componentPermissions = collect($devicePermission['components'])
                     ->firstWhere('component_id', $componentId);
     
-                // Check if the user has permissions for this component
                 if ($componentPermissions) {
                     // Fetch user information and add it to the result
                     $user = User::find($member->member_id);
@@ -410,7 +411,8 @@ class MemberController extends Controller
             'message' => 'Users with specific component permissions retrieved successfully',
             'data' => $usersWithPermission,
         ], 200);
-    }    
+    }
+      
 
     public function getMemberPermissions(Request $request)
     {
