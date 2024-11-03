@@ -136,6 +136,7 @@ class MemberController extends Controller
     */
     protected function sendNotificationToUser($notificationId, $deviceNames)
     {
+        // dd($notificationId, $deviceNames);
         // Check for valid notification ID
         if (empty($notificationId)) {
             return response()->json([
@@ -144,8 +145,6 @@ class MemberController extends Controller
             ], 400);
         }
     
-        // Concatenate device names into a comma-separated string
-        $deviceNamesString = implode(', ', $deviceNames);
         // Prepare notification data
         $notificationData = [
             "app_id" => env('ONESIGNAL_APP_ID'),
@@ -170,7 +169,7 @@ class MemberController extends Controller
             ],
             'json' => $notificationData,
         ]);
-    }    
+    } 
     
     public function grantFullAccessToMember(Request $request)
     {
