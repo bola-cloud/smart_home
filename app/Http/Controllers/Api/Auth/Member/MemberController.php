@@ -101,8 +101,17 @@ class MemberController extends Controller
                                 ->first();
     
         if ($existingMember) {
-            $existingMember->devices = $devicesArray;
-            $existingMember->save();
+            if ($existingMember->full_access) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Member already has the full access permissions',
+                    'data' => $existingMember->devices,
+                ], 201);
+            } else {
+                $existingMember->devices = $devicesArray;
+                $existingMember->save();
+            }
+
         } else {
             $existingMember = Member::create([
                 'owner_id' => $user->id,
@@ -120,7 +129,6 @@ class MemberController extends Controller
             'data' => $existingMember->devices,
         ], 200);
     }
-    
     /**
      * Helper method to send notification using OneSignal.
     */
