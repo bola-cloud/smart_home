@@ -209,7 +209,9 @@ class MemberController extends Controller
     
         // Format the devices array with full access for all components
         $devicesWithFullAccess = [];
+        $deviceNames = [];
         foreach ($devices as $device) {
+            $deviceNames[] = $device->name; // Collect device names for notification
             $componentsArray = [];
             foreach ($device->components as $component) {
                 $componentsArray[] = [
@@ -231,7 +233,6 @@ class MemberController extends Controller
         if ($existingMember) {
             // Check if the member already has full access
             if ($existingMember->full_access) {
-                // Member already has full access
                 return response()->json([
                     'status' => true,
                     'exist' => true,
@@ -248,7 +249,10 @@ class MemberController extends Controller
                 $existingMember->devices = $devicesWithFullAccess;  // Overwrite existing limited devices
                 $existingMember->full_access = true;  // Set full access to true
                 $existingMember->save();
-        
+    
+                // Send notification to the user after granting full access
+                $this->sendNotificationToUser($member->notification, $deviceNames);
+    
                 return response()->json([
                     'status' => true,
                     'exist' => false,
@@ -262,7 +266,6 @@ class MemberController extends Controller
                 ], 200);
             }
         }
-                                
     
         // If the member does not already exist, create a new entry with full access permissions
         $newMember = Member::create([
@@ -272,6 +275,9 @@ class MemberController extends Controller
             'devices' => $devicesWithFullAccess,  // Store devices with full access as an array of objects
             'full_access' => true,  // Set full access to true
         ]);
+    
+        // Send notification to the user after granting full access
+        $this->sendNotificationToUser($member->notification, $deviceNames);
     
         return response()->json([
             'status' => true,
