@@ -140,7 +140,6 @@ class MemberController extends Controller
             'data' => $existingMember->devices,
         ], 200);
     }
-    
     /**
      * Helper method to send notification using OneSignal.
     */

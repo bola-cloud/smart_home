@@ -53,6 +53,10 @@ class User extends Authenticatable
                     ->withTimestamps();
     }
 
+    public function conditions(): HasMany
+    {
+        return $this->hasMany(Condition::class,'user_id');
+    }
 
     /**
      * The attributes that should be hidden for serialization.

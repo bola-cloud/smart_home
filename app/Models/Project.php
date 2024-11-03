@@ -27,4 +27,9 @@ class Project extends Model
     {
         return $this->hasMany(Section::class);
     }
+
+    public function conditions(): HasMany
+    {
+        return $this->hasMany(Condition::class,'project_id');
+    }
 }
