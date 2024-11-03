@@ -359,7 +359,7 @@ class MemberController extends Controller
             'device_id' => 'required|integer|exists:devices,id',
             'component_id' => 'required|integer|exists:components,id',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
@@ -367,27 +367,29 @@ class MemberController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-
+    
         $projectId = $request->project_id;
         $deviceId = $request->device_id;
         $componentId = $request->component_id;
-
+    
         // Retrieve all members in the project who have device permissions
         $members = Member::where('project_id', $projectId)->get();
-
+    
         $usersWithPermission = [];
-
+    
         foreach ($members as $member) {
-            // Check if the member has the specified device and component in their permissions
+            // Ensure the devices array is properly handled as an associative array
             $devices = collect($member->devices);
-
+    
+            // Check for the device permissions
             $devicePermissions = $devices->firstWhere('device_id', $deviceId);
-
-            if ($devicePermissions) {
-                // Check if component_id exists in this device's components array
+    
+            // Verify device permissions exist and continue to check components
+            if ($devicePermissions && isset($devicePermissions['components'])) {
                 $componentPermissions = collect($devicePermissions['components'])
                     ->firstWhere('component_id', $componentId);
-
+    
+                // Check if the user has permissions for this component
                 if ($componentPermissions) {
                     // Fetch user information and add it to the result
                     $user = User::find($member->member_id);
@@ -402,13 +404,13 @@ class MemberController extends Controller
                 }
             }
         }
-
+    
         return response()->json([
             'status' => true,
             'message' => 'Users with specific component permissions retrieved successfully',
             'data' => $usersWithPermission,
         ], 200);
-    }
+    }    
 
     public function getMemberPermissions(Request $request)
     {
