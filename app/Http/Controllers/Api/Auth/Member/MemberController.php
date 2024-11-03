@@ -146,7 +146,6 @@ class MemberController extends Controller
     */
     protected function sendNotificationToUser($notificationId, $deviceNames)
     {
-        // dd($notificationId, $deviceNames);
         // Check for valid notification ID
         if (empty($notificationId)) {
             return response()->json([
@@ -155,33 +154,48 @@ class MemberController extends Controller
             ], 400);
         }
     
+        // Ensure notificationId is a string
+        $notificationId = (string) $notificationId;
+    
         // Prepare notification data
         $notificationData = [
             "app_id" => env('ONESIGNAL_APP_ID'),
             "headings" => ["en" => "Access Granted to Project Devices"],
             "contents" => [
-                "en" => "You have been granted access to devices: " 
+                "en" => "You have been granted access to devices: " . implode(', ', $deviceNames)
             ],
             "data" => [
                 "type" => "access_granted",
             ],
-            "include_external_user_ids" => [
-                $notificationId
-            ]
+            "include_external_user_ids" => [$notificationId],  // Use external ID
         ];
     
         // Send notification with authorization token
-        $client = new \GuzzleHttp\Client();
+        try {
+            $client = new \GuzzleHttp\Client();
+            $response = $client->post('https://onesignal.com/api/v1/notifications', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . env('ONESIGNAL_REST_API_KEY'),
+                    'Content-Type' => 'application/json',
+                    'accept' => 'application/json',
+                ],
+                'json' => $notificationData,
+            ]);
     
-        $client->post('https://onesignal.com/api/v1/notifications', [
-            'headers' => [
-                'Authorization' => 'Bearer ' . env('ONESIGNAL_REST_API_KEY'),
-                'Content-Type'  => 'application/json',
-                'accept'  => 'application/json',
-            ],
-            'json' => $notificationData,
-        ]);
-    } 
+            if ($response->getStatusCode() == 200) {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Notification sent successfully',
+                ], 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to send notification',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }    
     
     public function grantFullAccessToMember(Request $request)
     {
