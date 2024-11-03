@@ -75,6 +75,14 @@ class MemberController extends Controller
             ], 404);
         }
     
+        // Check if the identified user is the project owner
+        if ($member->id == $project->user_id) {
+            return response()->json([
+                'status' => false,
+                'message' => 'The project owner cannot be added as a member.',
+            ], 400);
+        }
+    
         // Format devices array for storage and gather device names
         $devicesArray = [];
         $deviceNames = [];
@@ -112,7 +120,7 @@ class MemberController extends Controller
                 $existingMember->devices = $devicesArray;
                 $existingMember->save();
             }
-
+    
         } else {
             $existingMember = Member::create([
                 'owner_id' => $user->id,
@@ -121,9 +129,10 @@ class MemberController extends Controller
                 'devices' => $devicesArray,
             ]);
         }
+        
         // Send notification
         $this->sendNotificationToUser($member->notification, $deviceNames);
-
+    
         return response()->json([
             'status' => true,
             'exist' => false,
@@ -131,6 +140,7 @@ class MemberController extends Controller
             'data' => $existingMember->devices,
         ], 200);
     }
+    
     /**
      * Helper method to send notification using OneSignal.
     */
