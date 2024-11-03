@@ -104,9 +104,10 @@ class MemberController extends Controller
             if ($existingMember->full_access) {
                 return response()->json([
                     'status' => false,
+                    'exist' => true,
                     'message' => 'Member already has the full access permissions',
                     'data' => $existingMember->devices,
-                ], 201);
+                ], 400);
             } else {
                 $existingMember->devices = $devicesArray;
                 $existingMember->save();
@@ -125,6 +126,7 @@ class MemberController extends Controller
 
         return response()->json([
             'status' => true,
+            'exist' => false,
             'message' => 'Member added successfully with permissions and notification sent',
             'data' => $existingMember->devices,
         ], 200);
