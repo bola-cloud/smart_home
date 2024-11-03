@@ -150,11 +150,10 @@ class MemberController extends Controller
             "app_id" => env('ONESIGNAL_APP_ID'),
             "headings" => ["en" => "Access Granted to Project Devices"],
             "contents" => [
-                "en" => "You have been granted access to devices: " . implode(', ', $deviceNames)
+                "en" => "You have been granted access to devices: " 
             ],
             "data" => [
                 "type" => "access_granted",
-                "devices" => $deviceNames
             ],
             "include_external_user_ids" => [$notificationId], // External ID from users table
         ];
