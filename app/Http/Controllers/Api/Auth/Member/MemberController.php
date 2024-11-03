@@ -447,7 +447,8 @@ class MemberController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'No permissions found for this member in the specified project',
-            ], 404);
+                'data' => [],
+            ], 200);
         }
     
         return response()->json([
