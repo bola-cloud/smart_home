@@ -16,13 +16,21 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Notification; // Import the Notification model
+use App\Models\Notification;
+use App\Services\NotificationService;
 use OneSignal;
 
 class MemberController extends Controller
 {
-    public function addMemberWithPermissions(Request $request)
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
     {
+        $this->notificationService = $notificationService;
+    }
+
+    public function addMemberWithPermissions(Request $request)
+    {   
         // Validation
         $validator = Validator::make($request->all(), [
             'member_identifier' => 'required|string',
@@ -37,7 +45,7 @@ class MemberController extends Controller
                     preg_match('/devices\.(\d+)\.components\.(\d+)\.component_id/', $attribute, $matches);
                     $deviceIndex = $matches[1];
                     $deviceId = data_get($request, "devices.{$deviceIndex}.device_id");
-    
+
                     if (!Component::where('id', $value)->where('device_id', $deviceId)->exists()) {
                         $fail("The specified component does not exist on this device.");
                     }
@@ -45,7 +53,7 @@ class MemberController extends Controller
             ],
             'devices.*.components.*.permission' => 'required|string|in:view,control',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
@@ -53,7 +61,7 @@ class MemberController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-    
+
         // Authenticate user and verify project ownership
         $user = Auth::user();
         $project = Project::where('id', $request->project_id)->where('user_id', $user->id)->first();
@@ -63,19 +71,19 @@ class MemberController extends Controller
                 'message' => 'You do not have permission to add members to this project',
             ], 403);
         }
-    
+
         // Identify member by email or phone
         $member = User::where('email', $request->member_identifier)
                       ->orWhere('phone_number', $request->member_identifier)
                       ->first();
-    
+
         if (!$member) {
             return response()->json([
                 'status' => false,
                 'message' => 'No user found with this email or phone number',
             ], 404);
         }
-    
+
         // Check if the identified user is the project owner
         if ($member->id == $project->user_id) {
             return response()->json([
@@ -83,14 +91,14 @@ class MemberController extends Controller
                 'message' => 'The project owner cannot be added as a member.',
             ], 400);
         }
-    
+
         // Format devices array for storage and gather device names
         $devicesArray = [];
         $deviceNames = [];
         foreach ($request->devices as $deviceData) {
             $device = Device::with('components')->find($deviceData['device_id']);
             $deviceNames[] = $device->name; // Collect device names for notification
-    
+
             $componentsArray = [];
             foreach ($deviceData['components'] as $componentData) {
                 $componentsArray[] = [
@@ -103,12 +111,12 @@ class MemberController extends Controller
                 'components' => $componentsArray,
             ];
         }
-    
+
         // Save or update the member with permissions
         $existingMember = Member::where('member_id', $member->id)
                                 ->where('project_id', $request->project_id)
                                 ->first();
-    
+
         if ($existingMember) {
             if ($existingMember->full_access) {
                 return response()->json([
@@ -121,7 +129,6 @@ class MemberController extends Controller
                 $existingMember->devices = $devicesArray;
                 $existingMember->save();
             }
-    
         } else {
             $existingMember = Member::create([
                 'owner_id' => $user->id,
@@ -130,85 +137,31 @@ class MemberController extends Controller
                 'devices' => $devicesArray,
             ]);
         }
-    
-        // Send notification and store in notifications table
-        $notificationResult = $this->sendNotificationToUser($member->notification, $deviceNames);
-    
+
+        // Send notification using NotificationService and store it in notifications table
+        $title = 'Access Granted to Project Devices';
+        $message = 'You have been granted access to devices: ' . implode(', ', $deviceNames);
+        $notificationResult = $this->notificationService->sendToUser($member->notification, $title, $message, $deviceNames);
+
         if ($notificationResult['status']) {
-            // Store notification data in the database
+            // Store notification data in the database if notification was sent successfully
             Notification::create([
                 'user_id' => $member->id,
                 'data' => json_encode([
-                    'title' => 'Access limited to Project Devices',
-                    'message' => 'You have been limited access to devices: ' . implode(', ', $deviceNames),
-                    'type' => 'access_limited',
+                    'title' => $title,
+                    'message' => $message,
+                    'type' => 'access_granted',
                     'devices' => $deviceNames,
                 ]),
             ]);
         }
-    
+
         return response()->json([
             'status' => true,
             'exist' => false,
             'message' => 'Member added successfully with permissions and notification sent',
             'data' => $existingMember->devices,
         ], 200);
-    }
-    
-    /**
-     * Helper method to send notification using OneSignal.
-    */
-    protected function sendNotificationToUser($notificationId, $deviceNames)
-    {
-        // Check for valid notification ID
-        if (empty($notificationId)) {
-            return [
-                'status' => false,
-                'message' => 'User does not have a valid notification ID',
-            ];
-        }
-    
-        // Ensure notificationId is a string
-        $notificationId = (string) $notificationId;
-    
-        // Prepare notification data
-        $notificationData = [
-            "app_id" => env('ONESIGNAL_APP_ID'),
-            "headings" => ["en" => "Access Granted to Project Devices"],
-            "contents" => [
-                "en" => "You have been granted access to devices: " . implode(', ', $deviceNames)
-            ],
-            "data" => [
-                "type" => "access_granted",
-            ],
-            "include_subscription_ids" => [$notificationId],  // Use external ID
-        ];
-    
-        // Send notification with authorization token
-        try {
-            $client = new \GuzzleHttp\Client();
-            $response = $client->post('https://onesignal.com/api/v1/notifications', [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . env('ONESIGNAL_REST_API_KEY'),
-                    'Content-Type' => 'application/json',
-                    'accept' => 'application/json',
-                ],
-                'json' => $notificationData,
-            ]);
-    
-            if ($response->getStatusCode() == 200) {
-                return [
-                    'status' => true,
-                    'message' => 'Notification sent successfully',
-                ];
-            }
-        } catch (\Exception $e) {
-            return [
-                'status' => false,
-                'message' => 'Failed to send notification',
-                'error' => $e->getMessage(),
-            ];
-        }
     }
     
     public function grantFullAccessToMember(Request $request)
