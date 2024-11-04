@@ -302,7 +302,7 @@ class MemberController extends Controller
             'project_id' => 'required|exists:projects,id',
             'member_id' => 'required|exists:users,id',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
@@ -310,40 +310,63 @@ class MemberController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-
+    
         // Get the authenticated user
         $user = Auth::user();
-
+    
         // Check if the user is the owner of the project
         $project = Project::where('id', $request->project_id)->where('user_id', $user->id)->first();
-
         if (!$project) {
             return response()->json([
                 'status' => false,
                 'message' => 'You do not have permission to remove members from this project',
             ], 403);
         }
-
+    
         // Find the member in the project
         $member = Member::where('project_id', $request->project_id)
                         ->where('member_id', $request->member_id)
                         ->first();
-
+    
         if (!$member) {
             return response()->json([
                 'status' => false,
                 'message' => 'Member not found in this project',
             ], 404);
         }
-
+    
+        // Prepare device names for the notification (optional if you want to specify devices being removed)
+        $deviceNames = collect($member->devices)->pluck('device_id')->all();
+    
         // Delete the member from the project
         $member->delete();
-
+    
+        // Send notification to the removed member
+        $title = 'Removed from Project';
+        $message = 'You have been removed from the project: ' . $project->name;
+    
+        $notificationResult = app(NotificationService::class)->sendToUser($member->member_id, $title, $message, $deviceNames);
+    
+        if ($notificationResult['status']) {
+            // Store notification data in the database if notification sent successfully
+            Notification::create([
+                'user_id' => $request->member_id,
+                'data' => json_encode([
+                    'title' => $title,
+                    'message' => $message,
+                    'type' => 'member_removed',
+                    'project' => $project->name,
+                    'devices' => $deviceNames,
+                ]),
+            ]);
+        }
+    
         return response()->json([
             'status' => true,
-            'message' => 'Member removed from the project successfully',
+            'message' => 'Member removed from the project successfully, notification sent',
         ], 200);
     }
+    
 
     public function getUsersWithComponentPermission(Request $request)
     {
