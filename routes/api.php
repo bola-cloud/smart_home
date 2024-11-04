@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\Devices\DeviceController;
 use App\Http\Controllers\Api\Component\ComponentController;
 use App\Http\Controllers\Api\User\UserController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\Cases\CasesController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -94,6 +95,10 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     Route::post('/project/grant-full-access', [MemberController::class, 'grantFullAccessToMember']);
 
     Route::get('/user/notifications', [NotificationController::class, 'getUserNotifications']);
+
+    Route::post('/conditions', [ConditionsController::class, 'store']);
+    Route::get('/conditions/{project_id}', [ConditionsController::class, 'index']);
+
     // Logout route
     Route::post('/logout', [AuthController::class, 'logout']);
 });
