@@ -51,6 +51,7 @@ class DeviceController extends Controller
                 'activation' => $device->activation,
                 'last_updated' => $device->last_updated,
                 'ip' => $device->ip,
+                'mac_address' => $device->mac_address,
                 'created_at' => $device->created_at,
                 'updated_at' => $device->updated_at,
                 'components' => $componentsAsArray, // Array of objects
@@ -100,6 +101,7 @@ class DeviceController extends Controller
                         'activation' => $device->activation,
                         'last_updated' => $device->last_updated,
                         'ip' => $device->ip,
+                        'mac_address' => $device->mac_address,
                         'created_at' => $device->created_at,
                         'updated_at' => $device->updated_at,
                         'components' => $componentsWithAccess, // Components as objects with access level

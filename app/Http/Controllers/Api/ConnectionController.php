@@ -68,7 +68,8 @@ class ConnectionController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'device_id' => 'required|exists:devices,id',
-            'ip' => "required|ip"
+            'ip' => "required|ip",
+            'mac_address' => ['required', 'regex:/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/'],
         ]);
     
         if ($validator->fails()) {
@@ -88,6 +89,7 @@ class ConnectionController extends Controller
             $device->update([
                 'activation' => true,
                 'ip' => $request->ip,
+                'mac_address' => $request->mac_address,
             ]);
     
             return response()->json([
