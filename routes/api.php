@@ -14,7 +14,7 @@ use App\Http\Controllers\Api\Devices\DeviceController;
 use App\Http\Controllers\Api\Component\ComponentController;
 use App\Http\Controllers\Api\User\UserController;
 use App\Http\Controllers\Api\NotificationController;
-use App\Http\Controllers\Api\Cases\CasesController;
+use App\Http\Controllers\Api\Conditions\ConditionsController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
