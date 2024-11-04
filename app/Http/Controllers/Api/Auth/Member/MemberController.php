@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Notification; // Import the Notification model
 use OneSignal;
 
 class MemberController extends Controller
@@ -129,9 +130,22 @@ class MemberController extends Controller
                 'devices' => $devicesArray,
             ]);
         }
-        
-        // Send notification
-        $this->sendNotificationToUser($member->notification, $deviceNames);
+    
+        // Send notification and store in notifications table
+        $notificationResult = $this->sendNotificationToUser($member->notification, $deviceNames);
+    
+        if ($notificationResult['status']) {
+            // Store notification data in the database
+            Notification::create([
+                'user_id' => $member->id,
+                'data' => json_encode([
+                    'title' => 'Access Granted to Project Devices',
+                    'message' => 'You have been granted access to devices: ' . implode(', ', $deviceNames),
+                    'type' => 'access_granted',
+                    'devices' => $deviceNames,
+                ]),
+            ]);
+        }
     
         return response()->json([
             'status' => true,
@@ -140,6 +154,7 @@ class MemberController extends Controller
             'data' => $existingMember->devices,
         ], 200);
     }
+    
     /**
      * Helper method to send notification using OneSignal.
     */
@@ -147,10 +162,10 @@ class MemberController extends Controller
     {
         // Check for valid notification ID
         if (empty($notificationId)) {
-            return response()->json([
+            return [
                 'status' => false,
                 'message' => 'User does not have a valid notification ID',
-            ], 400);
+            ];
         }
     
         // Ensure notificationId is a string
@@ -182,19 +197,19 @@ class MemberController extends Controller
             ]);
     
             if ($response->getStatusCode() == 200) {
-                return response()->json([
+                return [
                     'status' => true,
                     'message' => 'Notification sent successfully',
-                ], 200);
+                ];
             }
         } catch (\Exception $e) {
-            return response()->json([
+            return [
                 'status' => false,
                 'message' => 'Failed to send notification',
                 'error' => $e->getMessage(),
-            ], 500);
+            ];
         }
-    }    
+    }
     
     public function grantFullAccessToMember(Request $request)
     {
@@ -500,5 +515,4 @@ class MemberController extends Controller
             'data' => $consolidatedDevices,  // Return consolidated devices with permissions
         ], 200);
     }
-    
 }
