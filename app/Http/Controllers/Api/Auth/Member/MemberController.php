@@ -139,9 +139,9 @@ class MemberController extends Controller
             Notification::create([
                 'user_id' => $member->id,
                 'data' => json_encode([
-                    'title' => 'Access Granted to Project Devices',
-                    'message' => 'You have been granted access to devices: ' . implode(', ', $deviceNames),
-                    'type' => 'access_granted',
+                    'title' => 'Access limited to Project Devices',
+                    'message' => 'You have been limited access to devices: ' . implode(', ', $deviceNames),
+                    'type' => 'access_limited',
                     'devices' => $deviceNames,
                 ]),
             ]);

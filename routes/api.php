@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\Auth\Member\MemberController;
 use App\Http\Controllers\Api\Devices\DeviceController;
 use App\Http\Controllers\Api\Component\ComponentController;
 use App\Http\Controllers\Api\User\UserController;
+use App\Http\Controllers\Api\NotificationController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -92,6 +93,7 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     Route::delete('/projects/remove-member', [MemberController::class, 'removeMember']);
     Route::post('/project/grant-full-access', [MemberController::class, 'grantFullAccessToMember']);
 
+    Route::get('/user/notifications', [NotificationController::class, 'getUserNotifications']);
     // Logout route
     Route::post('/logout', [AuthController::class, 'logout']);
 });
