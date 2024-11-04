@@ -7,9 +7,11 @@ use Illuminate\Http\Request;
 use App\Models\Condition;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class ConditionsController extends Controller
 {
+
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -27,29 +29,36 @@ class ConditionsController extends Controller
             'cases.*.then.*.devices.*.action' => 'required|string',
             'cases.*.then.*.devices.*.time' => 'nullable|date_format:H:i',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
-
+    
+        // Generate unique IDs for each case
+        $cases = $request->cases;
+        foreach ($cases as &$case) {
+            $case['id'] = 'case_' . uniqid(); // or use Str::uuid() for UUID
+        }
+    
         $user = Auth::user();
-
+    
         $condition = Condition::create([
             'user_id' => $user->id,
             'project_id' => $request->project_id,
-            'cases' => json_encode($request->cases), // Store as JSON
+            'cases' => json_encode($cases), // Store as JSON with unique case IDs
         ]);
-
+    
         return response()->json([
             'status' => true,
             'message' => 'Condition created successfully',
         ], 200);
     }
+    
 
     public function index($projectId)
     {
         $conditions = Condition::where('project_id', $projectId)->get();
-
+    
         $parsedConditions = $conditions->map(function ($condition) {
             return [
                 'id' => $condition->id,
@@ -58,12 +67,12 @@ class ConditionsController extends Controller
                 'cases' => json_decode($condition->cases, true), // Decode JSON data
             ];
         });
-
+    
         return response()->json([
             'status' => true,
             'message' => 'Conditions retrieved successfully',
             'data' => $parsedConditions,
         ], 200);
-    }
+    }    
 
 }
