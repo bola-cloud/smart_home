@@ -43,8 +43,7 @@ class ConditionsController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Condition created successfully',
-            'data' => $condition,
-        ], 201);
+        ], 200);
     }
 
     public function index($projectId)
