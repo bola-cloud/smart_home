@@ -251,35 +251,36 @@ class MemberController extends Controller
                 $existingMember->devices = $devicesWithFullAccess;  // Overwrite existing limited devices
                 $existingMember->full_access = true;  // Set full access to true
                 $existingMember->save();
-    
-                // Send notification to the user after granting full access
-                $this->sendNotificationToUser($member->notification, $deviceNames);
-    
-                return response()->json([
-                    'status' => true,
-                    'exist' => false,
-                    'message' => 'Full access permissions granted successfully',
-                    'data' => [
-                        'id' => $member->id,
-                        'email' => $member->email,
-                        'created_at' => $member->created_at,
-                        'access' => "member",
-                    ],
-                ], 200);
             }
+        } else {
+            // If the member does not already exist, create a new entry with full access permissions
+            $existingMember = Member::create([
+                'owner_id' => $user->id,
+                'member_id' => $member->id,
+                'project_id' => $request->project_id,
+                'devices' => $devicesWithFullAccess,  // Store devices with full access as an array of objects
+                'full_access' => true,  // Set full access to true
+            ]);
         }
     
-        // If the member does not already exist, create a new entry with full access permissions
-        $newMember = Member::create([
-            'owner_id' => $user->id,
-            'member_id' => $member->id,
-            'project_id' => $request->project_id,
-            'devices' => $devicesWithFullAccess,  // Store devices with full access as an array of objects
-            'full_access' => true,  // Set full access to true
-        ]);
-    
         // Send notification to the user after granting full access
-        $this->sendNotificationToUser($member->notification, $deviceNames);
+        $title = 'Full Access Granted to Project Devices';
+        $message = 'You have been granted full access to devices: ' . implode(', ', $deviceNames);
+    
+        $notificationResult = $this->notificationService->sendToUser($member->notification, $title, $message, $deviceNames);
+    
+        if ($notificationResult['status']) {
+            // Store notification data in the database if notification sent successfully
+            Notification::create([
+                'user_id' => $member->id,
+                'data' => json_encode([
+                    'title' => $title,
+                    'message' => $message,
+                    'type' => 'access_granted',
+                    'devices' => $deviceNames,
+                ]),
+            ]);
+        }
     
         return response()->json([
             'status' => true,
