@@ -366,7 +366,6 @@ class MemberController extends Controller
             'message' => 'Member removed from the project successfully, notification sent',
         ], 200);
     }
-    
 
     public function getUsersWithComponentPermission(Request $request)
     {
