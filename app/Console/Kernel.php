@@ -5,6 +5,7 @@ namespace App\Console;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Models\Condition;
+use Carbon\Carbon;
 
 class Kernel extends ConsoleKernel
 {
@@ -22,7 +23,10 @@ class Kernel extends ConsoleKernel
                     $time = $action['time'] ?? '00:00';
                     $command = "process:scheduled-actions {$condition->project_id} {$case['id']}";
 
-                    switch ($action['repetition']) {
+                    // Check if repetition key exists and handle accordingly
+                    $repetition = $action['repetition'] ?? null;
+
+                    switch ($repetition) {
                         case 'every_day':
                             $schedule->command($command)->dailyAt($time);
                             break;
