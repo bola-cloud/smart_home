@@ -26,7 +26,7 @@ class ConditionsController extends Controller
             'cases.*.then' => 'required|array',
             'cases.*.then.*.devices' => 'required|array|min:1',
             'cases.*.then.*.devices.*.device_id' => 'required|exists:devices,id',
-            'cases.*.then.*.devices.*.action' => 'required|string|in:turn_on,turn_off',
+            'cases.*.then.*.devices.*.action' => 'required|string',
             'cases.*.then.*.time' => 'nullable|date_format:H:i',
             'cases.*.then.*.repetition' => 'nullable|string|in:every_day,every_week,every_month',
         ]);
