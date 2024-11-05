@@ -156,6 +156,8 @@ class DeviceController extends Controller
                     'serial'=> null ,
                     'last_updated' => null ,
                     'activation' => false ,
+                    'ip' => null ,
+                    'mac_address' => null ,
                 ]);
                 return response()->json([
                     'status' => true,

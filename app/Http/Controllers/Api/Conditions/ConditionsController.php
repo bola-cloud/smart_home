@@ -64,25 +64,38 @@ class ConditionsController extends Controller
     
     protected function scheduleAction($action, $caseId, $projectId)
     {
-        // Dispatch ProcessScheduledActions with delay based on repetition setting
-        $time = Carbon::parse($action['time']);
-        $delay = $this->calculateDelay($action['repetition'], $time);
+        $scheduledTime = $this->calculateNextSchedule($action['repetition'], Carbon::parse($action['time']));
     
+        // Dispatch the job at the calculated scheduled time
         ProcessScheduledActions::dispatch($projectId, $caseId)
-            ->delay($delay);
-    }
+            ->delay($scheduledTime->diffInSeconds(Carbon::now()));
     
-    protected function calculateDelay($repetition, $time)
+        // For recurring actions, we can loop to schedule future instances if needed.
+        // Alternatively, set up Laravel’s scheduler to call `ProcessScheduledActions` as a recurring command.
+    }    
+    
+    protected function calculateNextSchedule($repetition, $time)
     {
+        $currentDate = Carbon::now();
+    
         switch ($repetition) {
             case 'every_day':
-                return $time->diffInSeconds(Carbon::now()->addDay());
+                return $time->isToday() && $time->greaterThan($currentDate) 
+                    ? $time 
+                    : $time->copy()->addDay();
+    
             case 'every_week':
-                return $time->diffInSeconds(Carbon::now()->addWeek());
+                return $time->isSameWeek() && $time->greaterThan($currentDate) 
+                    ? $time 
+                    : $time->copy()->addWeek();
+    
             case 'every_month':
-                return $time->diffInSeconds(Carbon::now()->addMonth());
+                return $time->isCurrentMonth() && $time->greaterThan($currentDate) 
+                    ? $time 
+                    : $time->copy()->addMonth();
+    
             default:
-                return $time->diffInSeconds(Carbon::now());
+                return $time; // If repetition is not set, return the current time
         }
     }    
 

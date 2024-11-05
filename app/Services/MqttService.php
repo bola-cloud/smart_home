@@ -29,6 +29,20 @@ class MqttService
         }
     }
 
+    public function publishAction($deviceId, $componentId, $action)
+    {
+        // Topic format using both deviceId and componentId
+        $topic = "Mazaya/{$deviceId}/{$componentId}";
+        $message = json_encode(['action' => $action]);
+
+        try {
+            $this->mqttClient->publish($topic, $message);
+            echo "Published {$action} to device {$deviceId}, component {$componentId}\n";
+        } catch (MqttClientException $e) {
+            echo "Failed to publish action: {$e->getMessage()}\n";
+        }
+    }
+
     public function subscribeToComponentTopics()
     {
         // Subscribe to all topics for all devices and components using wildcards
