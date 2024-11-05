@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\Condition;
+use App\Models\Component;
 use App\Services\MqttService;
 use Carbon\Carbon;
 
@@ -51,12 +52,12 @@ class ProcessScheduledActions extends Command
 
         foreach ($case['then'] as $thenAction) {
             foreach ($thenAction['devices'] as $deviceAction) {
-                // Find the component based on device_id
+                // Find the component based on device_id (which is the component ID here)
                 $component = Component::find($deviceAction['device_id']);
         
                 if ($component) {
                     $mqttService->publishAction(
-                        $component->device_id,         // Component ID for the topic
+                        $component->device_id,         // Device ID for the topic
                         $component->id,                // Component ID for the topic
                         $deviceAction['action']        // Action to execute
                     );
@@ -71,19 +72,20 @@ class ProcessScheduledActions extends Command
 
     protected function evaluateIfCondition($ifCondition)
     {
-        // // Check time condition
-        // if (isset($ifCondition['time']) && $ifCondition['time'] !== Carbon::now()->format('H:i')) {
-        //     return false;
-        // }
+        // Check time condition
+        if (isset($ifCondition['time']) && $ifCondition['time'] !== Carbon::now()->format('H:i')) {
+            return false;
+        }
 
-        // // Check device conditions
-        // if (isset($ifCondition['devices'])) {
-        //     foreach ($ifCondition['devices'] as $deviceCondition) {
-        //         if ($deviceCondition['status'] !== 'on') {
-        //             return false;
-        //         }
-        //     }
-        // }
+        // Check device conditions
+        if (isset($ifCondition['devices'])) {
+            foreach ($ifCondition['devices'] as $deviceCondition) {
+                // Here you need to check the actual device status, this is just a placeholder.
+                if ($deviceCondition['status'] !== 'on') {
+                    return false;
+                }
+            }
+        }
 
         return true;
     }

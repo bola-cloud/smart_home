@@ -72,13 +72,27 @@ class ConditionsController extends Controller
             ProcessScheduledActions::dispatch($projectId, $caseId)
                 ->delay($scheduledTime->diffInSeconds(Carbon::now()));
         } else {
-            // For recurring actions based on repetition, call Laravel Scheduler
-            Artisan::call('schedule:setup', [
-                'project_id' => $projectId,
-                'case_id' => $caseId,
-                'repetition' => $action['repetition'],
-                'time' => $action['time'],
-            ]);
+            // Use Laravel scheduler for recurring tasks
+            $this->setupRecurringSchedule($action['repetition'], $scheduledTime, $projectId, $caseId);
+        }
+    }
+
+    protected function setupRecurringSchedule($repetition, $time, $projectId, $caseId)
+    {
+        $schedule = app(Schedule::class);
+
+        switch ($repetition) {
+            case 'every_day':
+                $schedule->command("process:scheduled-actions {$projectId} {$caseId}")->dailyAt($time->format('H:i'));
+                break;
+
+            case 'every_week':
+                $schedule->command("process:scheduled-actions {$projectId} {$caseId}")->weeklyOn(1, $time->format('H:i')); // Runs every Monday by default
+                break;
+
+            case 'every_month':
+                $schedule->command("process:scheduled-actions {$projectId} {$caseId}")->monthlyOn(1, $time->format('H:i')); // Runs on the first of each month
+                break;
         }
     }
 
