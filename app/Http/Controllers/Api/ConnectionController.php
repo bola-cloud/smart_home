@@ -69,7 +69,7 @@ class ConnectionController extends Controller
         $validator = Validator::make($request->all(), [
             'device_id' => 'required|exists:devices,id',
             'ip' => "required|ip",
-            'mac_address' => ['required', 'regex:/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/'],
+            'mac_address' => ['nullable', 'regex:/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/'],
         ]);
     
         if ($validator->fails()) {

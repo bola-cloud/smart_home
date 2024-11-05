@@ -3,13 +3,14 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Carbon\Carbon;
 use App\Models\Condition;
+use App\Services\MqttService;
+use Carbon\Carbon;
 
 class ProcessScheduledActions extends Command
 {
-    protected $signature = 'process:scheduled-actions';
-    protected $description = 'Process scheduled actions for all conditions based on their time and repetition';
+    protected $signature = 'process:scheduled-actions {project_id} {case_id}';
+    protected $description = 'Process and execute scheduled actions for smart home cases';
 
     public function __construct()
     {
@@ -18,49 +19,65 @@ class ProcessScheduledActions extends Command
 
     public function handle()
     {
-        $currentTime = Carbon::now();
+        $projectId = $this->argument('project_id');
+        $caseId = $this->argument('case_id');
 
-        // Fetch all conditions
-        $conditions = Condition::all();
-        
-        foreach ($conditions as $condition) {
-            $cases = json_decode($condition->cases, true);
+        $condition = Condition::where('project_id', $projectId)->first();
 
-            foreach ($cases as $case) {
-                foreach ($case['then'] as $thenAction) {
-                    // Determine if the action should be triggered based on repetition and time
-                    $actionTime = Carbon::parse($thenAction['time']);
-                    $repetition = $thenAction['repetition'];
+        if (!$condition) {
+            $this->error('Condition not found');
+            return;
+        }
 
-                    if ($this->shouldTriggerAction($currentTime, $actionTime, $repetition)) {
-                        // Execute the action for the devices specified
-                        foreach ($thenAction['devices'] as $deviceAction) {
-                            $this->triggerDeviceAction($deviceAction);
-                        }
-                    }
+        $cases = json_decode($condition->cases, true);
+        $case = collect($cases)->firstWhere('id', $caseId);
+
+        if (!$case) {
+            $this->error('Case not found');
+            return;
+        }
+
+        // Check "if" conditions
+        foreach ($case['if'] as $ifCondition) {
+            if (!$this->evaluateIfCondition($ifCondition)) {
+                $this->info('Condition not met, skipping action');
+                return;
+            }
+        }
+
+        // Execute "then" actions
+        $mqttService = new MqttService();
+        $mqttService->connect();
+
+        foreach ($case['then'] as $thenAction) {
+            foreach ($thenAction['devices'] as $deviceAction) {
+                $mqttService->publishAction(
+                    $deviceAction['device_id'],
+                    $deviceAction['action']
+                );
+            }
+        }
+
+        $mqttService->disconnect();
+    }
+
+    protected function evaluateIfCondition($ifCondition)
+    {
+        // Check time condition
+        if (isset($ifCondition['time']) && $ifCondition['time'] !== Carbon::now()->format('H:i')) {
+            return false;
+        }
+
+        // Check device conditions
+        if (isset($ifCondition['devices'])) {
+            foreach ($ifCondition['devices'] as $deviceCondition) {
+                // Stub: replace with real device status check
+                if ($deviceCondition['status'] !== 'on') {
+                    return false;
                 }
             }
         }
-    }
 
-    protected function shouldTriggerAction($currentTime, $actionTime, $repetition)
-    {
-        switch ($repetition) {
-            case 'every_day':
-                return $currentTime->isSameMinute($actionTime);
-            case 'every_week':
-                return $currentTime->isSameMinute($actionTime) && $currentTime->isSameDayOfWeek($actionTime);
-            case 'every_month':
-                return $currentTime->isSameMinute($actionTime) && $currentTime->day === $actionTime->day;
-            default:
-                return false;
-        }
-    }
-
-    protected function triggerDeviceAction($deviceAction)
-    {
-        // Logic to execute action for a device, such as turning it on or off
-        // This could involve updating device status in the database, sending a message, etc.
+        return true;
     }
 }
-

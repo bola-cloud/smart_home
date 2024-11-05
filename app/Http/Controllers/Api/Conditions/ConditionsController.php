@@ -21,12 +21,12 @@ class ConditionsController extends Controller
             'cases.*.if.*.devices' => 'nullable|array',
             'cases.*.if.*.devices.*.device_id' => 'nullable|exists:devices,id',
             'cases.*.if.*.devices.*.status' => 'nullable|string',
-            'cases.*.if.*.time' => 'nullable|date_format:H:i',  // Time-only condition allowed
+            'cases.*.if.*.time' => 'nullable|date_format:H:i',
             'cases.*.if.*.logic' => 'required|string|in:AND,OR',
             'cases.*.then' => 'required|array',
             'cases.*.then.*.devices' => 'required|array|min:1',
             'cases.*.then.*.devices.*.device_id' => 'required|exists:devices,id',
-            'cases.*.then.*.devices.*.action' => 'required|string',
+            'cases.*.then.*.devices.*.action' => 'required|string|in:turn_on,turn_off',
             'cases.*.then.*.time' => 'nullable|date_format:H:i',
             'cases.*.then.*.repetition' => 'required|string|in:every_day,every_week,every_month',
         ]);
@@ -49,12 +49,42 @@ class ConditionsController extends Controller
             'cases' => json_encode($cases),
         ]);
     
+        // Schedule actions for each "then" condition
+        foreach ($cases as $case) {
+            foreach ($case['then'] as $action) {
+                $this->scheduleAction($action, $case['id'], $request->project_id);
+            }
+        }
+    
         return response()->json([
             'status' => true,
             'message' => 'Condition created successfully with schedules',
         ], 200);
-    }    
+    }
     
+    protected function scheduleAction($action, $caseId, $projectId)
+    {
+        // Dispatch ProcessScheduledActions with delay based on repetition setting
+        $time = Carbon::parse($action['time']);
+        $delay = $this->calculateDelay($action['repetition'], $time);
+    
+        ProcessScheduledActions::dispatch($projectId, $caseId)
+            ->delay($delay);
+    }
+    
+    protected function calculateDelay($repetition, $time)
+    {
+        switch ($repetition) {
+            case 'every_day':
+                return $time->diffInSeconds(Carbon::now()->addDay());
+            case 'every_week':
+                return $time->diffInSeconds(Carbon::now()->addWeek());
+            case 'every_month':
+                return $time->diffInSeconds(Carbon::now()->addMonth());
+            default:
+                return $time->diffInSeconds(Carbon::now());
+        }
+    }    
 
     public function index($projectId)
     {
