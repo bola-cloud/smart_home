@@ -7,11 +7,11 @@ use Illuminate\Http\Request;
 use App\Models\Condition;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Artisan;
+use Carbon\Carbon;
 
 class ConditionsController extends Controller
 {
-
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -28,7 +28,7 @@ class ConditionsController extends Controller
             'cases.*.then.*.devices.*.device_id' => 'required|exists:devices,id',
             'cases.*.then.*.devices.*.action' => 'required|string|in:turn_on,turn_off',
             'cases.*.then.*.time' => 'nullable|date_format:H:i',
-            'cases.*.then.*.repetition' => 'required|string|in:every_day,every_week,every_month',
+            'cases.*.then.*.repetition' => 'nullable|string|in:every_day,every_week,every_month',
         ]);
     
         if ($validator->fails()) {
@@ -64,40 +64,22 @@ class ConditionsController extends Controller
     
     protected function scheduleAction($action, $caseId, $projectId)
     {
-        $scheduledTime = $this->calculateNextSchedule($action['repetition'], Carbon::parse($action['time']));
+        $scheduledTime = Carbon::parse($action['time']);
     
-        // Dispatch the job at the calculated scheduled time
-        ProcessScheduledActions::dispatch($projectId, $caseId)
-            ->delay($scheduledTime->diffInSeconds(Carbon::now()));
-    
-        // For recurring actions, we can loop to schedule future instances if needed.
-        // Alternatively, set up Laravel’s scheduler to call `ProcessScheduledActions` as a recurring command.
-    }    
-    
-    protected function calculateNextSchedule($repetition, $time)
-    {
-        $currentDate = Carbon::now();
-    
-        switch ($repetition) {
-            case 'every_day':
-                return $time->isToday() && $time->greaterThan($currentDate) 
-                    ? $time 
-                    : $time->copy()->addDay();
-    
-            case 'every_week':
-                return $time->isSameWeek() && $time->greaterThan($currentDate) 
-                    ? $time 
-                    : $time->copy()->addWeek();
-    
-            case 'every_month':
-                return $time->isCurrentMonth() && $time->greaterThan($currentDate) 
-                    ? $time 
-                    : $time->copy()->addMonth();
-    
-            default:
-                return $time; // If repetition is not set, return the current time
+        if ($action['repetition'] === null) {
+            // For one-time action with no repetition, schedule it once at the specified time
+            ProcessScheduledActions::dispatch($projectId, $caseId)
+                ->delay($scheduledTime->diffInSeconds(Carbon::now()));
+        } else {
+            // For recurring actions based on repetition, call Laravel Scheduler
+            Artisan::call('schedule:setup', [
+                'project_id' => $projectId,
+                'case_id' => $caseId,
+                'repetition' => $action['repetition'],
+                'time' => $action['time'],
+            ]);
         }
-    }    
+    }
 
     public function index($projectId)
     {
@@ -118,5 +100,4 @@ class ConditionsController extends Controller
             'data' => $parsedConditions,
         ], 200);
     }    
-
 }
