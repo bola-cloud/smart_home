@@ -2,7 +2,7 @@
 
 namespace App\Console;
 
-use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Console\Scheduling\Schedule;  // Make sure this import is here
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Models\Condition;
 
