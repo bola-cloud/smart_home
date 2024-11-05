@@ -2,7 +2,7 @@
 
 namespace App\Console;
 
-use Illuminate\Console\Scheduling\Schedule;  // Make sure this import is here
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Models\Condition;
 
@@ -13,7 +13,6 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // Schedule to process scheduled actions every minute
         $schedule->command('process:scheduled-actions')->everyMinute();
     }
 
