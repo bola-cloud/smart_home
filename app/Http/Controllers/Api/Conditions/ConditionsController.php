@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Conditions;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Condition;
+use App\Console\Commands\ProcessScheduledActions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Artisan;
