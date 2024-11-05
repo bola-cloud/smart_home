@@ -51,13 +51,20 @@ class ProcessScheduledActions extends Command
 
         foreach ($case['then'] as $thenAction) {
             foreach ($thenAction['devices'] as $deviceAction) {
-                $mqttService->publishAction(
-                    $deviceAction['device_id'],
-                    $deviceAction['device_id'],  // Component ID as device_id here
-                    $deviceAction['action']
-                );
+                // Find the component based on device_id
+                $component = Component::find($deviceAction['device_id']);
+        
+                if ($component) {
+                    $mqttService->publishAction(
+                        $component->device_id,         // Component ID for the topic
+                        $component->id,                // Component ID for the topic
+                        $deviceAction['action']        // Action to execute
+                    );
+                } else {
+                    $this->info("Component not found for device ID {$deviceAction['device_id']}, skipping action.");
+                }
             }
-        }
+        }        
 
         $mqttService->disconnect();
     }
