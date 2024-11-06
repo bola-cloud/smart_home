@@ -3,12 +3,13 @@
 namespace App\Jobs;
 
 use App\Models\Condition;
-use Carbon\Carbon;
+use App\Models\Component;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Carbon\Carbon;
 
 class ExecuteDeviceAction implements ShouldQueue
 {
@@ -25,16 +26,19 @@ class ExecuteDeviceAction implements ShouldQueue
 
     public function handle()
     {
-        // Execute the action logic here
+        // Fetch the condition and execute the action
         $condition = Condition::find($this->conditionId);
         if ($condition) {
             foreach ($this->action['devices'] as $device) {
-                // Implement action for each device, e.g., turn on/off
-                // Example: $device['device_id'], $device['action']
+                $component = Component::find($device['device_id']);
+                if ($component) {
+                    // Execute the action based on the device's action type
+                    $component->update(['type' => $device['action']]);
+                }
             }
         }
 
-        // Schedule the next execution based on the repetition
+        // Schedule the next execution based on repetition
         $this->scheduleNext();
     }
 
@@ -55,7 +59,7 @@ class ExecuteDeviceAction implements ShouldQueue
                 $nextExecution = $actionTime->addMonth();
                 break;
             case null:
-                // If repetition is null, no re-scheduling
+                // If repetition is null, no re-scheduling is needed
                 return;
         }
 

@@ -5,10 +5,9 @@ namespace App\Http\Controllers\Api\Conditions;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Condition;
-use App\Jobs\ExecuteConditionAction; // Create a Job for executing the actions
+use App\Jobs\ExecuteDeviceAction;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Artisan;
 use Carbon\Carbon;
 
 class ConditionsController extends Controller
@@ -31,26 +30,26 @@ class ConditionsController extends Controller
             'cases.*.then.*.time' => 'nullable|date_format:H:i',
             'cases.*.then.*.repetition' => 'nullable|string|in:every_day,every_week,every_month',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
-    
+
         $user = Auth::user();
         $cases = $request->cases;
-    
+
         // Add unique ID for each case
         foreach ($cases as &$case) {
             $case['id'] = 'case_' . uniqid();
         }
-    
+
         $condition = Condition::create([
             'user_id' => $user->id,
             'project_id' => $request->project_id,
             'cases' => json_encode($cases),
         ]);
-    
-        // Schedule each action in "then"
+
+        // Schedule each action in "then" based on "time" and "repetition"
         foreach ($cases as $case) {
             foreach ($case['then'] as $action) {
                 $actionTime = Carbon::parse($action['time']);
@@ -58,7 +57,7 @@ class ConditionsController extends Controller
                     ->delay($actionTime);
             }
         }
-    
+
         return response()->json([
             'status' => true,
             'message' => 'Condition created successfully with schedules',
