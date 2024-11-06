@@ -65,7 +65,7 @@ class ExecuteConditionAction implements ShouldQueue
 
         if ($nextExecution) {
             $delay = $nextExecution->diffInSeconds(Carbon::now());
-            ExecuteDeviceAction::dispatch($this->conditionId, $this->action)
+            ExecuteConditionAction::dispatch($this->conditionId, $this->action)
                 ->delay(now()->addSeconds($delay));
         }
     }

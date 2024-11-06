@@ -60,7 +60,7 @@ class ConditionsController extends Controller
                     $initialDelay += 86400;
                 }
 
-                ExecuteDeviceAction::dispatch($condition->id, $action)
+                ExecuteConditionAction::dispatch($condition->id, $action)
                     ->delay(now()->addSeconds($initialDelay));
             }
         }
