@@ -75,7 +75,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'login' => 'required|string',    // Email or phone number
             'password' => 'required|string', // Password
-            'notification' => 'required', // Notification
+            'notification' => 'nullable', // Notification
         ]);
         
         if ($validator->fails()) {

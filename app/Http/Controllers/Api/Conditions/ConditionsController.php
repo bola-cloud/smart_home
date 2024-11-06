@@ -50,10 +50,12 @@ class ConditionsController extends Controller
             'cases' => json_encode($cases),
         ]);
     
-        // Schedule each action in "then" based on "time" and "repetition"
+        // Schedule each action in "then"
         foreach ($cases as $case) {
             foreach ($case['then'] as $action) {
-                $this->scheduleAction($action, $condition->id);
+                $actionTime = Carbon::parse($action['time']);
+                ExecuteDeviceAction::dispatch($condition->id, $action)
+                    ->delay($actionTime);
             }
         }
     
@@ -61,49 +63,6 @@ class ConditionsController extends Controller
             'status' => true,
             'message' => 'Condition created successfully with schedules',
         ], 200);
-    }
-    
-    private function scheduleAction($action, $conditionId)
-    {
-        $actionTime = Carbon::parse($action['time']);
-        $now = Carbon::now();
-        $repetition = $action['repetition'];
-    
-        // Calculate the delay until the first scheduled time
-        $delay = $now->diffInSeconds($actionTime, false);
-        if ($delay < 0) {
-            // If the time has already passed today, add 24 hours for the next day
-            $delay += 86400;
-        }
-    
-        // Dispatch the job based on repetition
-        ExecuteConditionAction::dispatch($conditionId, $action)
-            ->delay(now()->addSeconds($delay));
-    
-        // Schedule future repetitions if needed
-        if ($repetition) {
-            $this->scheduleRepetitions($conditionId, $action, $repetition);
-        }
-    }
-    
-    private function scheduleRepetitions($conditionId, $action, $repetition)
-    {
-        switch ($repetition) {
-            case 'every_day':
-                ExecuteConditionAction::dispatch($conditionId, $action)
-                    ->delay(now()->addDay());
-                break;
-    
-            case 'every_week':
-                ExecuteConditionAction::dispatch($conditionId, $action)
-                    ->delay(now()->addWeek());
-                break;
-    
-            case 'every_month':
-                ExecuteConditionAction::dispatch($conditionId, $action)
-                    ->delay(now()->addMonth());
-                break;
-        }
     }
 
     public function index($projectId)
