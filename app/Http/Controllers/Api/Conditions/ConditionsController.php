@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Api\Conditions;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Condition;
-use App\Jobs\ExecuteDeviceAction;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use App\Jobs\ExecuteConditionAction;
 
 class ConditionsController extends Controller
 {

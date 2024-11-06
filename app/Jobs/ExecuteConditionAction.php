@@ -11,7 +11,7 @@ use Carbon\Carbon;
 use App\Models\Condition;
 use App\Models\Component;
 
-class ExecuteDeviceAction implements ShouldQueue
+class ExecuteConditionAction implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
