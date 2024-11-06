@@ -17,18 +17,19 @@ class ConditionsController extends Controller
         $validator = Validator::make($request->all(), [
             'project_id' => 'required|exists:projects,id',
             'cases' => 'required|array',
-            'cases.*.if' => 'required|array',
+            'cases.*.if.conditions' => 'required|array',
             'cases.*.if.*.devices' => 'nullable|array',
             'cases.*.if.*.devices.*.device_id' => 'nullable|exists:devices,id',
             'cases.*.if.*.devices.*.status' => 'nullable|string',
             'cases.*.if.*.time' => 'nullable|date_format:Y-m-d H:i',
-            'cases.*.if.*.logic' => 'required|string|in:AND,OR',
-            'cases.*.then' => 'required|array',
+            'cases.*.if.logic' => 'required|string|in:AND,OR',
+            'cases.*.then.actions' => 'required|array',
             'cases.*.then.*.devices' => 'required|array|min:1',
             'cases.*.then.*.devices.*.device_id' => 'required|exists:devices,id',
             'cases.*.then.*.devices.*.action' => 'required|string',
             'cases.*.then.*.time' => 'nullable|date_format:Y-m-d H:i',
             'cases.*.then.*.repetition' => 'nullable|string|in:every_day,every_week,every_month',
+            'cases.*.then.logic' => 'required|string|in:AND,OR',
         ]);
 
         if ($validator->fails()) {

@@ -26,20 +26,68 @@ class ExecuteConditionAction implements ShouldQueue
 
     public function handle()
     {
-        // Fetch the condition and execute the action
+        // Fetch the condition
         $condition = Condition::find($this->conditionId);
         if ($condition) {
-            foreach ($this->action['devices'] as $device) {
-                $component = Component::find($device['device_id']);
-                if ($component) {
-                    // Execute the action based on the device's action type
-                    $component->update(['type' => "Bola"]);
+            // Check `if` conditions with global logic before executing `then` actions
+            $ifLogic = $this->action['if']['logic'];
+            $ifConditions = $this->action['if']['conditions'];
+
+            if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
+                $thenActions = $this->action['then']['actions'];
+                foreach ($thenActions as $action) {
+                    foreach ($action['devices'] as $device) {
+                        $component = Component::find($device['device_id']);
+                        if ($component) {
+                            $component->update(['type' => "bola"]);
+                        }
+                    }
                 }
             }
         }
 
         // Schedule the next execution based on repetition
         $this->scheduleNext();
+    }
+
+    private function evaluateIfConditions($conditions, $logic)
+    {
+        $results = [];
+
+        foreach ($conditions as $condition) {
+            // Evaluate each condition (e.g., device status and time match)
+            $result = $this->evaluateSingleCondition($condition);
+            $results[] = $result;
+        }
+
+        if ($logic === 'AND') {
+            return !in_array(false, $results);
+        } elseif ($logic === 'OR') {
+            return in_array(true, $results);
+        }
+
+        return false; // Default case if logic isn't met
+    }
+
+    private function evaluateSingleCondition($condition)
+    {
+        // Check device status
+        foreach ($condition['devices'] as $device) {
+            $component = Component::find($device['device_id']);
+            if (!$component || $component->status != $device['status']) {
+                return false;
+            }
+        }
+
+        // Check time condition if set
+        if (!empty($condition['time'])) {
+            $conditionTime = Carbon::parse($condition['time']);
+            if (!$conditionTime->equalTo(Carbon::now())) {
+                return false;
+            }
+        }
+
+        return true; // Condition is met
     }
 
     private function scheduleNext()
@@ -59,8 +107,7 @@ class ExecuteConditionAction implements ShouldQueue
                 $nextExecution = $actionTime->addMonth();
                 break;
             case null:
-                // If repetition is null, no re-scheduling is needed
-                return;
+                return; // No repetition, only execute once
         }
 
         if ($nextExecution) {
