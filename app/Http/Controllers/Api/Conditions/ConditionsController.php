@@ -74,7 +74,7 @@ class ConditionsController extends Controller
                 ->delay($scheduledTime->diffInSeconds(Carbon::now()));
         } else {
             // Use Laravel scheduler for recurring tasks
-            Artisan::call('schedule:setup', [
+            Artisan::call('schedule:actions', [
                 'project_id' => $projectId,
                 'case_id' => $caseId,
                 'repetition' => $action['repetition'],
