@@ -53,8 +53,15 @@ class ConditionsController extends Controller
         foreach ($cases as $case) {
             foreach ($case['then'] as $action) {
                 $actionTime = Carbon::parse($action['time']);
+                $initialDelay = Carbon::now()->diffInSeconds($actionTime, false);
+
+                if ($initialDelay < 0) {
+                    // If the time has already passed today, add 24 hours for next day
+                    $initialDelay += 86400;
+                }
+
                 ExecuteDeviceAction::dispatch($condition->id, $action)
-                    ->delay($actionTime);
+                    ->delay(now()->addSeconds($initialDelay));
             }
         }
 
