@@ -54,19 +54,22 @@ class ConditionsController extends Controller
             'cases' => json_encode($cases),
         ]);
 
-        // Schedule each action in "then" based on "time" and "repetition"
+        // Schedule each action in "then.actions" based on "time" and "repetition"
         foreach ($cases as $case) {
-            foreach ($case['then'] as $action) {
-                $actionTime = Carbon::parse($action['time']);
-                $initialDelay = Carbon::now()->diffInSeconds($actionTime, false);
+            foreach ($case['then']['actions'] as $action) {
+                // Check if 'time' exists in the action
+                if (isset($action['time'])) {
+                    $actionTime = Carbon::parse($action['time']);
+                    $initialDelay = Carbon::now()->diffInSeconds($actionTime, false);
 
-                if ($initialDelay < 0) {
-                    // If the time has already passed today, add 24 hours for next day
-                    $initialDelay += 86400;
+                    if ($initialDelay < 0) {
+                        // If the time has already passed today, add 24 hours for next day
+                        $initialDelay += 86400;
+                    }
+
+                    ExecuteConditionAction::dispatch($condition->id, $action)
+                        ->delay(now()->addSeconds($initialDelay));
                 }
-
-                ExecuteConditionAction::dispatch($condition->id, $action)
-                    ->delay(now()->addSeconds($initialDelay));
             }
         }
 
