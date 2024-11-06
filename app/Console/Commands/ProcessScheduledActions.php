@@ -10,83 +10,52 @@ use Carbon\Carbon;
 
 class ProcessScheduledActions extends Command
 {
-    protected $signature = 'process:scheduled-actions {project_id} {case_id}';
-    protected $description = 'Process and execute scheduled actions for smart home cases';
-
-    public function __construct()
-    {
-        parent::__construct();
-    }
+    protected $signature = 'conditions:process';
+    protected $description = 'Process scheduled actions based on conditions';
 
     public function handle()
     {
-        $projectId = $this->argument('project_id');
-        $caseId = $this->argument('case_id');
+        $currentDateTime = Carbon::now();
 
-        $condition = Condition::where('project_id', $projectId)->first();
+        // Fetch all conditions
+        $conditions = Condition::all();
 
-        if (!$condition) {
-            $this->error('Condition not found');
-            return;
-        }
-
-        $cases = json_decode($condition->cases, true);
-        $case = collect($cases)->firstWhere('id', $caseId);
-
-        if (!$case) {
-            $this->error('Case not found');
-            return;
-        }
-
-        // Check "if" conditions
-        foreach ($case['if'] as $ifCondition) {
-            if (!$this->evaluateIfCondition($ifCondition)) {
-                $this->info('Condition not met, skipping action');
-                return;
-            }
-        }
-
-        // Execute "then" actions
-        $mqttService = new MqttService();
-        $mqttService->connect();
-
-        foreach ($case['then'] as $thenAction) {
-            foreach ($thenAction['devices'] as $deviceAction) {
-                // Find the component based on device_id (which is the component ID here)
-                $component = Component::find($deviceAction['device_id']);
-        
-                if ($component) {
-                    $mqttService->publishAction(
-                        $component->device_id,         // Device ID for the topic
-                        $component->id,                // Component ID for the topic
-                        $deviceAction['action']        // Action to execute
-                    );
-                } else {
-                    $this->info("Component not found for device ID {$deviceAction['device_id']}, skipping action.");
+        foreach ($conditions as $condition) {
+            foreach (json_decode($condition->cases, true) as $case) {
+                foreach ($case['then'] as $action) {
+                    $actionTime = Carbon::parse($action['time']);
+                    
+                    if ($this->shouldExecute($action, $currentDateTime, $actionTime)) {
+                        $this->executeAction($action['devices']);  // Function to perform the actual action
+                    }
                 }
             }
-        }        
-
-        $mqttService->disconnect();
+        }
     }
 
-    protected function evaluateIfCondition($ifCondition)
+    private function shouldExecute($action, $currentDateTime, $actionTime)
     {
-        // Check time condition
-        if (isset($ifCondition['time']) && $ifCondition['time'] !== Carbon::now()->format('H:i')) {
-            return false;
-        }
+        $repetition = $action['repetition'];
 
-        // Check device conditions
-        if (isset($ifCondition['devices'])) {
-            foreach ($ifCondition['devices'] as $deviceCondition) {
-                // Here you need to check the actual device status, this is just a placeholder.
-                if ($deviceCondition['status'] !== 'on') {
-                    return false;
-                }
-            }
+        switch ($repetition) {
+            case 'every_day':
+                return $currentDateTime->isSameTime($actionTime);
+            case 'every_week':
+                return $currentDateTime->isSameTime($actionTime) && $currentDateTime->isSameDayOfWeek($actionTime);
+            case 'every_month':
+                return $currentDateTime->isSameTime($actionTime) && $currentDateTime->day == $actionTime->day;
+            case null:
+                return $currentDateTime->equalTo($actionTime);
+            default:
+                return false;
         }
+    }
 
-        return true;
+    private function executeAction($devices)
+    {
+        // Logic to perform the action, such as turning devices on/off
+        foreach ($devices as $device) {
+            // Implement action logic here based on $device['device_id'] and $device['action']
+        }
     }
 }

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\Conditions;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Condition;
-use App\Console\Commands\ProcessScheduledActions;
+use App\Jobs\ExecuteConditionAction; // Create a Job for executing the actions
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Artisan;
@@ -50,36 +50,43 @@ class ConditionsController extends Controller
             'cases' => json_encode($cases),
         ]);
     
-        // Schedule actions for each "then" condition
+        // Schedule each action in "then" based on "time" and "repetition"
         foreach ($cases as $case) {
             foreach ($case['then'] as $action) {
-                // dd($action);
-                $this->scheduleAction($action, $case['id'], $request->project_id);
+                $this->scheduleAction($action, $condition->id);
             }
         }
-    
+        
         return response()->json([
             'status' => true,
             'message' => 'Condition created successfully with schedules',
         ], 200);
     }
     
-    protected function scheduleAction($action, $caseId, $projectId)
+    private function scheduleAction($action, $conditionId)
     {
-        $scheduledTime = Carbon::parse($action['time']);
+        $actionTime = Carbon::parse($action['time']);
+        $repetition = $action['repetition'];
     
-        if ($action['repetition'] === null) {
-            // For one-time action with no repetition, schedule it once at the specified time
-            ProcessScheduledActions::dispatch($projectId, $caseId)
-                ->delay($scheduledTime->diffInSeconds(Carbon::now()));
-        } else {
-            // Use Laravel scheduler for recurring tasks
-            Artisan::call('schedule:actions', [
-                'project_id' => $projectId,
-                'case_id' => $caseId,
-                'repetition' => $action['repetition'],
-                'time' => $action['time'],
-            ]);
+        // Dispatch a job based on the repetition type
+        switch ($repetition) {
+            case 'every_day':
+                ExecuteConditionAction::dispatch($conditionId, $action)
+                    ->dailyAt($actionTime->format('H:i'));
+                break;
+            case 'every_week':
+                ExecuteConditionAction::dispatch($conditionId, $action)
+                    ->weeklyOn($actionTime->dayOfWeek, $actionTime->format('H:i'));
+                break;
+            case 'every_month':
+                ExecuteConditionAction::dispatch($conditionId, $action)
+                    ->monthlyOn($actionTime->day, $actionTime->format('H:i'));
+                break;
+            case null:
+                // Schedule as one-time if repetition is null
+                ExecuteConditionAction::dispatch($conditionId, $action)
+                    ->delay($actionTime);
+                break;
         }
     }
 
