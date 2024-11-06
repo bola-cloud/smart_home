@@ -44,15 +44,16 @@ class ConditionsController extends Controller
             $case['id'] = 'case_' . uniqid();
         }
     
-        $condition = Condition::create([
-            'user_id' => $user->id,
-            'project_id' => $request->project_id,
-            'cases' => json_encode($cases),
-        ]);
+        // $condition = Condition::create([
+        //     'user_id' => $user->id,
+        //     'project_id' => $request->project_id,
+        //     'cases' => json_encode($cases),
+        // ]);
     
         // Schedule actions for each "then" condition
         foreach ($cases as $case) {
             foreach ($case['then'] as $action) {
+                dd($action);
                 $this->scheduleAction($action, $case['id'], $request->project_id);
             }
         }
