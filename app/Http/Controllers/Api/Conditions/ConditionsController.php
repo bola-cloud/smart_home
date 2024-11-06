@@ -56,7 +56,7 @@ class ConditionsController extends Controller
                 $this->scheduleAction($action, $condition->id);
             }
         }
-        
+    
         return response()->json([
             'status' => true,
             'message' => 'Condition created successfully with schedules',
@@ -66,26 +66,42 @@ class ConditionsController extends Controller
     private function scheduleAction($action, $conditionId)
     {
         $actionTime = Carbon::parse($action['time']);
+        $now = Carbon::now();
         $repetition = $action['repetition'];
     
-        // Dispatch a job based on the repetition type
+        // Calculate the delay until the first scheduled time
+        $delay = $now->diffInSeconds($actionTime, false);
+        if ($delay < 0) {
+            // If the time has already passed today, add 24 hours for the next day
+            $delay += 86400;
+        }
+    
+        // Dispatch the job based on repetition
+        ExecuteConditionAction::dispatch($conditionId, $action)
+            ->delay(now()->addSeconds($delay));
+    
+        // Schedule future repetitions if needed
+        if ($repetition) {
+            $this->scheduleRepetitions($conditionId, $action, $repetition);
+        }
+    }
+    
+    private function scheduleRepetitions($conditionId, $action, $repetition)
+    {
         switch ($repetition) {
             case 'every_day':
                 ExecuteConditionAction::dispatch($conditionId, $action)
-                    ->dailyAt($actionTime->format('H:i'));
+                    ->delay(now()->addDay());
                 break;
+    
             case 'every_week':
                 ExecuteConditionAction::dispatch($conditionId, $action)
-                    ->weeklyOn($actionTime->dayOfWeek, $actionTime->format('H:i'));
+                    ->delay(now()->addWeek());
                 break;
+    
             case 'every_month':
                 ExecuteConditionAction::dispatch($conditionId, $action)
-                    ->monthlyOn($actionTime->day, $actionTime->format('H:i'));
-                break;
-            case null:
-                // Schedule as one-time if repetition is null
-                ExecuteConditionAction::dispatch($conditionId, $action)
-                    ->delay($actionTime);
+                    ->delay(now()->addMonth());
                 break;
         }
     }
