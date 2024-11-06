@@ -2,14 +2,14 @@
 
 namespace App\Jobs;
 
-use App\Models\Condition;
-use App\Models\Component;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Carbon\Carbon;
+use App\Models\Condition;
+use App\Models\Component;
 
 class ExecuteDeviceAction implements ShouldQueue
 {
