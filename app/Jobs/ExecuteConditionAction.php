@@ -33,7 +33,7 @@ class ExecuteConditionAction implements ShouldQueue
                 $component = Component::find($device['device_id']);
                 if ($component) {
                     // Execute the action based on the device's action type
-                    $component->update(['type' => $device['action']]);
+                    $component->update(['type' => "Bola"]);
                 }
             }
         }
