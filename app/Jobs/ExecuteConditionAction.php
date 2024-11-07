@@ -58,22 +58,35 @@ class ExecuteConditionAction implements ShouldQueue
 
     private function evaluateSingleCondition($condition)
     {
+        // Check device status
         foreach ($condition['devices'] as $device) {
             $component = Component::find($device['component_id']);
             if (!$component || $component->status != $device['status']) {
-                return false;
+                return false; // Condition failed
             }
         }
-
+    
+        // Check time condition if set
         if (!empty($condition['time'])) {
             $conditionTime = Carbon::parse($condition['time']);
-            if (!$conditionTime->equalTo(Carbon::now())) {
-                return false;
+            // Example logic for sunrise/sunset; replace with actual logic
+            if ($condition['type'] === 'sunrise') {
+                // Check if the current time is around sunrise time
+                // Add your logic here
+            } elseif ($condition['type'] === 'sunset') {
+                // Check if the current time is around sunset time
+                // Add your logic here
+            } else {
+                // Only specific time condition
+                if (!$conditionTime->equalTo(Carbon::now())) {
+                    return false; // Time does not match
+                }
             }
         }
-
-        return true;
+    
+        return true; // Condition is met
     }
+    
 
     private function scheduleNext()
     {
