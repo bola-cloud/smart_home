@@ -26,60 +26,45 @@ class ExecuteConditionAction implements ShouldQueue
 
     public function handle()
     {
-        // Fetch the condition
         $condition = Condition::find($this->conditionId);
         if ($condition) {
-            // Check `if` conditions with global logic before executing `then` actions
-            $ifLogic = $this->action['if']['logic'];
-            $ifConditions = $this->action['if']['conditions'];
+            $ifLogic = $condition->cases['if']['logic'];
+            $ifConditions = $condition->cases['if']['conditions'];
 
+            // Check if conditions are met before executing actions
             if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
-                $thenActions = $this->action['then']['actions'];
-                foreach ($thenActions as $action) {
-                    foreach ($action['devices'] as $device) {
-                        $component = Component::find($device['device_id']);
-                        if ($component) {
-                            $component->update(['type' => "bola"]);
-                        }
+                foreach ($this->action['devices'] as $device) {
+                    $component = Component::find($device['component_id']);
+                    if ($component) {
+                        $component->update(['type' => $device['action']]);
                     }
                 }
             }
         }
 
-        // Schedule the next execution based on repetition
-        $this->scheduleNext();
+        $this->scheduleNext(); // Re-schedule if `repetition` is specified
     }
 
     private function evaluateIfConditions($conditions, $logic)
     {
         $results = [];
-
         foreach ($conditions as $condition) {
-            // Evaluate each condition (e.g., device status and time match)
             $result = $this->evaluateSingleCondition($condition);
             $results[] = $result;
         }
 
-        if ($logic === 'AND') {
-            return !in_array(false, $results);
-        } elseif ($logic === 'OR') {
-            return in_array(true, $results);
-        }
-
-        return false; // Default case if logic isn't met
+        return $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
     }
 
     private function evaluateSingleCondition($condition)
     {
-        // Check device status
         foreach ($condition['devices'] as $device) {
-            $component = Component::find($device['device_id']);
+            $component = Component::find($device['component_id']);
             if (!$component || $component->status != $device['status']) {
                 return false;
             }
         }
 
-        // Check time condition if set
         if (!empty($condition['time'])) {
             $conditionTime = Carbon::parse($condition['time']);
             if (!$conditionTime->equalTo(Carbon::now())) {
@@ -87,33 +72,24 @@ class ExecuteConditionAction implements ShouldQueue
             }
         }
 
-        return true; // Condition is met
+        return true;
     }
 
     private function scheduleNext()
     {
-        $repetition = $this->action['repetition'];
-        $actionTime = Carbon::parse($this->action['time']);
-        $nextExecution = null;
+        $repetition = $this->action['repetition'] ?? null;
+        if (!$repetition) return;
 
-        switch ($repetition) {
-            case 'every_day':
-                $nextExecution = $actionTime->addDay();
-                break;
-            case 'every_week':
-                $nextExecution = $actionTime->addWeek();
-                break;
-            case 'every_month':
-                $nextExecution = $actionTime->addMonth();
-                break;
-            case null:
-                return; // No repetition, only execute once
-        }
+        $nextExecution = match ($repetition) {
+            'every_day' => Carbon::now()->addDay(),
+            'every_week' => Carbon::now()->addWeek(),
+            'every_month' => Carbon::now()->addMonth(),
+            default => null,
+        };
 
         if ($nextExecution) {
-            $delay = $nextExecution->diffInSeconds(Carbon::now());
             ExecuteConditionAction::dispatch($this->conditionId, $this->action)
-                ->delay(now()->addSeconds($delay));
+                ->delay($nextExecution);
         }
     }
 }
