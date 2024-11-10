@@ -17,7 +17,8 @@ class JobListener
      */
     public function handleJobQueued(JobQueued $event)
     {
-        Log::info('Job queued: ', ['job' => $event->job->resolveName()]);
+        // Log the job class name instead of using resolveName()
+        Log::info('Job queued: ', ['job' => get_class($event->job)]);
     }
 
     /**
@@ -28,7 +29,8 @@ class JobListener
      */
     public function handleJobProcessed(JobProcessed $event)
     {
-        Log::info('Job processed: ', ['job' => $event->job->resolveName()]);
+        // Log the job class name
+        Log::info('Job processed: ', ['job' => get_class($event->job)]);
     }
 
     /**
@@ -39,6 +41,10 @@ class JobListener
      */
     public function handleJobFailed(JobFailed $event)
     {
-        Log::error('Job failed: ', ['job' => $event->job->resolveName(), 'exception' => $event->exception]);
+        // Log the job class name and the exception message
+        Log::error('Job failed: ', [
+            'job' => get_class($event->job),
+            'exception' => $event->exception
+        ]);
     }
 }
