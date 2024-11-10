@@ -24,7 +24,7 @@ class ConditionsController extends Controller
             'cases.*.if.logic' => 'required|string|in:AND,OR',
             'cases.*.if.conditions.*.devices' => 'nullable|array',
             'cases.*.if.conditions.*.devices.*.component_id' => 'nullable|exists:components,id',
-            'cases.*.if.conditions.*.devices.*.status' => 'nullable|string',
+            'cases.*.if.conditions.*.status' => 'nullable|string',
             'cases.*.if.conditions.*.type' => 'nullable|string|in:sunrise,sunset', // Validation for type
             'cases.*.if.conditions.*.time' => 'nullable|date_format:Y-m-d H:i',
         
@@ -38,7 +38,7 @@ class ConditionsController extends Controller
             'cases.*.then.actions.*.repetition' => 'nullable|string|in:every_day,every_week,every_month',
 
             'is_active' => 'nullable|boolean', // Make sure is_active is set
-        ]);   
+        ]);
 
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
@@ -76,16 +76,28 @@ class ConditionsController extends Controller
 
     private function scheduleAction($action, $conditionId)
     {
-        $actionTime = Carbon::parse($action['time']);
-        $initialDelay = Carbon::now()->diffInSeconds($actionTime, false);
+        // Check if time is provided in the action
+        if (!empty($action['time'])) {
+            $actionTime = Carbon::parse($action['time']);
+            $initialDelay = Carbon::now()->diffInSeconds($actionTime, false);
 
-        if ($initialDelay < 0) {
-            // If the time has already passed today, add 24 hours for next day
-            $initialDelay += 86400;
+            if ($initialDelay < 0) {
+                // If the time has already passed today, add 24 hours for next day
+                $initialDelay += 86400;
+            }
+
+            ExecuteConditionAction::dispatch($conditionId, $action)
+                ->delay(now()->addSeconds($initialDelay));
+        } elseif (!empty($action['delay'])) {
+            // If delay is provided, schedule the action after the specified delay
+            $delay = Carbon::parse($action['delay']);
+            ExecuteConditionAction::dispatch($conditionId, $action)
+                ->delay(now()->addMinutes($delay->minute)); // Assuming delay is in minutes
+        } else {
+            // If no time or delay is specified, execute immediately
+            ExecuteConditionAction::dispatch($conditionId, $action)
+                ->delay(now());
         }
-
-        ExecuteConditionAction::dispatch($conditionId, $action)
-            ->delay(now()->addSeconds($initialDelay));
     }
 
     public function index($projectId)
