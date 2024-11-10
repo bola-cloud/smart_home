@@ -98,6 +98,7 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
 
     Route::post('/conditions', [ConditionsController::class, 'store']);
     Route::get('/conditions/{project_id}', [ConditionsController::class, 'index']);
+    Route::get('/delete/{project_id}/conditions', [ConditionsController::class, 'delete']);
 
     // Logout route
     Route::post('/logout', [AuthController::class, 'logout']);
