@@ -16,6 +16,9 @@ return new class extends Migration
             $table->string('job_id'); // Store the job ID
             $table->unsignedBigInteger('condition_id'); // Reference to the condition
             $table->timestamps();
+
+            // Add foreign key constraint
+            $table->foreign('condition_id')->references('id')->on('conditions')->onDelete('cascade');
         });
     }
 
