@@ -22,7 +22,6 @@ class ConditionsController extends Controller
             'cases.*.name' => 'required|string|max:256',
             'cases.*.is_active' => 'nullable|boolean',
             'cases.*.case_id' => 'required|string|max:256',
-    
             // Global `if` conditions with logic
             'cases.*.if.conditions' => 'required|array',
             'cases.*.if.logic' => 'required|string|in:AND,OR',
@@ -31,7 +30,6 @@ class ConditionsController extends Controller
             'cases.*.if.conditions.*.status' => 'nullable|string',
             'cases.*.if.conditions.*.type' => 'nullable|string|in:sunrise,sunset',
             'cases.*.if.conditions.*.time' => 'nullable|date_format:Y-m-d H:i',
-    
             // Global `then` actions with logic
             'cases.*.then.actions' => 'required|array',
             'cases.*.then.logic' => 'required|string|in:AND,OR',
@@ -40,7 +38,6 @@ class ConditionsController extends Controller
             'cases.*.then.actions.*.devices.*.action' => 'required|string',
             'cases.*.then.delay' => 'nullable|date_format:H:i',
             'cases.*.then.actions.*.repetition' => 'nullable|string|in:every_day,every_week,every_month',
-    
             'is_active' => 'nullable|boolean',
         ]);
     
@@ -121,6 +118,7 @@ class ConditionsController extends Controller
             ]);
         }
     }
+    
     
     public function index($projectId)
     {
