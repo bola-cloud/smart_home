@@ -29,7 +29,7 @@ class DeviceController extends Controller
         // Map the devices with channels and matched components for owners
         $ownedDevicesWithChannels = $ownedDevices->map(function ($device) {
             $channelsWithComponents = $device->deviceType->channels->groupBy('name')->map(function ($channels, $channelName) use ($device) {
-                // Find components that match the order for any channel with the same name
+                // Find all components that match the order for any channel with the same name
                 $matchingComponents = $device->components->filter(function ($component) use ($channels) {
                     return $channels->pluck('order')->contains($component->order);
                 })->map(function ($matchingComponent) {
@@ -47,7 +47,7 @@ class DeviceController extends Controller
                     'channel_name' => $channelName,
                     'components' => $matchingComponents->values(),
                 ];
-            });
+            })->values();
     
             return [
                 'id' => $device->id,
@@ -62,7 +62,7 @@ class DeviceController extends Controller
                 'mac_address' => $device->mac_address,
                 'created_at' => $device->created_at,
                 'updated_at' => $device->updated_at,
-                'channels' => $channelsWithComponents->values(),
+                'channels' => $channelsWithComponents,
             ];
         });
     
@@ -83,7 +83,7 @@ class DeviceController extends Controller
                     $devicePermissions = $memberDevices[$device->id]['components'] ?? [];
     
                     $channelsWithComponents = $device->deviceType->channels->groupBy('name')->map(function ($channels, $channelName) use ($device, $devicePermissions) {
-                        // Find components with matching order and permissions for this channel name
+                        // Find all components with matching order and permissions for this channel name
                         $matchingComponents = $device->components->filter(function ($component) use ($channels, $devicePermissions) {
                             $hasPermission = collect($devicePermissions)->firstWhere('component_id', $component->id);
                             return $hasPermission && $channels->pluck('order')->contains($component->order);
@@ -135,6 +135,7 @@ class DeviceController extends Controller
             'data' => $devicesWithChannels->unique('id')->values(),
         ], 200);
     }
+    
     
     public function editDeviceName(Request $request, Device $device)
     {
