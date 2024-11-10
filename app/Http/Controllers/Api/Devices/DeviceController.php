@@ -66,19 +66,22 @@ class DeviceController extends Controller
     
         if ($memberProjects->isNotEmpty()) {
             foreach ($memberProjects as $memberProject) {
-                $memberDevices = $memberProject->devices;
-                $deviceIds = array_keys($memberDevices);
+                $memberDevices = collect($memberProject->devices)->keyBy('device_id'); // Key by device_id for easy lookup
+                $deviceIds = $memberDevices->keys()->toArray();
     
                 // Fetch devices from the member's device list
                 $devices = Device::with(['components', 'section.project', 'deviceType.channels'])->whereIn('id', $deviceIds)->get();
     
                 $memberDevicesWithChannels = $devices->map(function ($device) use ($memberDevices) {
-                    $deviceComponentsAccess = $memberDevices[$device->id] ?? [];
+                    $devicePermissions = $memberDevices[$device->id]['components'] ?? [];
     
-                    $channelsWithComponents = $device->deviceType->channels->map(function ($channel) use ($device, $deviceComponentsAccess) {
+                    $channelsWithComponents = $device->deviceType->channels->map(function ($channel) use ($device, $devicePermissions) {
                         $matchingComponent = $device->components->firstWhere('order', $channel->order);
     
-                        if ($matchingComponent && array_key_exists($matchingComponent->id, $deviceComponentsAccess)) {
+                        // Filter components based on permissions for the member
+                        $hasPermission = collect($devicePermissions)->firstWhere('component_id', $matchingComponent->id ?? null);
+    
+                        if ($matchingComponent && $hasPermission) {
                             return [
                                 'channel_name' => $channel->name,
                                 'component' => [
@@ -86,7 +89,7 @@ class DeviceController extends Controller
                                     'name' => $matchingComponent->name,
                                     'type' => $matchingComponent->type,
                                     'order' => $matchingComponent->order,
-                                    'access' => $deviceComponentsAccess[$matchingComponent->id] ?? null,
+                                    'permission' => $hasPermission['permission'], // Include permission
                                     'created_at' => $matchingComponent->created_at,
                                     'updated_at' => $matchingComponent->updated_at,
                                 ]
@@ -97,7 +100,9 @@ class DeviceController extends Controller
                             'channel_name' => $channel->name,
                             'component' => null,
                         ];
-                    });
+                    })->filter(function ($channel) {
+                        return $channel['component'] !== null; // Remove channels with null components
+                    })->values();
     
                     return [
                         'id' => $device->id,
@@ -125,7 +130,7 @@ class DeviceController extends Controller
             'message' => 'Devices retrieved successfully',
             'data' => $devicesWithChannels->unique('id')->values(),
         ], 200);
-    }
+    }    
     
     public function editDeviceName(Request $request, Device $device)
     {
