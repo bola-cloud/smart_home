@@ -28,20 +28,27 @@ class DeviceController extends Controller
     
         // Map the devices with channels and matched components for owners
         $ownedDevicesWithChannels = $ownedDevices->map(function ($device) {
-            $channelsWithComponents = $device->deviceType->channels->map(function ($channel) use ($device) {
-                $matchingComponent = $device->components->firstWhere('order', $channel->order);
-                return [
-                    'channel_name' => $channel->name,
-                    'component' => $matchingComponent ? [
+            $channelsWithComponents = $device->deviceType->channels->groupBy('name')->map(function ($channels, $channelName) use ($device) {
+                // Find components that match the order for any channel with the same name
+                $matchingComponents = $device->components->filter(function ($component) use ($channels) {
+                    return $channels->pluck('order')->contains($component->order);
+                })->map(function ($matchingComponent) {
+                    return [
                         'id' => $matchingComponent->id,
                         'name' => $matchingComponent->name,
                         'type' => $matchingComponent->type,
                         'order' => $matchingComponent->order,
                         'created_at' => $matchingComponent->created_at,
                         'updated_at' => $matchingComponent->updated_at,
-                    ] : null,
+                    ];
+                });
+    
+                return [
+                    'channel_name' => $channelName,
+                    'components' => $matchingComponents->values(),
                 ];
             });
+    
             return [
                 'id' => $device->id,
                 'name' => $device->name,
@@ -55,7 +62,7 @@ class DeviceController extends Controller
                 'mac_address' => $device->mac_address,
                 'created_at' => $device->created_at,
                 'updated_at' => $device->updated_at,
-                'channels' => $channelsWithComponents,
+                'channels' => $channelsWithComponents->values(),
             ];
         });
     
@@ -75,33 +82,30 @@ class DeviceController extends Controller
                 $memberDevicesWithChannels = $devices->map(function ($device) use ($memberDevices) {
                     $devicePermissions = $memberDevices[$device->id]['components'] ?? [];
     
-                    $channelsWithComponents = $device->deviceType->channels->map(function ($channel) use ($device, $devicePermissions) {
-                        $matchingComponent = $device->components->firstWhere('order', $channel->order);
-    
-                        // Filter components based on permissions for the member
-                        $hasPermission = collect($devicePermissions)->firstWhere('component_id', $matchingComponent->id ?? null);
-    
-                        if ($matchingComponent && $hasPermission) {
+                    $channelsWithComponents = $device->deviceType->channels->groupBy('name')->map(function ($channels, $channelName) use ($device, $devicePermissions) {
+                        // Find components with matching order and permissions for this channel name
+                        $matchingComponents = $device->components->filter(function ($component) use ($channels, $devicePermissions) {
+                            $hasPermission = collect($devicePermissions)->firstWhere('component_id', $component->id);
+                            return $hasPermission && $channels->pluck('order')->contains($component->order);
+                        })->map(function ($matchingComponent) use ($devicePermissions) {
+                            $permission = collect($devicePermissions)->firstWhere('component_id', $matchingComponent->id);
                             return [
-                                'channel_name' => $channel->name,
-                                'component' => [
-                                    'id' => $matchingComponent->id,
-                                    'name' => $matchingComponent->name,
-                                    'type' => $matchingComponent->type,
-                                    'order' => $matchingComponent->order,
-                                    'permission' => $hasPermission['permission'], // Include permission
-                                    'created_at' => $matchingComponent->created_at,
-                                    'updated_at' => $matchingComponent->updated_at,
-                                ]
+                                'id' => $matchingComponent->id,
+                                'name' => $matchingComponent->name,
+                                'type' => $matchingComponent->type,
+                                'order' => $matchingComponent->order,
+                                'permission' => $permission['permission'] ?? null,
+                                'created_at' => $matchingComponent->created_at,
+                                'updated_at' => $matchingComponent->updated_at,
                             ];
-                        }
+                        });
     
                         return [
-                            'channel_name' => $channel->name,
-                            'component' => null,
+                            'channel_name' => $channelName,
+                            'components' => $matchingComponents->values(),
                         ];
                     })->filter(function ($channel) {
-                        return $channel['component'] !== null; // Remove channels with null components
+                        return $channel['components']->isNotEmpty(); // Remove channels with no accessible components
                     })->values();
     
                     return [
@@ -130,7 +134,7 @@ class DeviceController extends Controller
             'message' => 'Devices retrieved successfully',
             'data' => $devicesWithChannels->unique('id')->values(),
         ], 200);
-    }    
+    }
     
     public function editDeviceName(Request $request, Device $device)
     {
