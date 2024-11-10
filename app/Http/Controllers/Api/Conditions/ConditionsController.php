@@ -89,19 +89,38 @@ class ConditionsController extends Controller
                 $initialDelay += 86400;
             }
     
-            ExecuteConditionAction::dispatch($conditionId, $action)
+            // Dispatch the job and capture the job ID
+            $job = ExecuteConditionAction::dispatch($conditionId, $action)
                 ->delay(now()->addSeconds($initialDelay));
+    
+            // Track the job in the job_trackers table
+            JobTracker::create([
+                'job_id' => $job->getJobId(),
+                'condition_id' => $conditionId,
+            ]);
         } elseif (!empty($action['delay'])) {
             // If delay is provided, schedule the action after the specified delay
             $delay = Carbon::parse($action['delay']);
-            ExecuteConditionAction::dispatch($conditionId, $action)
+            $job = ExecuteConditionAction::dispatch($conditionId, $action)
                 ->delay(now()->addMinutes($delay->minute)); // Assuming delay is in minutes
+    
+            // Track the job in the job_trackers table
+            JobTracker::create([
+                'job_id' => $job->getJobId(),
+                'condition_id' => $conditionId,
+            ]);
         } else {
             // If no time or delay is specified, execute immediately
-            ExecuteConditionAction::dispatch($conditionId, $action)
+            $job = ExecuteConditionAction::dispatch($conditionId, $action)
                 ->delay(now());
+    
+            // Track the job in the job_trackers table
+            JobTracker::create([
+                'job_id' => $job->getJobId(),
+                'condition_id' => $conditionId,
+            ]);
         }
-    }    
+    }
 
     public function index($projectId)
     {
