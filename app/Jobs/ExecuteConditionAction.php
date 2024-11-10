@@ -63,30 +63,35 @@ class ExecuteConditionAction implements ShouldQueue
 
     private function evaluateSingleCondition($condition)
     {
+        // Initialize MqttService to get the last state of the component
+        $mqttService = new MqttService();
+    
         // Check device state
         foreach ($condition['devices'] as $device) {
-            $component = Component::find($device['component_id']);
-            if (!$component || $component->status != $device['status']) {
+            // Get the component state from MQTT service
+            $componentState = $mqttService->getLastState($device['component_id']);
+            
+            // If the component state is not found or does not match the expected status, return false
+            if ($componentState === null || $componentState != $device['status']) {
                 return false; // Condition not met
             }
         }
-
-        // Check time condition
+    
+        // Check time condition (if time condition is specified)
         if (!empty($condition['time'])) {
             $conditionTime = Carbon::parse($condition['time']);
             if (!$conditionTime->equalTo(Carbon::now())) {
                 return false; // Time does not match
             }
         }
-
+    
         return true; // Condition is met
-    }
+    }    
 
     private function checkComponentState($componentId)
     {
         // Use the MqttService to get the current state of the component
         $mqttService = new MqttService();
-        dd($mqttService->getLastState($componentId));
         return $mqttService->getLastState($componentId);
     }
 

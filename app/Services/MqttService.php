@@ -10,6 +10,7 @@ use Carbon\Carbon;
 class MqttService
 {
     protected $mqttClient;
+    protected $lastStates = []; // To store the latest state per component
 
     public function __construct()
     {
@@ -57,7 +58,7 @@ class MqttService
                 $deviceId = $topicParts[1]; // Device ID extracted
                 $componentId = $topicParts[2]; // Component ID extracted
 
-                // Store or update the component state in the database
+                // Store or update the component state
                 $this->updateComponentState($componentId, $message);
 
             }, MqttClient::QOS_AT_MOST_ONCE);
@@ -74,26 +75,18 @@ class MqttService
     {
         // Here you can handle the state update logic.
         // Assume that the message contains the state as `status`
-        $component = Component::find($componentId);
-        if ($component) {
-            // Assuming message is a JSON containing a `status`
-            $data = json_decode($message, true);
-            if (isset($data['status'])) {
-                $component->status = $data['status']; // Update status
-                $component->updated_at = Carbon::now();
-                $component->save();
-                echo "Component state updated: {$componentId}\n";
-            }
-        } else {
-            echo "Component not found: {$componentId}\n";
+        $data = json_decode($message, true);
+        if (isset($data['status'])) {
+            // Store the last state in memory
+            $this->lastStates[$componentId] = $data['status'];
+            echo "Component state updated: {$componentId}\n";
         }
     }
 
-    public function getComponentState($componentId)
+    public function getLastState($componentId)
     {
-        // Fetch the latest state of the component from the database
-        $component = Component::find($componentId);
-        return $component ? $component->status : null;
+        // Retrieve the last state stored from the topic
+        return isset($this->lastStates[$componentId]) ? $this->lastStates[$componentId] : null;
     }
 
     public function disconnect()
