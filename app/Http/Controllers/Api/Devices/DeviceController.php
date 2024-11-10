@@ -26,12 +26,10 @@ class DeviceController extends Controller
             })
             ->get();
     
-        // Map the devices with channels and matched components
+        // Map the devices with channels and matched components for owners
         $ownedDevicesWithChannels = $ownedDevices->map(function ($device) {
-            // Match components to channels by the order field
             $channelsWithComponents = $device->deviceType->channels->map(function ($channel) use ($device) {
                 $matchingComponent = $device->components->firstWhere('order', $channel->order);
-    
                 return [
                     'channel_name' => $channel->name,
                     'component' => $matchingComponent ? [
@@ -44,27 +42,26 @@ class DeviceController extends Controller
                     ] : null,
                 ];
             });
-    
             return [
                 'id' => $device->id,
                 'name' => $device->name,
                 'serial' => $device->serial,
                 'section_id' => $device->section_id,
                 'project_id' => optional($device->section)->project->id ?? null,
-                'type' => 'owner', // Access type
+                'type' => 'owner',
                 'activation' => $device->activation,
                 'last_updated' => $device->last_updated,
                 'ip' => $device->ip,
                 'mac_address' => $device->mac_address,
                 'created_at' => $device->created_at,
                 'updated_at' => $device->updated_at,
-                'channels' => $channelsWithComponents, // Array of channels with corresponding components
+                'channels' => $channelsWithComponents,
             ];
         });
     
         $devicesWithChannels = $devicesWithChannels->merge($ownedDevicesWithChannels);
     
-        // Repeat the process for devices where the user is a member with specific permissions
+        // Process devices where the user is a member with specific permissions
         $memberProjects = Member::where('member_id', $user->id)->get();
     
         if ($memberProjects->isNotEmpty()) {
@@ -79,8 +76,7 @@ class DeviceController extends Controller
                     $deviceComponentsAccess = $memberDevices[$device->id] ?? [];
     
                     $channelsWithComponents = $device->deviceType->channels->map(function ($channel) use ($device, $deviceComponentsAccess) {
-                        $matchingComponent = $device->components
-                            ->firstWhere('order', $channel->order);
+                        $matchingComponent = $device->components->firstWhere('order', $channel->order);
     
                         if ($matchingComponent && array_key_exists($matchingComponent->id, $deviceComponentsAccess)) {
                             return [
@@ -90,7 +86,7 @@ class DeviceController extends Controller
                                     'name' => $matchingComponent->name,
                                     'type' => $matchingComponent->type,
                                     'order' => $matchingComponent->order,
-                                    'access' => $deviceComponentsAccess[$matchingComponent->id] ?? null, // Add access level
+                                    'access' => $deviceComponentsAccess[$matchingComponent->id] ?? null,
                                     'created_at' => $matchingComponent->created_at,
                                     'updated_at' => $matchingComponent->updated_at,
                                 ]
@@ -109,14 +105,14 @@ class DeviceController extends Controller
                         'serial' => $device->serial,
                         'section_id' => $device->section_id,
                         'project_id' => optional($device->section)->project->id ?? null,
-                        'type' => 'member', // Access type
+                        'type' => 'member',
                         'activation' => $device->activation,
                         'last_updated' => $device->last_updated,
                         'ip' => $device->ip,
                         'mac_address' => $device->mac_address,
                         'created_at' => $device->created_at,
                         'updated_at' => $device->updated_at,
-                        'channels' => $channelsWithComponents, // Channels with matched components
+                        'channels' => $channelsWithComponents,
                     ];
                 });
     
@@ -127,11 +123,10 @@ class DeviceController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Devices retrieved successfully',
-            'data' => $devicesWithChannels->unique('id')->values(), // Ensure unique devices
+            'data' => $devicesWithChannels->unique('id')->values(),
         ], 200);
     }
-    
-    
+     
     public function editDeviceName(Request $request, Device $device)
     {
         // Validate input
