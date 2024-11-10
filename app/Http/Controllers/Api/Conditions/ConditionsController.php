@@ -17,7 +17,9 @@ class ConditionsController extends Controller
         $validator = Validator::make($request->all(), [
             'project_id' => 'required|exists:projects,id',
             'cases' => 'required|array',
-            'name' => 'required|string|max:256',
+            'cases.*.name' => 'required|string|max:256',  // Ensure the name is included for each case
+            'cases.*.is_active' => 'nullable|boolean',   // Ensure is_active is included
+            'cases.*.case_id' => 'required|string|max:256', // Ensure case_id is included
 
             // Global `if` conditions with logic
             'cases.*.if.conditions' => 'required|array',
@@ -47,17 +49,15 @@ class ConditionsController extends Controller
         $user = Auth::user();
         $cases = $request->cases;
 
-        // Add unique ID for each case
+        // Add unique ID for each case and save the name, is_active, and case_id
         foreach ($cases as &$case) {
-            $case['id'] = 'case_' . uniqid();
+            $case['case_id'] = uniqid();  // Assign unique case ID
         }
 
         // Store the condition in the database
         $condition = Condition::create([
-            'name' => $request->name,
             'user_id' => $user->id,
             'project_id' => $request->project_id,
-            'is_active' => $request->is_active ?? 1, // Default to active if not specified
             'cases' => json_encode($cases),
         ]);
 
@@ -107,10 +107,8 @@ class ConditionsController extends Controller
         $parsedConditions = $conditions->map(function ($condition) {
             return [
                 'id' => $condition->id,
-                'name' => $condition->name,
                 'user_id' => $condition->user_id,
                 'project_id' => $condition->project_id,
-                'is_active' => $condition->is_active,
                 'cases' => json_decode($condition->cases, true), // Decode JSON data
             ];
         });
