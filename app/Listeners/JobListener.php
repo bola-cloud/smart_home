@@ -5,6 +5,7 @@ namespace App\Listeners;
 use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobFailed;
+use App\Models\JobTracker;
 use Illuminate\Support\Facades\Log;
 
 class JobListener
@@ -17,8 +18,20 @@ class JobListener
      */
     public function handleJobQueued(JobQueued $event)
     {
-        // Log the job class name instead of using resolveName()
-        Log::info('Job queued: ', ['job' => get_class($event->job)]);
+        // Get the job's unique ID and any custom properties for tracking
+        $jobId = $event->id;
+        $job = $event->job;
+
+        // Check if the job has a condition ID (assuming this is set in the job's constructor)
+        $conditionId = method_exists($job, 'getConditionId') ? $job->getConditionId() : null;
+
+        // Track the job in the JobTracker model
+        JobTracker::create([
+            'job_id' => $jobId,
+            'condition_id' => $conditionId,
+        ]);
+
+        Log::info("Job queued: Job ID {$jobId}, Condition ID {$conditionId}");
     }
 
     /**
@@ -29,8 +42,12 @@ class JobListener
      */
     public function handleJobProcessed(JobProcessed $event)
     {
-        // Log the job class name
-        Log::info('Job processed: ', ['job' => get_class($event->job)]);
+        $jobId = $event->job->getJobId();
+
+        Log::info("Job processed: Job ID {$jobId}");
+
+        // Optionally, you can update the JobTracker status if needed
+        JobTracker::where('job_id', $jobId)->update(['status' => 'processed']);
     }
 
     /**
@@ -41,10 +58,11 @@ class JobListener
      */
     public function handleJobFailed(JobFailed $event)
     {
-        // Log the job class name and the exception message
-        Log::error('Job failed: ', [
-            'job' => get_class($event->job),
-            'exception' => $event->exception
-        ]);
+        $jobId = $event->job->getJobId();
+
+        Log::error("Job failed: Job ID {$jobId}, Exception: {$event->exception->getMessage()}");
+
+        // Update JobTracker to reflect the failure status
+        JobTracker::where('job_id', $jobId)->update(['status' => 'failed']);
     }
 }
