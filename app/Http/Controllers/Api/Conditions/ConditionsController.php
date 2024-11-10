@@ -15,23 +15,30 @@ class ConditionsController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255', // Validate the condition name
             'project_id' => 'required|exists:projects,id',
             'cases' => 'required|array',
+            'name' => 'required|string|max:256',
+
+            // Global `if` conditions with logic
             'cases.*.if.conditions' => 'required|array',
-            'cases.*.if.*.devices' => 'nullable|array',
-            'cases.*.if.*.devices.*.component_id' => 'nullable|exists:components,id',
-            'cases.*.if.*.devices.*.status' => 'nullable|string',
-            'cases.*.if.*.time' => 'nullable|date_format:Y-m-d H:i',
             'cases.*.if.logic' => 'required|string|in:AND,OR',
+            'cases.*.if.conditions.*.devices' => 'nullable|array',
+            'cases.*.if.conditions.*.devices.*.component_id' => 'nullable|exists:components,id',
+            'cases.*.if.conditions.*.devices.*.status' => 'nullable|string',
+            'cases.*.if.conditions.*.type' => 'nullable|string|in:sunrise,sunset', // Validation for type
+            'cases.*.if.conditions.*.time' => 'nullable|date_format:Y-m-d H:i',
+        
+            // Global `then` actions with logic
             'cases.*.then.actions' => 'required|array',
-            'cases.*.then.*.devices' => 'required|array|min:1',
-            'cases.*.then.*.devices.*.component_id' => 'required|exists:components,id',
-            'cases.*.then.*.devices.*.action' => 'required|string',
-            'cases.*.then.*.delay' => 'nullable|date_format:H:i', // Delay for action execution
-            'cases.*.then.*.repetition' => 'nullable|string|in:every_day,every_week,every_month',
+            'cases.*.then.logic' => 'required|string|in:AND,OR',
+            'cases.*.then.actions.*.devices' => 'required|array|min:1',
+            'cases.*.then.actions.*.devices.*.component_id' => 'required|exists:components,id',
+            'cases.*.then.actions.*.devices.*.action' => 'required|string',
+            'cases.*.then.delay' => 'nullable|date_format:H:i', // Delay in HH:mm format
+            'cases.*.then.actions.*.repetition' => 'nullable|string|in:every_day,every_week,every_month',
+
             'is_active' => 'nullable|boolean', // Make sure is_active is set
-        ]);
+        ]);   
 
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
