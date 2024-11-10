@@ -21,9 +21,10 @@ class ConditionsController extends Controller
             'project_id' => 'required|exists:projects,id',
             'cases' => 'required|array',
             'cases.*.name' => 'required|string|max:256',
-            'cases.*.is_active' => 'nullable|boolean', 
+            'cases.*.is_active' => 'nullable|boolean',
             'cases.*.case_id' => 'required|string|max:256',
-
+    
+            // Global `if` conditions with logic
             'cases.*.if.conditions' => 'required|array',
             'cases.*.if.logic' => 'required|string|in:AND,OR',
             'cases.*.if.conditions.*.devices' => 'nullable|array',
@@ -31,68 +32,76 @@ class ConditionsController extends Controller
             'cases.*.if.conditions.*.status' => 'nullable|string',
             'cases.*.if.conditions.*.type' => 'nullable|string|in:sunrise,sunset',
             'cases.*.if.conditions.*.time' => 'nullable|date_format:Y-m-d H:i',
-
+    
+            // Global `then` actions with logic
             'cases.*.then.actions' => 'required|array',
             'cases.*.then.logic' => 'required|string|in:AND,OR',
             'cases.*.then.actions.*.devices' => 'required|array|min:1',
             'cases.*.then.actions.*.devices.*.component_id' => 'required|exists:components,id',
             'cases.*.then.actions.*.devices.*.action' => 'required|string',
-            'cases.*.then.delay' => 'nullable|date_format:H:i',
+            'cases.*.then.delay' => 'nullable|date_format:H:i', // Delay in HH:mm format
             'cases.*.then.actions.*.repetition' => 'nullable|string|in:every_day,every_week,every_month',
-
-            'is_active' => 'nullable|boolean',
+    
+            'is_active' => 'nullable|boolean', // Make sure is_active is set
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
-
+    
         $user = Auth::user();
         $cases = $request->cases;
-
+    
+        // Add unique ID for each case and save the name, is_active, and case_id
         foreach ($cases as &$case) {
             $case['case_id'] = uniqid();  // Assign unique case ID
         }
-
+    
         // Store the condition in the database
         $condition = Condition::create([
             'user_id' => $user->id,
             'project_id' => $request->project_id,
             'cases' => json_encode($cases),
         ]);
-
+    
         // Schedule actions based on "then" for each case
         foreach ($cases as $case) {
             foreach ($case['then'] as $action) {
                 $this->scheduleAction($action, $condition->id);
             }
         }
-
+    
         return response()->json([
             'status' => true,
             'message' => 'Condition created successfully with schedules',
         ], 200);
     }
-
+    
     private function scheduleAction($action, $conditionId)
     {
-        // Dispatch the job and store the job ID
-        $actionTime = Carbon::parse($action['time']);
-        $initialDelay = Carbon::now()->diffInSeconds($actionTime, false);
-
-        if ($initialDelay < 0) {
-            $initialDelay += 86400;
+        // Check if time is provided in the action
+        if (!empty($action['time'])) {
+            $actionTime = Carbon::parse($action['time']);
+            $initialDelay = Carbon::now()->diffInSeconds($actionTime, false);
+    
+            if ($initialDelay < 0) {
+                // If the time has already passed today, add 24 hours for next day
+                $initialDelay += 86400;
+            }
+    
+            ExecuteConditionAction::dispatch($conditionId, $action)
+                ->delay(now()->addSeconds($initialDelay));
+        } elseif (!empty($action['delay'])) {
+            // If delay is provided, schedule the action after the specified delay
+            $delay = Carbon::parse($action['delay']);
+            ExecuteConditionAction::dispatch($conditionId, $action)
+                ->delay(now()->addMinutes($delay->minute)); // Assuming delay is in minutes
+        } else {
+            // If no time or delay is specified, execute immediately
+            ExecuteConditionAction::dispatch($conditionId, $action)
+                ->delay(now());
         }
-
-        $job = ExecuteConditionAction::dispatch($conditionId, $action)
-            ->delay(now()->addSeconds($initialDelay));
-
-        // Store the job ID in the JobTracker table
-        JobTracker::create([
-            'job_id' => $job->getJobId(),
-            'condition_id' => $conditionId,
-        ]);
-    }
+    }    
 
     public function delete($conditionId)
     {
