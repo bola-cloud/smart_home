@@ -34,33 +34,34 @@ class ExecuteConditionAction implements ShouldQueue
      */
     public function handle()
     {
-        // Track the job ID for monitoring or cancellation purposes
-        $this->jobId = $this->job->getJobId(); // Get the unique job ID
-        Log::info("Job {$this->jobId} started for condition {$this->conditionId}");
-
-        // Fetch the condition and execute the action if the condition is met
         $condition = Condition::find($this->conditionId);
-
-        if ($condition && $condition->is_active) {
+    
+        if ($condition) {
             $ifLogic = $condition->cases['if']['logic'];
             $ifConditions = $condition->cases['if']['conditions'];
-
+    
             // Check if conditions are met before executing actions
             if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
-                // Execute actions only if conditions are satisfied
-                foreach ($this->action['devices'] as $device) {
-                    $componentState = $this->checkComponentState($device['component_id']);
-
-                    // Compare the state and execute the action if the state matches
-                    if ($componentState === $device['status']) {
-                        $this->executeAction($device);
+                // Check if the 'then' part contains devices and actions
+                if (isset($this->action['devices']) && is_array($this->action['devices'])) {
+                    foreach ($this->action['devices'] as $device) {
+                        // Safe check for the component state from the MQTT topic
+                        $componentState = $this->checkComponentState($device['component_id']);
+    
+                        // Compare the state and execute the action if the state matches
+                        if ($componentState === $device['status']) {
+                            $this->executeAction($device);
+                        }
                     }
+                } else {
+                    Log::error("No devices provided in the 'then' actions for condition {$this->conditionId}");
                 }
             }
         }
-
-        $this->scheduleNext(); // Re-schedule if repetition is specified
+    
+        $this->scheduleNext(); // Re-schedule if `repetition` is specified
     }
+    
 
     /**
      * Evaluate all conditions with global logic (AND/OR).
