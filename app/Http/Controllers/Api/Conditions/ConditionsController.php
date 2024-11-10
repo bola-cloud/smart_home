@@ -89,13 +89,13 @@ class ConditionsController extends Controller
                 $initialDelay += 86400;
             }
     
-            // Dispatch the job and capture the job ID
+            // Dispatch the job and capture the job instance
             $job = ExecuteConditionAction::dispatch($conditionId, $action)
                 ->delay(now()->addSeconds($initialDelay));
     
             // Track the job in the job_trackers table
             JobTracker::create([
-                'job_id' => $job->getJobId(),
+                'job_id' => $job->getJobId(), // Get the job ID after dispatch
                 'condition_id' => $conditionId,
             ]);
         } elseif (!empty($action['delay'])) {
@@ -106,7 +106,7 @@ class ConditionsController extends Controller
     
             // Track the job in the job_trackers table
             JobTracker::create([
-                'job_id' => $job->getJobId(),
+                'job_id' => $job->getJobId(), // Get the job ID after dispatch
                 'condition_id' => $conditionId,
             ]);
         } else {
@@ -116,11 +116,11 @@ class ConditionsController extends Controller
     
             // Track the job in the job_trackers table
             JobTracker::create([
-                'job_id' => $job->getJobId(),
+                'job_id' => $job->getJobId(), // Get the job ID after dispatch
                 'condition_id' => $conditionId,
             ]);
         }
-    }
+    }    
 
     public function index($projectId)
     {
