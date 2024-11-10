@@ -14,6 +14,8 @@ class Condition extends Model
         'cases',
         'user_id',
         'project_id',
+        'is_active',
+        'name',
     ];
 
     public function user(): BelongsTo
