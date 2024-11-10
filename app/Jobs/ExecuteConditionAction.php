@@ -2,14 +2,15 @@
 
 namespace App\Jobs;
 
+use App\Models\Condition;
+use App\Models\Component;
+use App\Services\MqttService;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Carbon\Carbon;
-use App\Models\Condition;
-use App\Models\Component;
 
 class ExecuteConditionAction implements ShouldQueue
 {
@@ -33,10 +34,13 @@ class ExecuteConditionAction implements ShouldQueue
 
             // Check if conditions are met before executing actions
             if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
+                // Execute actions only if conditions are satisfied
                 foreach ($this->action['devices'] as $device) {
-                    $component = Component::find($device['component_id']);
-                    if ($component) {
-                        $component->update(['type' => $device['action']]);
+                    $componentState = $this->checkComponentState($device['component_id']);
+
+                    // Compare the state and execute the action if the state matches
+                    if ($componentState === $device['status']) {
+                        $this->executeAction($device);
                     }
                 }
             }
@@ -53,46 +57,54 @@ class ExecuteConditionAction implements ShouldQueue
             $results[] = $result;
         }
 
+        // Apply global logic: AND or OR
         return $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
     }
 
     private function evaluateSingleCondition($condition)
     {
-        // Check device status
+        // Check device state
         foreach ($condition['devices'] as $device) {
             $component = Component::find($device['component_id']);
             if (!$component || $component->status != $device['status']) {
-                return false; // Condition failed
+                return false; // Condition not met
             }
         }
-    
-        // Check time condition if set
+
+        // Check time condition
         if (!empty($condition['time'])) {
             $conditionTime = Carbon::parse($condition['time']);
-            // Example logic for sunrise/sunset; replace with actual logic
-            if ($condition['type'] === 'sunrise') {
-                // Check if the current time is around sunrise time
-                // Add your logic here
-            } elseif ($condition['type'] === 'sunset') {
-                // Check if the current time is around sunset time
-                // Add your logic here
-            } else {
-                // Only specific time condition
-                if (!$conditionTime->equalTo(Carbon::now())) {
-                    return false; // Time does not match
-                }
+            if (!$conditionTime->equalTo(Carbon::now())) {
+                return false; // Time does not match
             }
         }
-    
+
         return true; // Condition is met
     }
-    
+
+    private function checkComponentState($componentId)
+    {
+        // Use the MqttService to get the current state of the component
+        $mqttService = new MqttService();
+        return $mqttService->getComponentState($componentId);
+    }
+
+    private function executeAction($device)
+    {
+        $component = Component::find($device['component_id']);
+        if ($component) {
+            // Perform the action (e.g., turn on/off the component)
+            $component->update(['type' => $device['action']]);
+            echo "Executed action: {$device['action']} on component: {$device['component_id']}\n";
+        }
+    }
 
     private function scheduleNext()
     {
         $repetition = $this->action['repetition'] ?? null;
         if (!$repetition) return;
 
+        // Schedule the next execution based on repetition
         $nextExecution = match ($repetition) {
             'every_day' => Carbon::now()->addDay(),
             'every_week' => Carbon::now()->addWeek(),

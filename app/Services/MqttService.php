@@ -57,8 +57,8 @@ class MqttService
                 $deviceId = $topicParts[1]; // Device ID extracted
                 $componentId = $topicParts[2]; // Component ID extracted
 
-                // Update the component's updated_at field
-                $this->updateComponentTimestamp($componentId);
+                // Store or update the component state in the database
+                $this->updateComponentState($componentId, $message);
 
             }, MqttClient::QOS_AT_MOST_ONCE);
 
@@ -70,16 +70,30 @@ class MqttService
         }
     }
 
-    public function updateComponentTimestamp($componentId)
+    public function updateComponentState($componentId, $message)
     {
+        // Here you can handle the state update logic.
+        // Assume that the message contains the state as `status`
         $component = Component::find($componentId);
         if ($component) {
-            $component->updated_at = Carbon::now();
-            $component->save();
-            echo "Component updated_at field updated: $componentId\n";
+            // Assuming message is a JSON containing a `status`
+            $data = json_decode($message, true);
+            if (isset($data['status'])) {
+                $component->status = $data['status']; // Update status
+                $component->updated_at = Carbon::now();
+                $component->save();
+                echo "Component state updated: {$componentId}\n";
+            }
         } else {
-            echo "Component not found: $componentId\n";
+            echo "Component not found: {$componentId}\n";
         }
+    }
+
+    public function getComponentState($componentId)
+    {
+        // Fetch the latest state of the component from the database
+        $component = Component::find($componentId);
+        return $component ? $component->status : null;
     }
 
     public function disconnect()
