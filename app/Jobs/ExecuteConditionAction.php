@@ -11,6 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class ExecuteConditionAction implements ShouldQueue
 {
@@ -18,6 +19,7 @@ class ExecuteConditionAction implements ShouldQueue
 
     public $conditionId;
     public $action;
+    protected $jobId;
 
     public function __construct($conditionId, $action)
     {
@@ -25,9 +27,20 @@ class ExecuteConditionAction implements ShouldQueue
         $this->action = $action;
     }
 
+    /**
+     * Handle the job execution.
+     *
+     * @return void
+     */
     public function handle()
     {
+        // Track the job ID for monitoring or cancellation purposes
+        $this->jobId = $this->job->getJobId(); // Get the unique job ID
+        Log::info("Job {$this->jobId} started for condition {$this->conditionId}");
+
+        // Fetch the condition and execute the action if the condition is met
         $condition = Condition::find($this->conditionId);
+
         if ($condition && $condition->is_active) {
             $ifLogic = $condition->cases['if']['logic'];
             $ifConditions = $condition->cases['if']['conditions'];
@@ -46,9 +59,16 @@ class ExecuteConditionAction implements ShouldQueue
             }
         }
 
-        $this->scheduleNext(); // Re-schedule if `repetition` is specified
+        $this->scheduleNext(); // Re-schedule if repetition is specified
     }
 
+    /**
+     * Evaluate all conditions with global logic (AND/OR).
+     *
+     * @param  array  $conditions
+     * @param  string  $logic
+     * @return bool
+     */
     private function evaluateIfConditions($conditions, $logic)
     {
         $results = [];
@@ -61,11 +81,17 @@ class ExecuteConditionAction implements ShouldQueue
         return $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
     }
 
+    /**
+     * Evaluate a single condition.
+     *
+     * @param  array  $condition
+     * @return bool
+     */
     private function evaluateSingleCondition($condition)
     {
         // Initialize MqttService to get the last state of the component
         $mqttService = new MqttService();
-    
+
         // Check device state
         foreach ($condition['devices'] as $device) {
             // Get the component state from MQTT service
@@ -76,7 +102,7 @@ class ExecuteConditionAction implements ShouldQueue
                 return false; // Condition not met
             }
         }
-    
+
         // Check time condition (if time condition is specified)
         if (!empty($condition['time'])) {
             $conditionTime = Carbon::parse($condition['time']);
@@ -84,10 +110,16 @@ class ExecuteConditionAction implements ShouldQueue
                 return false; // Time does not match
             }
         }
-    
-        return true; // Condition is met
-    }    
 
+        return true; // Condition is met
+    }
+
+    /**
+     * Check the last known state of the component.
+     *
+     * @param  int  $componentId
+     * @return mixed
+     */
     private function checkComponentState($componentId)
     {
         // Use the MqttService to get the current state of the component
@@ -95,16 +127,27 @@ class ExecuteConditionAction implements ShouldQueue
         return $mqttService->getLastState($componentId);
     }
 
+    /**
+     * Execute the action on the device if conditions are met.
+     *
+     * @param  array  $device
+     * @return void
+     */
     private function executeAction($device)
     {
         $component = Component::find($device['component_id']);
         if ($component) {
             // Perform the action (e.g., turn on/off the component)
             $component->update(['type' => $device['action']]);
-            echo "Executed action: {$device['action']} on component: {$device['component_id']}\n";
+            Log::info("Executed action: {$device['action']} on component: {$device['component_id']}");
         }
     }
 
+    /**
+     * Schedule the next job if repetition is specified.
+     *
+     * @return void
+     */
     private function scheduleNext()
     {
         $repetition = $this->action['repetition'] ?? null;
@@ -122,5 +165,17 @@ class ExecuteConditionAction implements ShouldQueue
             ExecuteConditionAction::dispatch($this->conditionId, $this->action)
                 ->delay($nextExecution);
         }
+    }
+
+    /**
+     * Stop the job by deleting it from the queue.
+     *
+     * @return void
+     */
+    public function deleteJob()
+    {
+        // Mark the job as deleted by calling the delete method.
+        $this->delete();
+        Log::info("Job {$this->jobId} has been cancelled.");
     }
 }

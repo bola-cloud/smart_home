@@ -122,43 +122,40 @@ class ConditionsController extends Controller
         ], 200);
     }
 
-     // Delete condition and cancel associated job
-     public function delete($conditionId)
-     {
-         // Find the condition
-         $condition = Condition::find($conditionId);
-         if (!$condition) {
-             return response()->json([
-                 'status' => false,
-                 'message' => 'Condition not found',
-             ], 404);
-         }
- 
-         // Cancel any running jobs associated with this condition
-         $this->cancelRunningJobs($conditionId);
- 
-         // Delete the condition from the database
-         $condition->delete();
- 
-         return response()->json([
-             'status' => true,
-             'message' => 'Condition and associated jobs deleted successfully',
-         ], 200);
-     }
- 
-     // Cancel running jobs associated with the condition
-     private function cancelRunningJobs($conditionId)
-     {
-         // Fetch all jobs related to the condition and cancel them
-         $jobs = Queue::getJobsFromQueue('default'); // Get all jobs from the default queue
- 
-         foreach ($jobs as $job) {
-             // Check if the job belongs to the specific condition (You can match based on job data)
-             if ($job->conditionId == $conditionId) {
-                 // Optionally, you can delete the job or mark it as cancelled
-                 $job->delete();  // This will delete the job if it is pending
-                 echo "Job with condition ID {$conditionId} has been cancelled.\n";
-             }
-         }
-     }
+    public function delete($conditionId)
+    {
+        // Find the condition
+        $condition = Condition::find($conditionId);
+        if (!$condition) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Condition not found',
+            ], 404);
+        }
+    
+        // Cancel any running jobs associated with this condition
+        $this->cancelRunningJobs($conditionId);
+    
+        // Delete the condition from the database
+        $condition->delete();
+    
+        return response()->json([
+            'status' => true,
+            'message' => 'Condition and associated jobs deleted successfully',
+        ], 200);
+    }
+    
+    private function cancelRunningJobs($conditionId)
+    {
+        // Find and delete the jobs associated with the condition
+        $jobs = Queue::getJobsFromQueue('default'); // Assuming default queue
+    
+        foreach ($jobs as $job) {
+            // Check if the job is related to the condition
+            if ($job->conditionId == $conditionId) {
+                $job->delete(); // This will delete the job if it's pending
+                Log::info("Job for condition {$conditionId} has been cancelled.");
+            }
+        }
+    }    
 }
