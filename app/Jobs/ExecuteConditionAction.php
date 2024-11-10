@@ -28,7 +28,7 @@ class ExecuteConditionAction implements ShouldQueue
     public function handle()
     {
         $condition = Condition::find($this->conditionId);
-        if ($condition) {
+        if ($condition && $condition->is_active) {
             $ifLogic = $condition->cases['if']['logic'];
             $ifConditions = $condition->cases['if']['conditions'];
 
