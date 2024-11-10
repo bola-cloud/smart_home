@@ -86,7 +86,7 @@ class ExecuteConditionAction implements ShouldQueue
     {
         // Use the MqttService to get the current state of the component
         $mqttService = new MqttService();
-        return $mqttService->getComponentState($componentId);
+        return $mqttService->getLastState($componentId);
     }
 
     private function executeAction($device)
