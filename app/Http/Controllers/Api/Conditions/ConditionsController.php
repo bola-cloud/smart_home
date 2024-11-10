@@ -103,7 +103,7 @@ class ConditionsController extends Controller
     
             // Track the job in the job_trackers table
             JobTracker::create([
-                'job_id' => $job->getJobId(), // Get the job ID directly after dispatch
+                'job_id' => $job->id, // Get the job ID directly after dispatch
                 'condition_id' => $conditionId,
             ]);
         } else {
@@ -113,7 +113,7 @@ class ConditionsController extends Controller
     
             // Track the job in the job_trackers table
             JobTracker::create([
-                'job_id' => $job->getJobId(), // Get the job ID directly after dispatch
+                'job_id' => $job->id, // Get the job ID directly after dispatch
                 'condition_id' => $conditionId,
             ]);
         }
