@@ -84,7 +84,8 @@ class ConditionsController extends Controller
         if (!empty($action['time'])) {
             $actionTime = Carbon::parse($action['time']);
             $initialDelay = Carbon::now()->diffInSeconds($actionTime, false);
-    
+            Log::info("Checking time condition: expected {$conditionTime}, current time {$currentTime}");
+
             if ($initialDelay < 0) {
                 Log::warning("Scheduled time {$actionTime} for action in the past. Skipping job scheduling.");
                 return; // Skip scheduling if the time is in the past

@@ -93,25 +93,33 @@ class ExecuteConditionAction implements ShouldQueue
         Log::info("Evaluating single condition: ", $condition);
         $mqttService = new MqttService();
     
-        foreach ($condition['devices'] as $device) {
-            $componentState = $mqttService->getLastState($device['component_id']);
-            Log::info("Device state for component ID {$device['component_id']} is {$componentState}, expected: {$device['status']}");
-            if ($componentState === null || $componentState != $device['status']) {
-                return false;
+        // Check device state if defined
+        if (isset($condition['devices']) && is_array($condition['devices'])) {
+            foreach ($condition['devices'] as $device) {
+                $componentState = $mqttService->getLastState($device['component_id']);
+                Log::info("Device state for component ID {$device['component_id']} is {$componentState}, expected: {$device['status']}");
+                if ($componentState === null || $componentState != $device['status']) {
+                    return false; // Condition not met
+                }
             }
         }
     
+        // Check time condition if defined
         if (!empty($condition['time'])) {
             $conditionTime = Carbon::parse($condition['time']);
             $currentTime = Carbon::now()->format('Y-m-d H:i');
-            Log::info("Checking time condition: expected {$conditionTime}, current time {$currentTime}");
+            Log::info("Checking time condition: expected {$conditionTime->format('Y-m-d H:i')}, current time {$currentTime}");
+            
+            // Only match up to the minute to prevent second-level mismatches
             if ($conditionTime->format('Y-m-d H:i') !== $currentTime) {
+                Log::info("Time condition not met for condition ID {$this->conditionId}");
                 return false;
             }
         }
     
-        return true;
-    }
+        Log::info("Condition met for condition ID {$this->conditionId}");
+        return true; // Condition is met
+    }    
     
     private function checkComponentState($componentId)
     {
