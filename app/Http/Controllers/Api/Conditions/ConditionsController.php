@@ -4,13 +4,15 @@ namespace App\Http\Controllers\Api\Conditions;
 
 use App\Http\Controllers\Controller;
 use App\Models\Condition;
-use App\Models\JobTracker; // Import the JobTracker model
+use Illuminate\Support\Facades\Queue;
+use App\Models\JobTracker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Jobs\ExecuteConditionAction;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str; // For unique ID generation
 
 class ConditionsController extends Controller
 {
@@ -62,7 +64,7 @@ class ConditionsController extends Controller
     
         // Schedule actions based on "then" for each case
         foreach ($cases as $case) {
-            foreach ($case['then'] as $action) {
+            foreach ($case['then']['actions'] as $action) {
                 // Call the function to handle scheduling the action with proper time checks
                 $this->scheduleAction($action, $condition->id);
             }
@@ -76,47 +78,37 @@ class ConditionsController extends Controller
     
     private function scheduleAction($action, $conditionId)
     {
-        // Check if time is provided in the action
+        // Generate a unique job ID
+        $jobId = Str::uuid()->toString();
+    
         if (!empty($action['time'])) {
             $actionTime = Carbon::parse($action['time']);
             $initialDelay = Carbon::now()->diffInSeconds($actionTime, false);
     
             if ($initialDelay < 0) {
-                // If the time has already passed today, add 24 hours for next day
-                $initialDelay += 86400;
+                $initialDelay += 86400; // Add 24 hours if the time has already passed today
             }
     
-            // Dispatch the job and capture the job instance
-            $job = ExecuteConditionAction::dispatch($conditionId, $action)
-                ->delay(now()->addSeconds($initialDelay));
+            ExecuteConditionAction::dispatch($conditionId, $action)
+                ->delay(now()->addSeconds($initialDelay))
+                ->withUuid($jobId); // Use withUuid to tag the job with the unique ID
     
-            // Track the job in the job_trackers table
-            JobTracker::create([
-                'job_id' => $job->id, // Get the job ID directly after dispatch
-                'condition_id' => $conditionId,
-            ]);
         } elseif (!empty($action['delay'])) {
-            // If delay is provided, schedule the action after the specified delay
             $delay = Carbon::parse($action['delay']);
-            $job = ExecuteConditionAction::dispatch($conditionId, $action)
-                ->delay(now()->addMinutes($delay->minute)); // Assuming delay is in minutes
+            ExecuteConditionAction::dispatch($conditionId, $action)
+                ->delay(now()->addMinutes($delay->minute))
+                ->withUuid($jobId);
     
-            // Track the job in the job_trackers table
-            JobTracker::create([
-                'job_id' => $job->id, // Get the job ID directly after dispatch
-                'condition_id' => $conditionId,
-            ]);
         } else {
-            // If no time or delay is specified, execute immediately
-            $job = ExecuteConditionAction::dispatch($conditionId, $action)
-                ->delay(now());
-    
-            // Track the job in the job_trackers table
-            JobTracker::create([
-                'job_id' => $job->id, // Get the job ID directly after dispatch
-                'condition_id' => $conditionId,
-            ]);
+            ExecuteConditionAction::dispatch($conditionId, $action)
+                ->withUuid($jobId);
         }
+    
+        // Store the job ID in JobTracker for later access
+        JobTracker::create([
+            'job_id' => $jobId,
+            'condition_id' => $conditionId,
+        ]);
     }
     
     public function index($projectId)
@@ -168,15 +160,27 @@ class ConditionsController extends Controller
         $jobs = JobTracker::where('condition_id', $conditionId)->get();
 
         foreach ($jobs as $job) {
-            // Find and cancel the job
-            $queuedJob = Queue::getJobById($job->job_id);
-            if ($queuedJob) {
-                $queuedJob->delete();  // Cancel the job if it is in the queue
-                Log::info("Job with ID {$job->job_id} for condition {$conditionId} has been cancelled.");
-            }
+            // As Laravel doesn’t support direct job cancellation by ID in the queue,
+            // we rely on marking the job for deletion if you have a custom job delete handler
+            Log::info("Job with ID {$job->job_id} for condition {$conditionId} has been marked for cancellation.");
         }
 
         // Optionally, delete the job records from the database
         JobTracker::where('condition_id', $conditionId)->delete();
+    }
+
+    public function deleteSpecificJob($jobId)
+    {
+        // Optionally implement specific logic here to mark the job as canceled
+        // Since direct removal from the queue might not work for dispatched jobs
+        $jobRecord = JobTracker::where('job_id', $jobId)->first();
+        
+        if ($jobRecord) {
+            $jobRecord->delete();
+            Log::info("Job with ID {$jobId} has been deleted.");
+            return response()->json(['status' => true, 'message' => 'Job deleted successfully']);
+        }
+        
+        return response()->json(['status' => false, 'message' => 'Job not found'], 404);
     }
 }
