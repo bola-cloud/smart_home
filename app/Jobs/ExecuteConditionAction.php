@@ -27,49 +27,34 @@ class ExecuteConditionAction implements ShouldQueue
         $this->action = $action;
     }
 
-    /**
-     * Handle the job execution.
-     *
-     * @return void
-     */
     public function handle()
     {
         $condition = Condition::find($this->conditionId);
-    
-        if ($condition) {
-            $ifLogic = $condition->cases['if']['logic'];
-            $ifConditions = $condition->cases['if']['conditions'];
-    
-            // Check if conditions are met before executing actions
-            if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
-                // Check if the 'then' part contains devices and actions
-                if (isset($this->action['devices']) && is_array($this->action['devices'])) {
-                    foreach ($this->action['devices'] as $device) {
-                        // Safe check for the component state from the MQTT topic
-                        $componentState = $this->checkComponentState($device['component_id']);
-    
-                        // Compare the state and execute the action if the state matches
-                        if ($componentState === $device['status']) {
-                            $this->executeAction($device);
-                        }
+
+        if ($condition && !$condition->isCaseActive($this->action['case_id'])) {
+            Log::info("Job for case {$this->action['case_id']} is inactive and will not execute.");
+            return; // Exit without executing the job
+        }
+
+        $ifLogic = $condition->cases['if']['logic'];
+        $ifConditions = $condition->cases['if']['conditions'];
+
+        if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
+            if (isset($this->action['devices']) && is_array($this->action['devices'])) {
+                foreach ($this->action['devices'] as $device) {
+                    $componentState = $this->checkComponentState($device['component_id']);
+                    if ($componentState === $device['status']) {
+                        $this->executeAction($device);
                     }
-                } else {
-                    Log::error("No devices provided in the 'then' actions for condition {$this->conditionId}");
                 }
+            } else {
+                Log::error("No devices provided in the 'then' actions for condition {$this->conditionId}");
             }
         }
-    
-        $this->scheduleNext(); // Re-schedule if `repetition` is specified
-    }
-    
 
-    /**
-     * Evaluate all conditions with global logic (AND/OR).
-     *
-     * @param  array  $conditions
-     * @param  string  $logic
-     * @return bool
-     */
+        $this->scheduleNext();
+    }
+
     private function evaluateIfConditions($conditions, $logic)
     {
         $results = [];
@@ -78,83 +63,50 @@ class ExecuteConditionAction implements ShouldQueue
             $results[] = $result;
         }
 
-        // Apply global logic: AND or OR
         return $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
     }
 
-    /**
-     * Evaluate a single condition.
-     *
-     * @param  array  $condition
-     * @return bool
-     */
     private function evaluateSingleCondition($condition)
     {
-        // Initialize MqttService to get the last state of the component
         $mqttService = new MqttService();
 
-        // Check device state
         foreach ($condition['devices'] as $device) {
-            // Get the component state from MQTT service
             $componentState = $mqttService->getLastState($device['component_id']);
-            
-            // If the component state is not found or does not match the expected status, return false
             if ($componentState === null || $componentState != $device['status']) {
-                return false; // Condition not met
+                return false;
             }
         }
 
-        // Check time condition (if time condition is specified)
         if (!empty($condition['time'])) {
             $conditionTime = Carbon::parse($condition['time']);
             if (!$conditionTime->equalTo(Carbon::now())) {
-                return false; // Time does not match
+                return false;
             }
         }
 
-        return true; // Condition is met
+        return true;
     }
 
-    /**
-     * Check the last known state of the component.
-     *
-     * @param  int  $componentId
-     * @return mixed
-     */
     private function checkComponentState($componentId)
     {
-        // Use the MqttService to get the current state of the component
         $mqttService = new MqttService();
         return $mqttService->getLastState($componentId);
     }
 
-    /**
-     * Execute the action on the device if conditions are met.
-     *
-     * @param  array  $device
-     * @return void
-     */
     private function executeAction($device)
     {
         $component = Component::find($device['component_id']);
         if ($component) {
-            // Perform the action (e.g., turn on/off the component)
             $component->update(['type' => $device['action']]);
             Log::info("Executed action: {$device['action']} on component: {$device['component_id']}");
         }
     }
 
-    /**
-     * Schedule the next job if repetition is specified.
-     *
-     * @return void
-     */
     private function scheduleNext()
     {
         $repetition = $this->action['repetition'] ?? null;
         if (!$repetition) return;
 
-        // Schedule the next execution based on repetition
         $nextExecution = match ($repetition) {
             'every_day' => Carbon::now()->addDay(),
             'every_week' => Carbon::now()->addWeek(),
@@ -166,17 +118,5 @@ class ExecuteConditionAction implements ShouldQueue
             ExecuteConditionAction::dispatch($this->conditionId, $this->action)
                 ->delay($nextExecution);
         }
-    }
-
-    /**
-     * Stop the job by deleting it from the queue.
-     *
-     * @return void
-     */
-    public function deleteJob()
-    {
-        // Mark the job as deleted by calling the delete method.
-        $this->delete();
-        Log::info("Job {$this->jobId} has been cancelled.");
     }
 }

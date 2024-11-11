@@ -14,7 +14,6 @@ class Condition extends Model
         'cases',
         'user_id',
         'project_id',
-
     ];
 
     public function user(): BelongsTo
@@ -26,4 +25,19 @@ class Condition extends Model
     {
         return $this->belongsTo(Project::class, 'project_id');
     }
+
+    //  Check the case activation  
+    public function isCaseActive($caseId)
+    {
+        $cases = json_decode($this->cases, true);
+
+        foreach ($cases as $case) {
+            if ($case['case_id'] === $caseId) {
+                return $case['is_active'] ?? true; // Default to true if not set
+            }
+        }
+
+        return false; // If case not found, assume inactive
+    }
+
 }
