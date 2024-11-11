@@ -16,6 +16,7 @@ class JobTracker extends Model
         'job_id',
         'condition_id',
         'case_id',
+        'status',
     ];
 
     /**
