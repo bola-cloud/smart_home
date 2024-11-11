@@ -76,9 +76,8 @@ class ConditionsController extends Controller
         ], 200);
     }
     
-    private function scheduleAction($action, $conditionId)
+    private function scheduleAction($action, $conditionId, $caseId)
     {
-        // Generate a unique job ID
         $jobId = Str::uuid()->toString();
     
         if (!empty($action['time'])) {
@@ -86,9 +85,9 @@ class ConditionsController extends Controller
             $initialDelay = Carbon::now()->diffInSeconds($actionTime, false);
     
             if ($initialDelay < 0) {
-                $initialDelay += 86400; // Add 24 hours if the time has already passed today
+                $initialDelay += 86400;
             }
-
+    
             $job = ExecuteConditionAction::dispatch($conditionId, $action)
                 ->delay(now()->addSeconds($initialDelay));
     
@@ -101,14 +100,16 @@ class ConditionsController extends Controller
             $job = ExecuteConditionAction::dispatch($conditionId, $action);
         }
     
-        // Store the job ID in JobTracker for later access
+        // Store the job with case_id in JobTracker
         JobTracker::create([
             'job_id' => $jobId,
             'condition_id' => $conditionId,
+            'case_id' => $caseId,
         ]);
-
-        Log::info("Scheduled job with ID {$jobId} for condition {$conditionId}");
+    
+        Log::info("Scheduled job with ID {$jobId} for case {$caseId} in condition {$conditionId}");
     }
+    
     
     public function index($projectId)
     {
@@ -191,7 +192,6 @@ class ConditionsController extends Controller
 
     public function deleteCase($conditionId, $caseId)
     {
-        // Find the condition
         $condition = Condition::find($conditionId);
         if (!$condition) {
             return response()->json([
@@ -199,11 +199,9 @@ class ConditionsController extends Controller
                 'message' => 'Condition not found',
             ], 404);
         }
-
-        // Decode the JSON cases data
+    
         $cases = json_decode($condition->cases, true);
-
-        // Find the case by case_id and remove it from the array
+    
         $caseIndex = null;
         foreach ($cases as $index => $case) {
             if ($case['case_id'] === $caseId) {
@@ -211,44 +209,41 @@ class ConditionsController extends Controller
                 break;
             }
         }
-
+    
         if ($caseIndex === null) {
             return response()->json([
                 'status' => false,
                 'message' => 'Case not found',
             ], 404);
         }
-
-        // Remove the case from the cases array
+    
         array_splice($cases, $caseIndex, 1);
-
-        // Cancel jobs associated with this case_id
+    
         $this->cancelCaseJobs($conditionId, $caseId);
-
-        // Update the condition's cases in the database
+    
         $condition->cases = json_encode($cases);
         $condition->save();
-
+    
         return response()->json([
             'status' => true,
             'message' => 'Case and associated jobs deleted successfully',
         ], 200);
     }
+    
 
     private function cancelCaseJobs($conditionId, $caseId)
     {
-        // Find all job tracker entries associated with this case_id within the condition
         $jobs = JobTracker::where('condition_id', $conditionId)
             ->where('case_id', $caseId)
             ->get();
-
+    
         foreach ($jobs as $job) {
             Log::info("Cancelling job with ID {$job->job_id} for case {$caseId} in condition {$conditionId}");
             
-            // Delete the job tracker entry
             $job->delete();
         }
-
+    
         Log::info("All job tracker entries for case {$caseId} in condition {$conditionId} have been deleted.");
     }
+    
 }

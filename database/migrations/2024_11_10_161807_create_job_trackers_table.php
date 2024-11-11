@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('job_id'); // Store the job ID
             $table->unsignedBigInteger('condition_id'); // Reference to the condition
+            $table->string('case_id');
             $table->timestamps();
 
             // Add foreign key constraint

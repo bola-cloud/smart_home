@@ -15,6 +15,7 @@ class JobTracker extends Model
     protected $fillable = [
         'job_id',
         'condition_id',
+        'case_id',
     ];
 
     /**
