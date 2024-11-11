@@ -39,15 +39,6 @@ class ExecuteConditionAction implements ShouldQueue
             return;
         }
     
-        // Decode cases JSON into an associative array
-        $cases = json_decode($condition->cases, true);
-    
-        // Check if cases were decoded correctly
-        if (!$cases) {
-            Log::error("Failed to decode cases JSON for condition {$this->conditionId}.");
-            return;
-        }
-    
         // Ensure `case_id` exists in `$this->action`
         $caseId = $this->action['case_id'] ?? null;
         if (!$caseId) {
@@ -58,14 +49,14 @@ class ExecuteConditionAction implements ShouldQueue
         // Check if the case is active
         if (!$condition->isCaseActive($caseId)) {
             Log::info("Job for case {$caseId} is inactive and will not execute.");
-            return; // Exit without executing the job
+            return;
         }
     
         Log::info("Condition found and case is active for condition {$this->conditionId}");
     
-        // Use decoded `cases` array instead of `$condition->cases`
-        $ifLogic = $cases['if']['logic'];
-        $ifConditions = $cases['if']['conditions'];
+        // Safely access the 'if' conditions with a fallback
+        $ifLogic = $condition->cases['if']['logic'] ?? 'OR';
+        $ifConditions = $condition->cases['if']['conditions'] ?? [];
     
         // Evaluate the "if" conditions
         Log::info("Evaluating 'if' conditions for condition {$this->conditionId}");
@@ -93,7 +84,7 @@ class ExecuteConditionAction implements ShouldQueue
     
         $this->scheduleNext();
         Log::info("Job handling completed for condition {$this->conditionId}");
-    }    
+    }      
 
     private function evaluateIfConditions($conditions, $logic)
     {
