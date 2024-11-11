@@ -96,9 +96,11 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
 
     Route::get('/user/notifications', [NotificationController::class, 'getUserNotifications']);
 
+    // Conditions
     Route::post('/conditions', [ConditionsController::class, 'store']);
     Route::get('/conditions/{project_id}', [ConditionsController::class, 'index']);
-    Route::delete('/delete/{project_id}/conditions', [ConditionsController::class, 'delete']);
+    Route::delete('/delete/{condition_id}/conditions', [ConditionsController::class, 'delete']);
+    Route::delete('/delete/{case_id}/case', [ConditionsController::class, 'deleteCase']);
 
     // Logout route
     Route::post('/logout', [AuthController::class, 'logout']);
