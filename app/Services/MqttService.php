@@ -32,7 +32,6 @@ class MqttService
 
     public function publishAction($deviceId, $componentId, $action)
     {
-        // Topic format using both deviceId and componentId
         $topic = "Mazaya/{$deviceId}/{$componentId}";
         $message = json_encode(['action' => $action]);
 
@@ -44,49 +43,48 @@ class MqttService
         }
     }
 
-    public function subscribeToComponentTopics()
-    {
-        // Subscribe to all topics for all devices and components using wildcards
-        $topic = 'Mazaya/+/+'; // Listens to all device/component topics
-
-        try {
-            $this->mqttClient->subscribe($topic, function (string $topic, string $message) {
-                echo "Received message on topic [$topic]: $message\n";
-
-                // Extract device_id and component_id from the topic
-                $topicParts = explode('/', $topic);
-                $deviceId = $topicParts[1]; // Device ID extracted
-                $componentId = $topicParts[2]; // Component ID extracted
-
-                // Store or update the component state
-                $this->updateComponentState($componentId, $message);
-
-            }, MqttClient::QOS_AT_MOST_ONCE);
-
-            // Keep the connection alive
-            $this->mqttClient->loop(true);
-
-        } catch (MqttClientException $e) {
-            echo "Failed to subscribe to topic: {$e->getMessage()}\n";
-        }
-    }
-
-    public function updateComponentState($componentId, $message)
-    {
-        // Here you can handle the state update logic.
-        // Assume that the message contains the state as `status`
-        $data = json_decode($message, true);
-        if (isset($data['status'])) {
-            // Store the last state in memory
-            $this->lastStates[$componentId] = $data['status'];
-            echo "Component state updated: {$componentId}\n";
-        }
-    }
-
     public function getLastState($componentId)
     {
-        // Retrieve the last state stored from the topic
-        return isset($this->lastStates[$componentId]) ? $this->lastStates[$componentId] : null;
+        // Retrieve the component and associated device
+        $component = Component::find($componentId);
+
+        if (!$component || !$component->device) {
+            echo "Component or device not found for component ID {$componentId}\n";
+            return null;
+        }
+
+        $deviceId = $component->device->id;
+        $topic = "Mazaya/{$deviceId}/{$componentId}";
+
+        // Connect and subscribe to the specific topic
+        try {
+            $this->connect();
+            $this->mqttClient->subscribe($topic, function (string $topic, string $message) use ($componentId) {
+                echo "Received message on topic [$topic]: $message\n";
+
+                // Decode the JSON message
+                $data = json_decode($message, true);
+
+                // Store only the value of the first key found in the JSON
+                if (is_array($data) && !empty($data)) {
+                    $firstKey = array_key_first($data);
+                    $this->lastStates[$componentId] = $data[$firstKey];
+                    echo "Component state updated for component ID {$componentId}: {$this->lastStates[$componentId]}\n";
+                }
+            }, MqttClient::QOS_AT_MOST_ONCE);
+
+            // Run the loop briefly to wait for any incoming message
+            $this->mqttClient->loop(true, 5000); // 5000ms to wait for message
+
+            // Disconnect after receiving the message
+            $this->disconnect();
+
+        } catch (MqttClientException $e) {
+            echo "Failed to subscribe to topic for last state: {$e->getMessage()}\n";
+        }
+
+        // Return the last state for the component if available
+        return $this->lastStates[$componentId] ?? null;
     }
 
     public function disconnect()
