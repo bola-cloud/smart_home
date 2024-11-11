@@ -19,12 +19,12 @@ class ExecuteConditionAction implements ShouldQueue
 
     public $conditionId;
     public $action;
-    protected $jobId;
 
     public function __construct($conditionId, $action)
     {
         $this->conditionId = $conditionId;
         $this->action = $action;
+
         Log::info("Job created for condition {$conditionId} with action: ", $action);
     }
 
@@ -34,9 +34,20 @@ class ExecuteConditionAction implements ShouldQueue
 
         $condition = Condition::find($this->conditionId);
 
+        if (!$condition) {
+            Log::error("Condition {$this->conditionId} not found.");
+            return;
+        }
+
+        // Ensure `case_id` exists in `$this->action`
+        $caseId = $this->action['case_id'] ?? null;
+        if (!$caseId) {
+            Log::error("Missing case_id in action for condition {$this->conditionId}.");
+            return;
+        }
+
         // Check if the case is active
-        $caseId = $this->action['case_id'] ?? null; // Safely retrieve case_id
-        if ($condition && $caseId && !$condition->isCaseActive($caseId)) {
+        if (!$condition->isCaseActive($caseId)) {
             Log::info("Job for case {$caseId} is inactive and will not execute.");
             return; // Exit without executing the job
         }
@@ -51,13 +62,11 @@ class ExecuteConditionAction implements ShouldQueue
         if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
             Log::info("All 'if' conditions met for condition {$this->conditionId}");
 
-            // Check and execute each device action in the "then" part
             if (isset($this->action['devices']) && is_array($this->action['devices'])) {
                 foreach ($this->action['devices'] as $device) {
                     $componentState = $this->checkComponentState($device['component_id']);
                     Log::info("Checked component state for component ID {$device['component_id']} with expected status {$device['status']}, found: {$componentState}");
 
-                    // Execute the action if component state matches
                     if ($componentState === $device['status']) {
                         Log::info("Condition met for action on component {$device['component_id']}, executing action");
                         $this->executeAction($device);
@@ -72,7 +81,7 @@ class ExecuteConditionAction implements ShouldQueue
             Log::info("One or more 'if' conditions failed for condition {$this->conditionId}");
         }
 
-        $this->scheduleNext(); // Reschedule if `repetition` is specified
+        $this->scheduleNext();
         Log::info("Job handling completed for condition {$this->conditionId}");
     }
 
@@ -93,35 +102,27 @@ class ExecuteConditionAction implements ShouldQueue
     {
         Log::info("Evaluating single condition: ", $condition);
         $mqttService = new MqttService();
-    
-        // Check device state if defined
-        if (isset($condition['devices']) && is_array($condition['devices'])) {
-            foreach ($condition['devices'] as $device) {
-                $componentState = $mqttService->getLastState($device['component_id']);
-                Log::info("Device state for component ID {$device['component_id']} is {$componentState}, expected: {$device['status']}");
-                if ($componentState === null || $componentState != $device['status']) {
-                    return false; // Condition not met
-                }
-            }
-        }
-    
-        // Check time condition if defined
-        if (!empty($condition['time'])) {
-            $conditionTime = Carbon::parse($condition['time']);
-            $currentTime = Carbon::now()->format('Y-m-d H:i');
-            Log::info("Checking time condition: expected {$conditionTime->format('Y-m-d H:i')}, current time {$currentTime}");
-            
-            // Only match up to the minute to prevent second-level mismatches
-            if ($conditionTime->format('Y-m-d H:i') !== $currentTime) {
-                Log::info("Time condition not met for condition ID {$this->conditionId}");
+
+        foreach ($condition['devices'] as $device) {
+            $componentState = $mqttService->getLastState($device['component_id']);
+            Log::info("Device state for component ID {$device['component_id']} is {$componentState}, expected: {$device['status']}");
+            if ($componentState === null || $componentState != $device['status']) {
                 return false;
             }
         }
-    
-        Log::info("Condition met for condition ID {$this->conditionId}");
-        return true; // Condition is met
-    }    
-    
+
+        if (!empty($condition['time'])) {
+            $conditionTime = Carbon::parse($condition['time']);
+            $currentTime = Carbon::now();
+            Log::info("Checking time condition: expected {$conditionTime}, current time {$currentTime}");
+            if (!$conditionTime->equalTo($currentTime)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private function checkComponentState($componentId)
     {
         $mqttService = new MqttService();
@@ -139,7 +140,7 @@ class ExecuteConditionAction implements ShouldQueue
         } else {
             Log::error("Failed to find component with ID {$device['component_id']} for action execution");
         }
-    }    
+    }
 
     private function scheduleNext()
     {
@@ -149,7 +150,6 @@ class ExecuteConditionAction implements ShouldQueue
             return;
         }
 
-        // Calculate next execution time based on repetition interval
         $nextExecution = match ($repetition) {
             'every_day' => Carbon::now()->addDay(),
             'every_week' => Carbon::now()->addWeek(),
