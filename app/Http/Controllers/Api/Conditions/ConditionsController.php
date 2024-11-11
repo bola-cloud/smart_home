@@ -88,20 +88,17 @@ class ConditionsController extends Controller
             if ($initialDelay < 0) {
                 $initialDelay += 86400; // Add 24 hours if the time has already passed today
             }
-    
-            ExecuteConditionAction::dispatch($conditionId, $action)
-                ->delay(now()->addSeconds($initialDelay))
-                ->withUuid($jobId); // Use withUuid to tag the job with the unique ID
+
+            $job = ExecuteConditionAction::dispatch($conditionId, $action)
+                ->delay(now()->addSeconds($initialDelay));
     
         } elseif (!empty($action['delay'])) {
             $delay = Carbon::parse($action['delay']);
-            ExecuteConditionAction::dispatch($conditionId, $action)
-                ->delay(now()->addMinutes($delay->minute))
-                ->withUuid($jobId);
+            $job = ExecuteConditionAction::dispatch($conditionId, $action)
+                ->delay(now()->addMinutes($delay->minute));
     
         } else {
-            ExecuteConditionAction::dispatch($conditionId, $action)
-                ->withUuid($jobId);
+            $job = ExecuteConditionAction::dispatch($conditionId, $action);
         }
     
         // Store the job ID in JobTracker for later access
@@ -109,6 +106,8 @@ class ConditionsController extends Controller
             'job_id' => $jobId,
             'condition_id' => $conditionId,
         ]);
+
+        Log::info("Scheduled job with ID {$jobId} for condition {$conditionId}");
     }
     
     public function index($projectId)
