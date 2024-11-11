@@ -78,24 +78,23 @@ class ConditionsController extends Controller
     {
         $jobId = Str::uuid()->toString();
     
+        // Add `case_id` to the action array
+        $action['case_id'] = $caseId;
+    
         if (!empty($action['time'])) {
             $actionTime = Carbon::parse($action['time']);
             $initialDelay = Carbon::now()->diffInSeconds($actionTime, false);
-            Log::info("Checking time condition: expected {$conditionTime}, current time {$currentTime}");
-
+    
             if ($initialDelay < 0) {
-                Log::warning("Scheduled time {$actionTime} for action in the past. Skipping job scheduling.");
-                return; // Skip scheduling if the time is in the past
+                $initialDelay += 86400;
             }
     
             $job = ExecuteConditionAction::dispatch($conditionId, $action)
                 ->delay(now()->addSeconds($initialDelay));
-    
         } elseif (!empty($action['delay'])) {
             $delay = Carbon::parse($action['delay']);
             $job = ExecuteConditionAction::dispatch($conditionId, $action)
                 ->delay(now()->addMinutes($delay->minute));
-    
         } else {
             $job = ExecuteConditionAction::dispatch($conditionId, $action);
         }
