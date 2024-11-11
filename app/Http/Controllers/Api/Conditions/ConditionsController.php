@@ -65,8 +65,8 @@ class ConditionsController extends Controller
         // Schedule actions based on "then" for each case
         foreach ($cases as $case) {
             foreach ($case['then']['actions'] as $action) {
-                // Call the function to handle scheduling the action with proper time checks
-                $this->scheduleAction($action, $condition->id);
+                // Pass the case_id to scheduleAction
+                $this->scheduleAction($action, $condition->id, $case['case_id']);
             }
         }
     
@@ -75,6 +75,7 @@ class ConditionsController extends Controller
             'message' => 'Condition created successfully with schedules',
         ], 200);
     }
+    
     
     private function scheduleAction($action, $conditionId, $caseId)
     {
