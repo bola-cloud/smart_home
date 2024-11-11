@@ -140,33 +140,39 @@ class ConditionsController extends Controller
                 'message' => 'Condition not found',
             ], 404);
         }
-
+    
         // Cancel any running jobs associated with this condition
         $this->cancelRunningJobs($conditionId);
-
+    
         // Delete the condition from the database
         $condition->delete();
-
+    
         return response()->json([
             'status' => true,
             'message' => 'Condition and associated jobs deleted successfully',
         ], 200);
     }
-
+    
     private function cancelRunningJobs($conditionId)
     {
-        // Get all jobs associated with this condition
+        // Get all jobs associated with this condition from the job tracker
         $jobs = JobTracker::where('condition_id', $conditionId)->get();
-
-        foreach ($jobs as $job) {
-            // As Laravel doesn’t support direct job cancellation by ID in the queue,
-            // we rely on marking the job for deletion if you have a custom job delete handler
-            Log::info("Job with ID {$job->job_id} for condition {$conditionId} has been marked for cancellation.");
+    
+        if ($jobs) {
+            foreach ($jobs as $job) {
+                // Since we cannot directly delete a job from the queue by its ID in Laravel,
+                // we can handle it by marking it in the logs or implementing a custom solution if needed.
+                Log::info("Cancelling job with ID {$job->job_id} for condition {$conditionId}");
+        
+                // Delete the job tracker entry
+                $job->delete();
+            }
+            return response()->json(['status' => true, 'message' => 'deleted successfully']);
         }
-
-        // Optionally, delete the job records from the database
-        JobTracker::where('condition_id', $conditionId)->delete();
-    }
+        return response()->json(['status' => false, 'message' => 'Job not found'], 404);
+        // Optionally log that all job tracker entries are deleted
+        // Log::info("All job tracker entries for condition {$conditionId} have been deleted.");
+    }    
 
     public function deleteSpecificJob($jobId)
     {
