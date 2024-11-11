@@ -23,7 +23,7 @@ class ConditionsController extends Controller
             'cases' => 'required|array',
             'cases.*.name' => 'required|string|max:256',
             'cases.*.is_active' => 'nullable|boolean',
-            'cases.*.case_id' => 'required|string|max:256',
+            'cases.*.case_id' => 'nullable|string|max:256',
             // Global `if` conditions with logic
             'cases.*.if.conditions' => 'required|array',
             'cases.*.if.logic' => 'required|string|in:AND,OR',
