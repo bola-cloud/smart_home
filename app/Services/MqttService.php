@@ -45,48 +45,35 @@ class MqttService
 
     public function getLastState($componentId)
     {
-        // Retrieve the component and associated device
         $component = Component::find($componentId);
-
         if (!$component || !$component->device) {
             echo "Component or device not found for component ID {$componentId}\n";
             return null;
         }
-
+    
         $deviceId = $component->device->id;
         $topic = "Mazaya/{$deviceId}/{$componentId}";
-
-        // Connect and subscribe to the specific topic
+    
         try {
             $this->connect();
             $this->mqttClient->subscribe($topic, function (string $topic, string $message) use ($componentId) {
-                echo "Received message on topic [$topic]: $message\n";
-
-                // Decode the JSON message
                 $data = json_decode($message, true);
-
-                // Store only the value of the first key found in the JSON
                 if (is_array($data) && !empty($data)) {
                     $firstKey = array_key_first($data);
                     $this->lastStates[$componentId] = $data[$firstKey];
-                    echo "Component state updated for component ID {$componentId}: {$this->lastStates[$componentId]}\n";
                 }
             }, MqttClient::QOS_AT_MOST_ONCE);
-
-            // Run the loop briefly to wait for any incoming message
-            $this->mqttClient->loop(true, 5000); // 5000ms to wait for message
-
-            // Disconnect after receiving the message
+    
+            $this->mqttClient->loop(true, 5000); // Wait for 5 seconds to receive messages
             $this->disconnect();
-
+    
         } catch (MqttClientException $e) {
             echo "Failed to subscribe to topic for last state: {$e->getMessage()}\n";
         }
-
-        // Return the last state for the component if available
+    
         return $this->lastStates[$componentId] ?? null;
     }
-
+    
     public function disconnect()
     {
         try {

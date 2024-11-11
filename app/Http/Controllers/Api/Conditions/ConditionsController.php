@@ -86,7 +86,8 @@ class ConditionsController extends Controller
             $initialDelay = Carbon::now()->diffInSeconds($actionTime, false);
     
             if ($initialDelay < 0) {
-                $initialDelay += 86400;
+                Log::warning("Scheduled time {$actionTime} for action in the past. Skipping job scheduling.");
+                return; // Skip scheduling if the time is in the past
             }
     
             $job = ExecuteConditionAction::dispatch($conditionId, $action)
@@ -101,7 +102,6 @@ class ConditionsController extends Controller
             $job = ExecuteConditionAction::dispatch($conditionId, $action);
         }
     
-        // Store the job with case_id in JobTracker
         JobTracker::create([
             'job_id' => $jobId,
             'condition_id' => $conditionId,
@@ -110,7 +110,6 @@ class ConditionsController extends Controller
     
         Log::info("Scheduled job with ID {$jobId} for case {$caseId} in condition {$conditionId}");
     }
-    
     
     public function index($projectId)
     {
