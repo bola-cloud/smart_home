@@ -100,7 +100,7 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     Route::post('/conditions', [ConditionsController::class, 'store']);
     Route::get('/conditions/{project_id}', [ConditionsController::class, 'index']);
     Route::delete('/delete/{condition_id}/conditions', [ConditionsController::class, 'delete']);
-    Route::delete('/delete/{case_id}/case', [ConditionsController::class, 'deleteCase']);
+    Route::delete('conditions/{conditionId}/case/{caseId}', [ConditionsController::class, 'deleteCase']);
 
     // Logout route
     Route::post('/logout', [AuthController::class, 'logout']);
