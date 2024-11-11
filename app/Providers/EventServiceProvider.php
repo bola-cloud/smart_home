@@ -21,17 +21,17 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
         Registered::class => [
             SendEmailVerificationNotification::class,
-        ],
-        // Job events
-        JobQueued::class => [
-            JobListener::class . '@handleJobQueued',
-        ],
-        JobProcessed::class => [
-            JobListener::class . '@handleJobProcessed',
-        ],
-        JobFailed::class => [
-            JobListener::class . '@handleJobFailed',
-        ],
+        ]// ,
+        // // Job events
+        // JobQueued::class => [
+        //     JobListener::class . '@handleJobQueued',
+        // ],
+        // JobProcessed::class => [
+        //     JobListener::class . '@handleJobProcessed',
+        // ],
+        // JobFailed::class => [
+        //     JobListener::class . '@handleJobFailed',
+        // ],
     ];
 
     /**
