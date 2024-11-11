@@ -35,8 +35,9 @@ class ExecuteConditionAction implements ShouldQueue
         $condition = Condition::find($this->conditionId);
 
         // Check if the case is active
-        if ($condition && !$condition->isCaseActive($this->action['case_id'])) {
-            Log::info("Job for case {$this->action['case_id']} is inactive and will not execute.");
+        $caseId = $this->action['case_id'] ?? null; // Safely retrieve case_id
+        if ($condition && $caseId && !$condition->isCaseActive($caseId)) {
+            Log::info("Job for case {$caseId} is inactive and will not execute.");
             return; // Exit without executing the job
         }
 

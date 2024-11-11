@@ -23,7 +23,6 @@ class ConditionsController extends Controller
             'cases' => 'required|array',
             'cases.*.name' => 'required|string|max:256',
             'cases.*.is_active' => 'nullable|boolean',
-            'cases.*.case_id' => 'nullable|string|max:256',
             // Global `if` conditions with logic
             'cases.*.if.conditions' => 'required|array',
             'cases.*.if.logic' => 'required|string|in:AND,OR',
@@ -50,9 +49,9 @@ class ConditionsController extends Controller
         $user = Auth::user();
         $cases = $request->cases;
     
-        // Add unique ID for each case and save the name, is_active, and case_id
+        // Generate a unique `case_id` for each case
         foreach ($cases as &$case) {
-            $case['case_id'] = uniqid();  // Assign unique case ID
+            $case['case_id'] = uniqid();  // Generate unique case ID
         }
     
         // Store the condition in the database
@@ -65,7 +64,6 @@ class ConditionsController extends Controller
         // Schedule actions based on "then" for each case
         foreach ($cases as $case) {
             foreach ($case['then']['actions'] as $action) {
-                // Pass the case_id to scheduleAction
                 $this->scheduleAction($action, $condition->id, $case['case_id']);
             }
         }
@@ -75,7 +73,6 @@ class ConditionsController extends Controller
             'message' => 'Condition created successfully with schedules',
         ], 200);
     }
-    
     
     private function scheduleAction($action, $conditionId, $caseId)
     {
