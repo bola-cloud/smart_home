@@ -188,4 +188,67 @@ class ConditionsController extends Controller
         
         return response()->json(['status' => false, 'message' => 'Job not found'], 404);
     }
+
+    public function deleteCase($conditionId, $caseId)
+    {
+        // Find the condition
+        $condition = Condition::find($conditionId);
+        if (!$condition) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Condition not found',
+            ], 404);
+        }
+
+        // Decode the JSON cases data
+        $cases = json_decode($condition->cases, true);
+
+        // Find the case by case_id and remove it from the array
+        $caseIndex = null;
+        foreach ($cases as $index => $case) {
+            if ($case['case_id'] === $caseId) {
+                $caseIndex = $index;
+                break;
+            }
+        }
+
+        if ($caseIndex === null) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Case not found',
+            ], 404);
+        }
+
+        // Remove the case from the cases array
+        array_splice($cases, $caseIndex, 1);
+
+        // Cancel jobs associated with this case_id
+        $this->cancelCaseJobs($conditionId, $caseId);
+
+        // Update the condition's cases in the database
+        $condition->cases = json_encode($cases);
+        $condition->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Case and associated jobs deleted successfully',
+        ], 200);
+    }
+
+    private function cancelCaseJobs($conditionId, $caseId)
+    {
+        // Find all job tracker entries associated with this case_id within the condition
+        $jobs = JobTracker::where('condition_id', $conditionId)
+            ->where('case_id', $caseId)
+            ->get();
+
+        foreach ($jobs as $job) {
+            Log::info("Cancelling job with ID {$job->job_id} for case {$caseId} in condition {$conditionId}");
+            
+            // Delete the job tracker entry
+            $job->delete();
+        }
+
+        Log::info("All job tracker entries for case {$caseId} in condition {$conditionId} have been deleted.");
+    }
 }
