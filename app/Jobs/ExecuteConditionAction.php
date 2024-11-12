@@ -57,7 +57,7 @@ class ExecuteConditionAction implements ShouldQueue
         // Safely access the 'if' conditions with a fallback
         $ifLogic = $condition->cases['if']['logic'] ?? 'OR';
         $ifConditions = $condition->cases['if']['conditions'] ?? [];
-    
+        Log::info("Condition found and case is active for condition {$ifConditions} , {$ifLogic}");
         // Evaluate the "if" conditions
         Log::info("Evaluating 'if' conditions for condition {$this->conditionId}");
         if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
