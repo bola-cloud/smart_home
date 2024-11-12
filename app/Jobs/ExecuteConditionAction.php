@@ -104,13 +104,13 @@ class ExecuteConditionAction implements ShouldQueue
         Log::info("Evaluating single condition:", ['condition' => $condition]);
         $mqttService = new MqttService();
     
-        foreach ($condition['devices'] as $device) {
-            $componentState = $mqttService->getLastState($device['component_id']);
-            Log::info("Device state for component ID {$device['component_id']} is {$componentState}, expected: {$device['status']}");
-            if ($componentState === null || $componentState != $device['status']) {
-                return false; // Condition fails if any device status does not match
-            }
-        }
+        // foreach ($condition['devices'] as $device) {
+        //     $componentState = $mqttService->getLastState($device['component_id']);
+        //     Log::info("Device state for component ID {$device['component_id']} is {$componentState}, expected: {$device['status']}");
+        //     if ($componentState === null || $componentState != $device['status']) {
+        //         return false; // Condition fails if any device status does not match
+        //     }
+        // }
     
         if (!empty($condition['time'])) {
             $conditionTime = Carbon::parse($condition['time']);

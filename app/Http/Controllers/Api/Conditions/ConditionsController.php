@@ -36,7 +36,7 @@ class ConditionsController extends Controller
             'cases.*.then.logic' => 'required|string|in:AND,OR',
             'cases.*.then.actions.*.devices' => 'required|array|min:1',
             'cases.*.then.actions.*.devices.*.component_id' => 'required|exists:components,id',
-            'cases.*.then.actions.*.devices.*.action' => 'required|string',
+            'cases.*.then.actions.*.devices.*.action' => 'required|array',
             'cases.*.then.delay' => 'nullable|date_format:H:i',
             'cases.*.then.actions.*.repetition' => 'nullable|string|in:every_day,every_week,every_month',
             'is_active' => 'nullable|boolean',
