@@ -77,12 +77,6 @@ class ExecuteConditionAction implements ShouldQueue
     private function executeAction($device)
     {
         $component = Component::find($device['component_id']);
-        // if ($component) {
-        //     $component->update(['type' => $device['action']]);
-        //     Log::info("Executed action: {$device['action']} on component: {$device['component_id']}");
-        // } else {
-        //     Log::error("Failed to find component with ID {$device['component_id']} for action execution");
-        // }
         if ($component) {
             $component->update(['type' => "bola2"]);
             Log::info("Executed action: {$device['action']} on component: {$device['component_id']}");
