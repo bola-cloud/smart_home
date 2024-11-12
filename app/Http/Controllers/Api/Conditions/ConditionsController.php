@@ -91,6 +91,7 @@ class ConditionsController extends Controller
                 $delayInSeconds += 86400; // 86400 seconds in a day
             }
     
+            // Schedule job with calculated delay
             $job = ExecuteConditionAction::dispatch($conditionId, $action)->delay(now()->addSeconds($delayInSeconds));
         } else {
             $job = ExecuteConditionAction::dispatch($conditionId, $action);
@@ -103,7 +104,7 @@ class ConditionsController extends Controller
         ]);
     
         Log::info("Scheduled job with ID {$jobId} for case {$caseId} in condition {$conditionId}");
-    }    
+    }
     
     public function index($projectId)
     {
