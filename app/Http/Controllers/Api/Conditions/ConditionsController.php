@@ -93,8 +93,10 @@ class ConditionsController extends Controller
     
             // Schedule job with calculated delay
             $job = ExecuteConditionAction::dispatch($conditionId, $action)->delay(now()->addSeconds($delayInSeconds));
+            Log::info("Job delayed");
         } else {
             $job = ExecuteConditionAction::dispatch($conditionId, $action);
+            Log::info("Job not delayed");
         }
     
         JobTracker::create([
@@ -105,7 +107,7 @@ class ConditionsController extends Controller
     
         Log::info("Scheduled job with ID {$jobId} for case {$caseId} in condition {$conditionId}");
     }
-    
+
     public function index($projectId)
     {
         $conditions = Condition::where('project_id', $projectId)->get();
