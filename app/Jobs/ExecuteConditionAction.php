@@ -58,32 +58,7 @@ class ExecuteConditionAction implements ShouldQueue
         $ifLogic = $condition->cases['if']['logic'] ?? 'OR';
         $ifConditions = $condition->cases['if']['conditions'] ?? [];
         Log::info("logic condition {$ifConditions} , {$ifLogic}");
-        // Evaluate the "if" conditions
-        Log::info("Evaluating 'if' conditions for condition {$this->conditionId}");
-        if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
-            Log::info("All 'if' conditions met for condition {$this->conditionId}");
-    
-            if (isset($this->action['devices']) && is_array($this->action['devices'])) {
-                foreach ($this->action['devices'] as $device) {
-                    $componentState = $this->checkComponentState($device['component_id']);
-                    Log::info("Checked component state for component ID {$device['component_id']} with expected status {$device['status']}, found: {$componentState}");
-    
-                    if ($componentState === $device['status']) {
-                        Log::info("Condition met for action on component {$device['component_id']}, executing action");
-                        $this->executeAction($device);
-                    } else {
-                        Log::info("Condition not met for action on component {$device['component_id']}, skipping execution");
-                    }
-                }
-            } else {
-                Log::error("No devices provided in the 'then' actions for condition {$this->conditionId}");
-            }
-        } else {
-            Log::info("One or more 'if' conditions failed for condition {$this->conditionId}");
-        }
-    
-        $this->scheduleNext();
-        Log::info("Job handling completed for condition {$this->conditionId}");
+
     }      
 
     private function evaluateIfConditions($conditions, $logic)
