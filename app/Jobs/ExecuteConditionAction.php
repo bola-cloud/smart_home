@@ -120,17 +120,24 @@ class ExecuteConditionAction implements ShouldQueue
 
     private function checkComponentState($componentId)
     {
-        $mqttService = new MqttService();
-        $componentState = $mqttService->getLastState($componentId);
-        Log::info("Fetched last state for component ID {$componentId}: {$componentState}");
-        return $componentState;
+        // $mqttService = new MqttService();
+        // $componentState = $mqttService->getLastState($componentId);
+        // Log::info("Fetched last state for component ID {$componentId}: {$componentState}");
+        // return $componentState;
+        return true;
     }
 
     private function executeAction($device)
     {
         $component = Component::find($device['component_id']);
+        // if ($component) {
+        //     $component->update(['type' => $device['action']]);
+        //     Log::info("Executed action: {$device['action']} on component: {$device['component_id']}");
+        // } else {
+        //     Log::error("Failed to find component with ID {$device['component_id']} for action execution");
+        // }
         if ($component) {
-            $component->update(['type' => $device['action']]);
+            $component->update(['type' => "bola2"]);
             Log::info("Executed action: {$device['action']} on component: {$device['component_id']}");
         } else {
             Log::error("Failed to find component with ID {$device['component_id']} for action execution");

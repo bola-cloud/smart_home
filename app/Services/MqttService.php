@@ -32,6 +32,9 @@ class MqttService
 
     public function publishAction($deviceId, $componentId, $action)
     {
+        //////////////////        Note    //////////////////////////////////////
+        //Change the topic to be "Mazaya/{$deviceId}/{$componentOrder}"
+
         $topic = "Mazaya/{$deviceId}/{$componentId}";
         $message = json_encode(['action' => $action]);
 
