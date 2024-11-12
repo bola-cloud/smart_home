@@ -90,37 +90,44 @@ class ExecuteConditionAction implements ShouldQueue
     {
         Log::info("Evaluating conditions with logic {$logic}");
         $results = [];
+        
         foreach ($conditions as $condition) {
-            $result = $this->evaluateSingleCondition($condition);
-            $results[] = $result;
-        }
-        $finalResult = $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
-        Log::info("Evaluation result for conditions with logic {$logic}: " . ($finalResult ? 'true' : 'false'));
-        return $finalResult;
-    }
-
-    private function evaluateSingleCondition($condition)
-    {
-        Log::info("Evaluating single condition", ['condition' => $condition]);
-
-        // If there are no devices specified, set condition to true by default
-        if (empty($condition['devices'])) {
-            Log::info("No devices specified for condition, defaulting to true");
-            return true;
-        }
-
-        // If devices are specified, evaluate device-specific conditions
-        $mqttService = new MqttService();
-        foreach ($condition['devices'] as $device) {
-            $componentState = $mqttService->getLastState($device['component_id']);
-            Log::info("Device state for component ID {$device['component_id']} is {$componentState}, expected: {$device['status']}");
-            if ($componentState === null || $componentState != $device['status']) {
-                return false; // Condition fails if any device status does not match
+            // If there are no devices and a time is specified, consider the condition as `true`
+            if (empty($condition['devices']) && !empty($condition['time'])) {
+                Log::info("Only time condition specified, defaulting to true");
+                $results[] = true;
+            } else {
+                // Otherwise, evaluate the condition normally
+                $result = $this->evaluateSingleCondition($condition);
+                $results[] = $result;
             }
         }
-
-        return true; // Condition is met if all device statuses match
+    
+        $finalResult = $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
+        Log::info("Evaluation result for conditions with logic {$logic}: " . ($finalResult ? 'true' : 'false'));
+    
+        return $finalResult;
     }
+    
+    private function evaluateSingleCondition($condition)
+    {
+        // Check device-specific conditions if present
+        if (!empty($condition['devices'])) {
+            $mqttService = new MqttService();
+            
+            foreach ($condition['devices'] as $device) {
+                $componentState = $mqttService->getLastState($device['component_id']);
+                Log::info("Device state for component ID {$device['component_id']} is {$componentState}, expected: {$device['status']}");
+                
+                if ($componentState === null || $componentState != $device['status']) {
+                    return false; // Condition fails if any device status does not match
+                }
+            }
+        }
+    
+        return true; // Condition met if all device statuses match or no devices specified
+    }
+    
 
     private function executeAction($device)
     {
