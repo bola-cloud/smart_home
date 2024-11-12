@@ -94,40 +94,31 @@ class ExecuteConditionAction implements ShouldQueue
         foreach ($conditions as $condition) {
             // If there are no devices and a time is specified, consider the condition as `true`
             if (empty($condition['devices']) && !empty($condition['time'])) {
-                Log::info("Only time condition specified, defaulting to true");
+                Log::info("Only time condition specified, defaulting to true for this condition.");
                 $results[] = true;
             } else {
-                // Otherwise, evaluate the condition normally
+                // Evaluate normally using evaluateSingleCondition (forced to true currently)
                 $result = $this->evaluateSingleCondition($condition);
+                Log::info("Condition evaluation result: " . ($result ? 'true' : 'false'));
                 $results[] = $result;
             }
         }
     
+        Log::info("Condition evaluation results array: ", $results);
+    
+        // Apply the AND/OR logic to the array of results
         $finalResult = $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
-        Log::info("Evaluation result for conditions with logic {$logic}: " . ($finalResult ? 'true' : 'false'));
+        Log::info("Final evaluation result for conditions with logic {$logic}: " . ($finalResult ? 'true' : 'false'));
     
         return $finalResult;
     }
     
     private function evaluateSingleCondition($condition)
     {
-        // // Check device-specific conditions if present
-        // if (!empty($condition['devices'])) {
-        //     $mqttService = new MqttService();
-            
-        //     foreach ($condition['devices'] as $device) {
-        //         $componentState = $mqttService->getLastState($device['component_id']);
-        //         Log::info("Device state for component ID {$device['component_id']} is {$componentState}, expected: {$device['status']}");
-                
-        //         if ($componentState === null || $componentState != $device['status']) {
-        //             return false; // Condition fails if any device status does not match
-        //         }
-        //     }
-        // }
-    
-        return true; // Condition met if all device statuses match or no devices specified
-    }
-    
+        // For now, return true to simulate that the condition is met
+        Log::info("Evaluating single condition (forced to true for testing).");
+        return true;
+    }  
 
     private function executeAction($device)
     {
