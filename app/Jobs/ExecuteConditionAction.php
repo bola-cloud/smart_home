@@ -86,18 +86,21 @@ class ExecuteConditionAction implements ShouldQueue
         Log::info("Job handling completed for condition {$this->conditionId}");
     }      
 
-    private function evaluateIfConditions($conditions, $logic)
+    private function evaluateIfConditions($conditions, $logic = 'OR')
     {
         Log::info("Evaluating conditions with logic {$logic}");
         $results = [];
+    
         foreach ($conditions as $condition) {
             $result = $this->evaluateSingleCondition($condition);
             $results[] = $result;
         }
-        $finalResult = $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
+    
+        $finalResult = ($logic === 'AND') ? !in_array(false, $results) : in_array(true, $results);
         Log::info("Evaluation result for conditions with logic {$logic}: " . ($finalResult ? 'true' : 'false'));
+    
         return $finalResult;
-    }
+    }    
 
     private function evaluateSingleCondition($condition)
     {
