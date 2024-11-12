@@ -62,32 +62,7 @@ class ExecuteConditionAction implements ShouldQueue
     }      
 
     private function evaluateIfConditions($conditions, $logic)
-    {
-        // Log::info("Evaluating conditions with logic {$logic}");
-        // Log::info("Conditions data structure:", $conditions); // Log the structure of the conditions data
-    
-        // $results = [];
-        
-        // foreach ($conditions as $condition) {
-        //     Log::info("start foreach");
-        //     // If there are no devices and a time is specified, consider the condition as `true`
-        //     if (empty($condition['devices']) && !empty($condition['time'])) {
-        //         Log::info("Only time condition specified, defaulting to true for this condition.");
-        //         $results[] = true;
-        //     } else {
-        //         // Otherwise, evaluate the condition normally
-        //         $result = $this->evaluateSingleCondition($condition);
-        //         Log::info("Single condition evaluation result: " . ($result ? 'true' : 'false'));
-        //         $results[] = $result;
-        //     }
-        // }
-    
-        // Log::info("Condition evaluation results array: ", $results);
-    
-        // // Apply the AND/OR logic to the array of results
-        // $finalResult = $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
-        // Log::info("Final evaluation result for conditions with logic {$logic}: " . ($finalResult ? 'true' : 'false'));
-    
+    {    
         Log::info("Forcing evaluateIfConditions to return true for testing purposes.");
         return true;
     }
