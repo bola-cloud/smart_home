@@ -89,6 +89,8 @@ class ExecuteConditionAction implements ShouldQueue
     private function evaluateIfConditions($conditions, $logic)
     {
         Log::info("Evaluating conditions with logic {$logic}");
+        Log::info("Conditions data structure:", $conditions); // Log the structure of the conditions data
+    
         $results = [];
         
         foreach ($conditions as $condition) {
@@ -97,9 +99,9 @@ class ExecuteConditionAction implements ShouldQueue
                 Log::info("Only time condition specified, defaulting to true for this condition.");
                 $results[] = true;
             } else {
-                // Evaluate normally using evaluateSingleCondition (forced to true currently)
+                // Otherwise, evaluate the condition normally
                 $result = $this->evaluateSingleCondition($condition);
-                Log::info("Condition evaluation result: " . ($result ? 'true' : 'false'));
+                Log::info("Single condition evaluation result: " . ($result ? 'true' : 'false'));
                 $results[] = $result;
             }
         }
@@ -115,10 +117,10 @@ class ExecuteConditionAction implements ShouldQueue
     
     private function evaluateSingleCondition($condition)
     {
-        // For now, return true to simulate that the condition is met
-        Log::info("Evaluating single condition (forced to true for testing).");
+        // Force return true for testing, with logging for validation
+        Log::info("Evaluating single condition - forced to true for testing purposes.");
         return true;
-    }  
+    }    
 
     private function executeAction($device)
     {
