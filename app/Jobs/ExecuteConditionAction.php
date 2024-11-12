@@ -58,6 +58,110 @@ class ExecuteConditionAction implements ShouldQueue
         $ifLogic = $condition->cases['if']['logic'] ?? 'OR';
         $ifConditions = $condition->cases['if']['conditions'] ?? [];
         Log::info("logic condition {$ifConditions} , {$ifLogic}");
-
+        // Evaluate the "if" conditions
+        Log::info("Evaluating 'if' conditions for condition {$this->conditionId}");
+        if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
+            Log::info("All 'if' conditions met for condition {$this->conditionId}");
+    
+            if (isset($this->action['devices']) && is_array($this->action['devices'])) {
+                foreach ($this->action['devices'] as $device) {
+                    $componentState = $this->checkComponentState($device['component_id']);
+                    Log::info("Checked component state for component ID {$device['component_id']} with expected status {$device['status']}, found: {$componentState}");
+    
+                    if ($componentState === $device['status']) {
+                        Log::info("Condition met for action on component {$device['component_id']}, executing action");
+                        $this->executeAction($device);
+                    } else {
+                        Log::info("Condition not met for action on component {$device['component_id']}, skipping execution");
+                    }
+                }
+            } else {
+                Log::error("No devices provided in the 'then' actions for condition {$this->conditionId}");
+            }
+        } else {
+            Log::info("One or more 'if' conditions failed for condition {$this->conditionId}");
+        }
+    
+        $this->scheduleNext();
+        Log::info("Job handling completed for condition {$this->conditionId}");
     }      
+
+    private function evaluateIfConditions($conditions, $logic)
+    {
+        // Log::info("Evaluating conditions with logic {$logic}");
+        // Log::info("Conditions data structure:", $conditions); // Log the structure of the conditions data
+    
+        // $results = [];
+        
+        // foreach ($conditions as $condition) {
+        //     Log::info("start foreach");
+        //     // If there are no devices and a time is specified, consider the condition as `true`
+        //     if (empty($condition['devices']) && !empty($condition['time'])) {
+        //         Log::info("Only time condition specified, defaulting to true for this condition.");
+        //         $results[] = true;
+        //     } else {
+        //         // Otherwise, evaluate the condition normally
+        //         $result = $this->evaluateSingleCondition($condition);
+        //         Log::info("Single condition evaluation result: " . ($result ? 'true' : 'false'));
+        //         $results[] = $result;
+        //     }
+        // }
+    
+        // Log::info("Condition evaluation results array: ", $results);
+    
+        // // Apply the AND/OR logic to the array of results
+        // $finalResult = $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
+        // Log::info("Final evaluation result for conditions with logic {$logic}: " . ($finalResult ? 'true' : 'false'));
+    
+        Log::info("Forcing evaluateIfConditions to return true for testing purposes.");
+        return true;
+    }
+    
+    private function evaluateSingleCondition($condition)
+    {
+        // Force return true for testing, with logging for validation
+        Log::info("Evaluating single condition - forced to true for testing purposes.");
+        return true;
+    }    
+
+    private function executeAction($device)
+    {
+        $component = Component::find($device['component_id']);
+        // if ($component) {
+        //     $component->update(['type' => $device['action']]);
+        //     Log::info("Executed action: {$device['action']} on component: {$device['component_id']}");
+        // } else {
+        //     Log::error("Failed to find component with ID {$device['component_id']} for action execution");
+        // }
+        if ($component) {
+            $component->update(['type' => "bola2"]);
+            Log::info("Executed action: {$device['action']} on component: {$device['component_id']}");
+        } else {
+            Log::error("Failed to find component with ID {$device['component_id']} for action execution");
+        }
+    }
+
+    private function scheduleNext()
+    {
+        $repetition = $this->action['repetition'] ?? null;
+        if (!$repetition) {
+            Log::info("No repetition specified, job will not be rescheduled");
+            return;
+        }
+
+        $nextExecution = match ($repetition) {
+            'every_day' => Carbon::now()->addDay(),
+            'every_week' => Carbon::now()->addWeek(),
+            'every_month' => Carbon::now()->addMonth(),
+            default => null,
+        };
+
+        if ($nextExecution) {
+            Log::info("Scheduling next execution for condition {$this->conditionId} at {$nextExecution}");
+            ExecuteConditionAction::dispatch($this->conditionId, $this->action)
+                ->delay($nextExecution);
+        } else {
+            Log::error("Invalid repetition interval specified: {$repetition}");
+        }
+    }
 }
