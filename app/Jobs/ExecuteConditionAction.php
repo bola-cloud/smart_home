@@ -101,30 +101,25 @@ class ExecuteConditionAction implements ShouldQueue
 
     private function evaluateSingleCondition($condition)
     {
-        // Log::info("Evaluating single condition after time delay:", ['condition' => $condition]);
-        // $mqttService = new MqttService();
-    
-        // // Check device-specific conditions if present
-        // if (!empty($condition['devices'])) {
-        //     foreach ($condition['devices'] as $device) {
-        //         $componentState = $mqttService->getLastState($device['component_id']);
-        //         Log::info("Device state for component ID {$device['component_id']} is {$componentState}, expected: {$device['status']}");
-        //         if ($componentState === null || $componentState != $device['status']) {
-        //             return false;
-        //         }
-        //     }
-        // }
-    
-        return true;
-    }      
+        Log::info("Evaluating single condition", ['condition' => $condition]);
 
-    private function checkComponentState($componentId)
-    {
-        // $mqttService = new MqttService();
-        // $componentState = $mqttService->getLastState($componentId);
-        // Log::info("Fetched last state for component ID {$componentId}: {$componentState}");
-        // return $componentState;
-        return true;
+        // If there are no devices specified, set condition to true by default
+        if (empty($condition['devices'])) {
+            Log::info("No devices specified for condition, defaulting to true");
+            return true;
+        }
+
+        // If devices are specified, evaluate device-specific conditions
+        $mqttService = new MqttService();
+        foreach ($condition['devices'] as $device) {
+            $componentState = $mqttService->getLastState($device['component_id']);
+            Log::info("Device state for component ID {$device['component_id']} is {$componentState}, expected: {$device['status']}");
+            if ($componentState === null || $componentState != $device['status']) {
+                return false; // Condition fails if any device status does not match
+            }
+        }
+
+        return true; // Condition is met if all device statuses match
     }
 
     private function executeAction($device)
