@@ -94,6 +94,7 @@ class ExecuteConditionAction implements ShouldQueue
         $results = [];
         
         foreach ($conditions as $condition) {
+            Log::info("start foreach");
             // If there are no devices and a time is specified, consider the condition as `true`
             if (empty($condition['devices']) && !empty($condition['time'])) {
                 Log::info("Only time condition specified, defaulting to true for this condition.");
