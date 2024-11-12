@@ -111,19 +111,19 @@ class ExecuteConditionAction implements ShouldQueue
     
     private function evaluateSingleCondition($condition)
     {
-        // Check device-specific conditions if present
-        if (!empty($condition['devices'])) {
-            $mqttService = new MqttService();
+        // // Check device-specific conditions if present
+        // if (!empty($condition['devices'])) {
+        //     $mqttService = new MqttService();
             
-            foreach ($condition['devices'] as $device) {
-                $componentState = $mqttService->getLastState($device['component_id']);
-                Log::info("Device state for component ID {$device['component_id']} is {$componentState}, expected: {$device['status']}");
+        //     foreach ($condition['devices'] as $device) {
+        //         $componentState = $mqttService->getLastState($device['component_id']);
+        //         Log::info("Device state for component ID {$device['component_id']} is {$componentState}, expected: {$device['status']}");
                 
-                if ($componentState === null || $componentState != $device['status']) {
-                    return false; // Condition fails if any device status does not match
-                }
-            }
-        }
+        //         if ($componentState === null || $componentState != $device['status']) {
+        //             return false; // Condition fails if any device status does not match
+        //         }
+        //     }
+        // }
     
         return true; // Condition met if all device statuses match or no devices specified
     }
