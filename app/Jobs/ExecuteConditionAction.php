@@ -113,7 +113,8 @@ class ExecuteConditionAction implements ShouldQueue
         // $finalResult = $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
         // Log::info("Final evaluation result for conditions with logic {$logic}: " . ($finalResult ? 'true' : 'false'));
     
-        return $finalResult==true;
+        Log::info("Forcing evaluateIfConditions to return true for testing purposes.");
+        return true;
     }
     
     private function evaluateSingleCondition($condition)
