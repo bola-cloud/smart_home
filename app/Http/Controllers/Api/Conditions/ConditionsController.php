@@ -77,24 +77,21 @@ class ConditionsController extends Controller
     private function scheduleAction($action, $conditionId, $caseId)
     {
         $jobId = Str::uuid()->toString();
-    
-        // Add `case_id` to the action array
         $action['case_id'] = $caseId;
     
         if (!empty($action['time'])) {
             $actionTime = Carbon::parse($action['time']);
-            $initialDelay = Carbon::now()->diffInSeconds($actionTime, false);
+            $currentTime = Carbon::now();
     
-            if ($initialDelay < 0) {
-                $initialDelay += 86400;
+            // Calculate delay in seconds until action time
+            $delayInSeconds = $currentTime->diffInSeconds($actionTime, false);
+    
+            // Adjust delay to the next day if the specified time has already passed for today
+            if ($delayInSeconds < 0) {
+                $delayInSeconds += 86400; // 86400 seconds in a day
             }
     
-            $job = ExecuteConditionAction::dispatch($conditionId, $action)
-                ->delay(now()->addSeconds($initialDelay));
-        } elseif (!empty($action['delay'])) {
-            $delay = Carbon::parse($action['delay']);
-            $job = ExecuteConditionAction::dispatch($conditionId, $action)
-                ->delay(now()->addMinutes($delay->minute));
+            $job = ExecuteConditionAction::dispatch($conditionId, $action)->delay(now()->addSeconds($delayInSeconds));
         } else {
             $job = ExecuteConditionAction::dispatch($conditionId, $action);
         }
@@ -106,7 +103,7 @@ class ConditionsController extends Controller
         ]);
     
         Log::info("Scheduled job with ID {$jobId} for case {$caseId} in condition {$conditionId}");
-    }
+    }    
     
     public function index($projectId)
     {

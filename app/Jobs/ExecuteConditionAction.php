@@ -101,28 +101,22 @@ class ExecuteConditionAction implements ShouldQueue
 
     private function evaluateSingleCondition($condition)
     {
-        Log::info("Evaluating single condition:", ['condition' => $condition]);
-        $mqttService = new MqttService();
+        // Log::info("Evaluating single condition after time delay:", ['condition' => $condition]);
+        // $mqttService = new MqttService();
     
-        // foreach ($condition['devices'] as $device) {
-        //     $componentState = $mqttService->getLastState($device['component_id']);
-        //     Log::info("Device state for component ID {$device['component_id']} is {$componentState}, expected: {$device['status']}");
-        //     if ($componentState === null || $componentState != $device['status']) {
-        //         return false; // Condition fails if any device status does not match
+        // // Check device-specific conditions if present
+        // if (!empty($condition['devices'])) {
+        //     foreach ($condition['devices'] as $device) {
+        //         $componentState = $mqttService->getLastState($device['component_id']);
+        //         Log::info("Device state for component ID {$device['component_id']} is {$componentState}, expected: {$device['status']}");
+        //         if ($componentState === null || $componentState != $device['status']) {
+        //             return false;
+        //         }
         //     }
         // }
     
-        if (!empty($condition['time'])) {
-            $conditionTime = Carbon::parse($condition['time']);
-            $currentTime = Carbon::now();
-            Log::info("Checking time condition: expected {$conditionTime}, current time {$currentTime}");
-            if (!$conditionTime->equalTo($currentTime)) {
-                return false; // Condition fails if time does not match
-            }
-        }
-    
-        return true; // Condition is met
-    }    
+        return true;
+    }      
 
     private function checkComponentState($componentId)
     {
