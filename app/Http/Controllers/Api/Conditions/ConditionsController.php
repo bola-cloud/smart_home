@@ -63,10 +63,11 @@ class ConditionsController extends Controller
     
         // Schedule actions based on "then" for each case
         foreach ($cases as $case) {
+            $ifConditions = $case['if']['conditions'];
             foreach ($case['then']['actions'] as $action) {
-                $this->scheduleAction($action, $condition->id, $case['case_id']);
+                $this->scheduleAction($action, $condition->id, $case['case_id'], $ifConditions);
             }
-        }
+        }        
     
         return response()->json([
             'status' => true,
