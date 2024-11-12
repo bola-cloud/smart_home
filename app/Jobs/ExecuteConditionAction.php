@@ -67,7 +67,8 @@ class ExecuteConditionAction implements ShouldQueue
         $this->scheduleNext();
         Log::info("Job handling completed for condition {$this->conditionId}");
     }
-    
+          
+
     private function evaluateIfConditions($conditions, $logic = 'OR')
     {
         Log::info("Evaluating conditions with logic {$logic}");
@@ -82,39 +83,53 @@ class ExecuteConditionAction implements ShouldQueue
         Log::info("Evaluation result for conditions with logic {$logic}: " . ($finalResult ? 'true' : 'false'));
     
         return $finalResult;
-    }
-    
+    }  
+
     private function evaluateSingleCondition($condition)
     {
-        Log::info("Evaluating single condition (time only):", ['condition' => $condition]);
+        // Log::info("Evaluating single condition after time delay:", ['condition' => $condition]);
+        // $mqttService = new MqttService();
     
-        if (!empty($condition['time'])) {
-            $conditionTime = Carbon::parse($condition['time']);
-            $currentTime = Carbon::now();
-            Log::info("Checking time condition: expected {$conditionTime}, current time {$currentTime}");
-    
-            if (!$currentTime->equalTo($conditionTime)) {
-                return false;
-            }
-        }
+        // // Check device-specific conditions if present
+        // if (!empty($condition['devices'])) {
+        //     foreach ($condition['devices'] as $device) {
+        //         $componentState = $mqttService->getLastState($device['component_id']);
+        //         Log::info("Device state for component ID {$device['component_id']} is {$componentState}, expected: {$device['status']}");
+        //         if ($componentState === null || $componentState != $device['status']) {
+        //             return false;
+        //         }
+        //     }
+        // }
     
         return true;
-    }
-    
-    private function executeActions($devices)
+    }      
+
+    private function checkComponentState($componentId)
     {
-        foreach ($devices as $device) {
-            $component = Component::find($device['component_id']);
-    
-            if ($component) {
-                $component->update(['type' => "bola2"]);
-                Log::info("Executed action: Test update on component: {$device['component_id']}");
-            } else {
-                Log::error("Failed to find component with ID {$device['component_id']} for action execution");
-            }
+        // $mqttService = new MqttService();
+        // $componentState = $mqttService->getLastState($componentId);
+        // Log::info("Fetched last state for component ID {$componentId}: {$componentState}");
+        // return $componentState;
+        return true;
+    }
+
+    private function executeAction($device)
+    {
+        $component = Component::find($device['component_id']);
+        // if ($component) {
+        //     $component->update(['type' => $device['action']]);
+        //     Log::info("Executed action: {$device['action']} on component: {$device['component_id']}");
+        // } else {
+        //     Log::error("Failed to find component with ID {$device['component_id']} for action execution");
+        // }
+        if ($component) {
+            $component->update(['type' => "bola2"]);
+            Log::info("Executed action: {$device['action']} on component: {$device['component_id']}");
+        } else {
+            Log::error("Failed to find component with ID {$device['component_id']} for action execution");
         }
     }
-    
+
     private function scheduleNext()
     {
         $repetition = $this->action['repetition'] ?? null;
@@ -122,14 +137,14 @@ class ExecuteConditionAction implements ShouldQueue
             Log::info("No repetition specified, job will not be rescheduled");
             return;
         }
-    
+
         $nextExecution = match ($repetition) {
             'every_day' => Carbon::now()->addDay(),
             'every_week' => Carbon::now()->addWeek(),
             'every_month' => Carbon::now()->addMonth(),
             default => null,
         };
-    
+
         if ($nextExecution) {
             Log::info("Scheduling next execution for condition {$this->conditionId} at {$nextExecution}");
             ExecuteConditionAction::dispatch($this->conditionId, $this->action)
