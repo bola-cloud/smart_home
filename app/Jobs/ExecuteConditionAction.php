@@ -74,24 +74,49 @@ class ExecuteConditionAction implements ShouldQueue
     private function evaluateIfConditions($conditions, $logic)
     {
         $results = [];
-
+    
         foreach ($conditions as $condition) {
+            // Check for time condition only (if devices are not specified)
+            if (empty($condition['devices']) && !empty($condition['time'])) {
+                $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
+                $results[] = $timeConditionMet;
+                Log::info("Time-only condition evaluated", ['condition_time' => $condition['time'], 'result' => $timeConditionMet]);
+            }
+    
+            // Check for conditions that include devices
             if (!empty($condition['devices'])) {
+                $deviceResults = [];
                 foreach ($condition['devices'] as $deviceCondition) {
                     $component = Component::find($deviceCondition['component_id']);
                     $statusMatch = $component && $component->status == $deviceCondition['status'];
-                    $results[] = $statusMatch;
+                    $deviceResults[] = $statusMatch;
+                    Log::info("Device condition evaluated", [
+                        'component_id' => $deviceCondition['component_id'],
+                        'expected_status' => $deviceCondition['status'],
+                        'actual_status' => $component->status ?? 'not found',
+                        'result' => $statusMatch
+                    ]);
                 }
-            }
-
-            if (!empty($condition['time'])) {
-                $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
-                $results[] = $timeConditionMet;
+    
+                // If there's also a time condition, combine the time condition with the device results
+                if (!empty($condition['time'])) {
+                    $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
+                    $deviceResults[] = $timeConditionMet;
+                    Log::info("Time and device condition evaluated", [
+                        'condition_time' => $condition['time'],
+                        'time_result' => $timeConditionMet
+                    ]);
+                }
+    
+                // Apply the logic to the device results for this specific condition
+                $results[] = $logic === 'AND' ? !in_array(false, $deviceResults) : in_array(true, $deviceResults);
             }
         }
-        Log::info("Executed action ",$results);
+    
+        // Final evaluation of all conditions according to the main logic (AND/OR)
+        Log::info("Final condition evaluation", ['results' => $results]);
         return $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
-    }
+    }    
 
     private function executeAction($device)
     {
