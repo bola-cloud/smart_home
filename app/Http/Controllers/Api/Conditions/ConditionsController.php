@@ -23,74 +23,64 @@ class ConditionsController extends Controller
             'cases' => 'required|array',
             'cases.*.name' => 'required|string|max:256',
             'cases.*.is_active' => 'nullable|boolean',
-            // Global `if` conditions with logic
+            'cases.*.repetition' => 'nullable|array',
+            'cases.*.repetition.*' => 'required|string|in:sunday,monday,tuesday,wednesday,thursday,friday,saturday',
             'cases.*.if.conditions' => 'required|array',
             'cases.*.if.logic' => 'required|string|in:AND,OR',
             'cases.*.if.conditions.*.devices' => 'nullable|array',
-            'cases.*.if.conditions.*.devices.*.component_id' => 'nullable|exists:components,id',
-            'cases.*.if.conditions.*.status' => 'nullable|string',
-            'cases.*.if.conditions.*.type' => 'nullable|string|in:sunrise,sunset',
+            'cases.*.if.conditions.*.devices.*.component_id' => 'required|exists:components,id',
+            'cases.*.if.conditions.*.devices.*.status' => 'nullable|string',
             'cases.*.if.conditions.*.time' => 'nullable|date_format:Y-m-d H:i',
-            // Global `then` actions with logic
             'cases.*.then.actions' => 'required|array',
-            'cases.*.then.logic' => 'required|string|in:AND,OR',
             'cases.*.then.actions.*.devices' => 'required|array|min:1',
             'cases.*.then.actions.*.devices.*.component_id' => 'required|exists:components,id',
             'cases.*.then.actions.*.devices.*.action' => 'required|array',
             'cases.*.then.delay' => 'nullable|date_format:H:i',
-            'cases.*.repetition' => 'nullable|array', // Update repetition field to array format
-            'cases.*.repetition.*' => 'in:sunday,monday,tuesday,wednesday,thursday,friday,saturday', // Validate day names
-            'is_active' => 'nullable|boolean',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
-    
+
         $user = Auth::user();
         $cases = $request->cases;
-    
-        // Generate a unique `case_id` for each case
+
         foreach ($cases as &$case) {
             $case['case_id'] = uniqid();
         }
-    
-        // Store the condition in the database
+
         $condition = Condition::create([
             'user_id' => $user->id,
             'project_id' => $request->project_id,
             'cases' => json_encode($cases),
         ]);
-    
-        // Schedule actions based on "then" for each case
+
         foreach ($cases as $case) {
             $ifConditions = $case['if']['conditions'];
             foreach ($case['then']['actions'] as $action) {
-                $this->scheduleAction($action, $condition->id, $case['case_id'], $ifConditions, $case['repetition'] ?? []);
+                $this->scheduleAction($action, $condition->id, $case['case_id'], $ifConditions, $case['repetition'] ?? null);
             }
-        }        
-    
+        }
+
         return response()->json([
             'status' => true,
             'message' => 'Condition created successfully with schedules',
         ], 200);
     }
-    
-    private function scheduleAction($action, $conditionId, $caseId, $ifConditions, $repetition)
+
+    private function scheduleAction($action, $conditionId, $caseId, $ifConditions, $repetitionDays = null)
     {
         $jobId = Str::uuid()->toString();
         $action['case_id'] = $caseId;
-        $action['repetition'] = $repetition;
-    
-        // Find the 'time' condition within the 'if' conditions
         $scheduledTime = null;
+
         foreach ($ifConditions as $condition) {
             if (!empty($condition['time'])) {
                 $scheduledTime = Carbon::parse($condition['time']);
                 break;
             }
         }
-    
+
         if ($scheduledTime) {
             $currentTime = Carbon::now();
             $delayInSeconds = $currentTime->diffInSeconds($scheduledTime, false);
@@ -99,17 +89,18 @@ class ConditionsController extends Controller
                 $delayInSeconds += 86400;
             }
 
-            $job = ExecuteConditionAction::dispatch($conditionId, $action)->delay(now()->addSeconds($delayInSeconds));
+            $job = ExecuteConditionAction::dispatch($conditionId, $action, $repetitionDays)
+                ->delay(now()->addSeconds($delayInSeconds));
         } else {
-            $job = ExecuteConditionAction::dispatch($conditionId, $action);
+            $job = ExecuteConditionAction::dispatch($conditionId, $action, $repetitionDays);
         }
-    
+
         JobTracker::create([
             'job_id' => $jobId,
             'condition_id' => $conditionId,
             'case_id' => $caseId,
         ]);
-    
+
         Log::info("Scheduled job with ID {$jobId} for case {$caseId} in condition {$conditionId}");
     }
 

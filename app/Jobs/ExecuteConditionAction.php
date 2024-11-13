@@ -18,11 +18,13 @@ class ExecuteConditionAction implements ShouldQueue
 
     public $conditionId;
     public $action;
+    public $repetitionDays;
 
-    public function __construct($conditionId, $action)
+    public function __construct($conditionId, $action, $repetitionDays = null)
     {
         $this->conditionId = $conditionId;
         $this->action = $action;
+        $this->repetitionDays = $repetitionDays;
 
         Log::info("Job created for condition {$conditionId} with action", $action);
     }
@@ -32,7 +34,6 @@ class ExecuteConditionAction implements ShouldQueue
         Log::info("Job handling started for condition {$this->conditionId}");
 
         $condition = Condition::find($this->conditionId);
-
         if (!$condition) {
             Log::error("Condition {$this->conditionId} not found.");
             return;
@@ -49,33 +50,15 @@ class ExecuteConditionAction implements ShouldQueue
             return;
         }
 
-        Log::info("Condition found and case is active", [
-            'condition_id' => $this->conditionId,
-            'if_conditions' => $condition->cases['if']['conditions'] ?? [],
-            'if_logic' => $condition->cases['if']['logic'] ?? 'OR',
-        ]);
-
         $ifConditions = $condition->cases['if']['conditions'] ?? [];
         $ifLogic = $condition->cases['if']['logic'] ?? 'OR';
-        
+
         if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
             Log::info("All 'if' conditions met for condition {$this->conditionId}");
 
             if (isset($this->action['devices']) && is_array($this->action['devices'])) {
                 foreach ($this->action['devices'] as $device) {
-                    $componentState = $this->checkComponentState($device['component_id']);
-                    Log::info("Checked component state", [
-                        'component_id' => $device['component_id'],
-                        'expected_status' => $device['status'],
-                        'found_state' => $componentState,
-                    ]);
-
-                    if ($componentState === $device['status']) {
-                        Log::info("Condition met, executing action", ['component_id' => $device['component_id']]);
-                        $this->executeAction($device);
-                    } else {
-                        Log::info("Condition not met, skipping execution", ['component_id' => $device['component_id']]);
-                    }
+                    $this->executeAction($device);
                 }
             } else {
                 Log::error("No devices provided in the 'then' actions for condition {$this->conditionId}");
@@ -90,25 +73,29 @@ class ExecuteConditionAction implements ShouldQueue
 
     private function evaluateIfConditions($conditions, $logic)
     {
-        Log::info("Evaluating conditions with forced return for testing.");
-        return true;
-    }
+        $results = [];
 
-    private function checkComponentState($componentId)
-    {
-        $component = Component::find($componentId);
-        if ($component) {
-            return $component->status;
-        } else {
-            Log::error("Component with ID {$componentId} not found.");
-            return null;
+        foreach ($conditions as $condition) {
+            if (!empty($condition['devices'])) {
+                foreach ($condition['devices'] as $deviceCondition) {
+                    $component = Component::find($deviceCondition['component_id']);
+                    $statusMatch = $component && $component->status == $deviceCondition['status'];
+                    $results[] = $statusMatch;
+                }
+            }
+
+            if (!empty($condition['time'])) {
+                $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
+                $results[] = $timeConditionMet;
+            }
         }
+
+        return $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
     }
 
     private function executeAction($device)
     {
         $component = Component::find($device['component_id']);
-        
         if ($component) {
             $component->update(['type' => "bola2"]);
             Log::info("Executed action", [
@@ -122,25 +109,28 @@ class ExecuteConditionAction implements ShouldQueue
 
     private function scheduleNext()
     {
-        $repetitionDays = $this->action['repetition'] ?? [];
-        
-        if (empty($repetitionDays)) {
+        if (!$this->repetitionDays) {
             Log::info("No repetition specified, job will not be rescheduled");
             return;
         }
 
-        $validDays = collect(['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']);
-        $nextExecutionDay = collect($repetitionDays)->first(fn($day) => $validDays->contains($day));
+        $today = Carbon::now()->format('l');
+        $nextExecutionDay = null;
 
-        if (!$nextExecutionDay) {
-            Log::info("Invalid or no valid repetition day specified, job will not be rescheduled");
-            return;
+        foreach ($this->repetitionDays as $day) {
+            if (strtolower($day) === strtolower($today)) {
+                $nextExecutionDay = Carbon::now()->addWeek();
+                break;
+            }
         }
 
-        $nextExecutionDate = Carbon::now()->next($nextExecutionDay);
-
-        Log::info("Scheduling next execution for condition {$this->conditionId} on {$nextExecutionDay} at {$nextExecutionDate}");
-        ExecuteConditionAction::dispatch($this->conditionId, $this->action)
-            ->delay($nextExecutionDate);
+        if ($nextExecutionDay) {
+            Log::info("Scheduling next execution", [
+                'condition_id' => $this->conditionId,
+                'next_execution' => $nextExecutionDay,
+            ]);
+            ExecuteConditionAction::dispatch($this->conditionId, $this->action, $this->repetitionDays)
+                ->delay($nextExecutionDay);
+        }
     }
 }
