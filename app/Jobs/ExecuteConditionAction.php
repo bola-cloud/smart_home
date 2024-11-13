@@ -88,7 +88,7 @@ class ExecuteConditionAction implements ShouldQueue
             }
     
             // Case: Time condition with devices
-            if (!empty($condition['devices']) && !empty($condition['time'])) {
+            if (!is_null($condition['devices']) && !is_null($condition['time'])) {
                 // Check device statuses
                 $deviceResults = [];
                 foreach ($condition['devices'] as $deviceCondition) {
@@ -117,7 +117,7 @@ class ExecuteConditionAction implements ShouldQueue
             }
     
             // Case: Only devices, no time condition
-            if (!empty($condition['devices']) && empty($condition['time'])) {
+            if (!is_null($condition['devices']) && is_null($condition['time'])) {
                 // Check device statuses
                 $deviceResults = [];
                 foreach ($condition['devices'] as $deviceCondition) {
