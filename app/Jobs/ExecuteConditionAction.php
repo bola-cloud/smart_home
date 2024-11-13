@@ -73,6 +73,7 @@ class ExecuteConditionAction implements ShouldQueue
 
     private function evaluateIfConditions($conditions, $logic)
     {
+        Log::info("start condition");
         $results = [];
     
         foreach ($conditions as $condition) {
