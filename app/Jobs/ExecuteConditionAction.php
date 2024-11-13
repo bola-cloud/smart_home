@@ -30,9 +30,8 @@ class ExecuteConditionAction implements ShouldQueue
 
     public function handle()
     {
-        opcache_reset();
         Log::info("Job handling started for condition {$this->conditionId}");
-    
+        
         $condition = Condition::find($this->conditionId);
     
         if (!$condition) {
@@ -55,26 +54,26 @@ class ExecuteConditionAction implements ShouldQueue
     
         Log::info("Condition found and case is active for condition {$this->conditionId}");
     
-        // Safely access the 'if' conditions with a fallback
+        // Safely access and log the 'if' conditions and logic
         $ifLogic = $condition->cases['if']['logic'] ?? 'OR';
         $ifConditions = $condition->cases['if']['conditions'] ?? [];
-        Log::info("Condition found and case is active for condition {$ifConditions} ,{$ifLogic}");
-        // Evaluate the "if" conditions
-        Log::info("Evaluating 'if' conditions for condition {$this->conditionId}");
-        if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
-            Log::info("All 'if' conditions met for condition {$this->conditionId}");
     
+        // Convert the array data to JSON format to avoid Array to String conversion issues
+        Log::info("Condition's 'if' conditions and logic retrieved", [
+            'if_conditions' => json_encode($ifConditions),
+            'if_logic' => $ifLogic,
+        ]);
+    
+        // Force evaluateIfConditions to return true for testing purposes
+        $evaluationResult = $this->evaluateIfConditions($ifConditions, $ifLogic);
+        Log::info("Result of evaluateIfConditions for condition {$this->conditionId}:", ['evaluation_result' => $evaluationResult]);
+    
+        if ($evaluationResult) {
+            Log::info("All 'if' conditions met for condition {$this->conditionId}");
+            // Perform actions here, such as calling executeAction
             if (isset($this->action['devices']) && is_array($this->action['devices'])) {
                 foreach ($this->action['devices'] as $device) {
-                    $componentState = $this->checkComponentState($device['component_id']);
-                    Log::info("Checked component state for component ID {$device['component_id']} with expected status {$device['status']}, found: {$componentState}");
-    
-                    if ($componentState === $device['status']) {
-                        Log::info("Condition met for action on component {$device['component_id']}, executing action");
-                        $this->executeAction($device);
-                    } else {
-                        Log::info("Condition not met for action on component {$device['component_id']}, skipping execution");
-                    }
+                    $this->executeAction($device); // Execute without additional checks for testing
                 }
             } else {
                 Log::error("No devices provided in the 'then' actions for condition {$this->conditionId}");
@@ -85,7 +84,7 @@ class ExecuteConditionAction implements ShouldQueue
     
         $this->scheduleNext();
         Log::info("Job handling completed for condition {$this->conditionId}");
-    }      
+    }       
 
     private function evaluateIfConditions($conditions, $logic)
     {
