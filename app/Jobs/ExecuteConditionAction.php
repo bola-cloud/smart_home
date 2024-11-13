@@ -31,61 +31,61 @@ class ExecuteConditionAction implements ShouldQueue
     {
         Log::info("Job handling started for condition {$this->conditionId}");
 
-        $condition = Condition::find($this->conditionId);
+        // $condition = Condition::find($this->conditionId);
 
-        if (!$condition) {
-            Log::error("Condition {$this->conditionId} not found.");
-            return;
-        }
+        // if (!$condition) {
+        //     Log::error("Condition {$this->conditionId} not found.");
+        //     return;
+        // }
 
-        $caseId = $this->action['case_id'] ?? null;
-        if (!$caseId) {
-            Log::error("Missing case_id in action for condition {$this->conditionId}.");
-            return;
-        }
+        // $caseId = $this->action['case_id'] ?? null;
+        // if (!$caseId) {
+        //     Log::error("Missing case_id in action for condition {$this->conditionId}.");
+        //     return;
+        // }
 
-        if (!$condition->isCaseActive($caseId)) {
-            Log::info("Job for case {$caseId} is inactive and will not execute.");
-            return;
-        }
+        // if (!$condition->isCaseActive($caseId)) {
+        //     Log::info("Job for case {$caseId} is inactive and will not execute.");
+        //     return;
+        // }
 
-        Log::info("Condition found and case is active", [
-            'condition_id' => $this->conditionId,
-            'if_conditions' => $condition->cases['if']['conditions'] ?? [],
-            'if_logic' => $condition->cases['if']['logic'] ?? 'OR',
-        ]);
+        // Log::info("Condition found and case is active", [
+        //     'condition_id' => $this->conditionId,
+        //     'if_conditions' => $condition->cases['if']['conditions'] ?? [],
+        //     'if_logic' => $condition->cases['if']['logic'] ?? 'OR',
+        // ]);
 
-        $ifConditions = $condition->cases['if']['conditions'] ?? [];
-        $ifLogic = $condition->cases['if']['logic'] ?? 'OR';
+        // $ifConditions = $condition->cases['if']['conditions'] ?? [];
+        // $ifLogic = $condition->cases['if']['logic'] ?? 'OR';
         
-        if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
-            Log::info("All 'if' conditions met for condition {$this->conditionId}");
+        // if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
+        //     Log::info("All 'if' conditions met for condition {$this->conditionId}");
 
-            if (isset($this->action['devices']) && is_array($this->action['devices'])) {
-                foreach ($this->action['devices'] as $device) {
-                    $componentState = $this->checkComponentState($device['component_id']);
-                    Log::info("Checked component state", [
-                        'component_id' => $device['component_id'],
-                        'expected_status' => $device['status'],
-                        'found_state' => $componentState,
-                    ]);
+        //     if (isset($this->action['devices']) && is_array($this->action['devices'])) {
+        //         foreach ($this->action['devices'] as $device) {
+        //             $componentState = $this->checkComponentState($device['component_id']);
+        //             Log::info("Checked component state", [
+        //                 'component_id' => $device['component_id'],
+        //                 'expected_status' => $device['status'],
+        //                 'found_state' => $componentState,
+        //             ]);
 
-                    if ($componentState === $device['status']) {
-                        Log::info("Condition met, executing action", ['component_id' => $device['component_id']]);
-                        $this->executeAction($device);
-                    } else {
-                        Log::info("Condition not met, skipping execution", ['component_id' => $device['component_id']]);
-                    }
-                }
-            } else {
-                Log::error("No devices provided in the 'then' actions for condition {$this->conditionId}");
-            }
-        } else {
-            Log::info("One or more 'if' conditions failed for condition {$this->conditionId}");
-        }
+        //             if ($componentState === $device['status']) {
+        //                 Log::info("Condition met, executing action", ['component_id' => $device['component_id']]);
+        //                 $this->executeAction($device);
+        //             } else {
+        //                 Log::info("Condition not met, skipping execution", ['component_id' => $device['component_id']]);
+        //             }
+        //         }
+        //     } else {
+        //         Log::error("No devices provided in the 'then' actions for condition {$this->conditionId}");
+        //     }
+        // } else {
+        //     Log::info("One or more 'if' conditions failed for condition {$this->conditionId}");
+        // }
 
-        $this->scheduleNext();
-        Log::info("Job handling completed for condition {$this->conditionId}");
+        // $this->scheduleNext();
+        // Log::info("Job handling completed for condition {$this->conditionId}");
     }
 
     private function evaluateIfConditions($conditions, $logic)
