@@ -89,7 +89,7 @@ class ExecuteConditionAction implements ShouldQueue
                 $results[] = $timeConditionMet;
             }
         }
-        Log::info("Executed action {$results}",$results);
+        Log::info("Executed action ",$results);
         return $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
     }
 
