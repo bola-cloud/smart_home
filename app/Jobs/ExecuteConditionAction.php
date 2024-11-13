@@ -79,12 +79,8 @@ class ExecuteConditionAction implements ShouldQueue
         foreach ($conditions as $condition) {
             // Case: Devices is null or empty, consider this condition as "true" directly
             if (is_null($condition['devices'])) {
-                $results[] = true; // Directly mark this as true
-                Log::info("Time-only condition evaluated as true", [
-                    'condition_time' => $condition['time'] ?? 'Not provided',
-                    'result' => true
-                ]);
-                continue; // Skip further checks for this condition
+                $results[] = true;
+                continue;
             }
     
             // Case: Time condition with devices
@@ -138,7 +134,14 @@ class ExecuteConditionAction implements ShouldQueue
         }
     
         // Final evaluation according to the main logic (if there are multiple conditions)
-        $finalResult = $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
+        $finalResult = false;
+        if ($logic === "AND") {
+            // All values in $results must be true
+            $finalResult = !in_array(false, $results, true); // OR use array_reduce or collect()->every
+        } elseif ($logic === "OR") {
+            // At least one value in $results must be true
+            $finalResult = in_array(true, $results, true); // OR use collect()->contains
+        }
         Log::info("Final condition evaluation", ['results' => $results, 'final_result' => $finalResult]);
     
         return $finalResult;
