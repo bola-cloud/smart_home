@@ -76,11 +76,18 @@ class ExecuteConditionAction implements ShouldQueue
         $results = [];
     
         foreach ($conditions as $condition) {
-            // Check for time condition only (if devices are not specified)
+            // Track if this condition has been evaluated
+            $conditionEvaluated = false;
+    
+            // Check for a time-only condition
             if (empty($condition['devices']) && !empty($condition['time'])) {
                 $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
                 $results[] = $timeConditionMet;
-                Log::info("Time-only condition evaluated", ['condition_time' => $condition['time'], 'result' => $timeConditionMet]);
+                $conditionEvaluated = true;
+                Log::info("Time-only condition evaluated", [
+                    'condition_time' => $condition['time'], 
+                    'result' => $timeConditionMet
+                ]);
             }
     
             // Check for conditions that include devices
@@ -88,35 +95,44 @@ class ExecuteConditionAction implements ShouldQueue
                 $deviceResults = [];
                 foreach ($condition['devices'] as $deviceCondition) {
                     $component = Component::find($deviceCondition['component_id']);
-                    $statusMatch = $component && $component->status == $deviceCondition['status'];
+                    $statusMatch = $component && isset($deviceCondition['status']) && $component->status == $deviceCondition['status'];
                     $deviceResults[] = $statusMatch;
                     Log::info("Device condition evaluated", [
                         'component_id' => $deviceCondition['component_id'],
-                        'expected_status' => $deviceCondition['status'],
+                        'expected_status' => $deviceCondition['status'] ?? 'not specified',
                         'actual_status' => $component->status ?? 'not found',
                         'result' => $statusMatch
                     ]);
                 }
     
-                // If there's also a time condition, combine the time condition with the device results
+                // Combine device results and any time condition if present
                 if (!empty($condition['time'])) {
                     $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
                     $deviceResults[] = $timeConditionMet;
-                    Log::info("Time and device condition evaluated", [
+                    Log::info("Time condition within device condition evaluated", [
                         'condition_time' => $condition['time'],
                         'time_result' => $timeConditionMet
                     ]);
                 }
     
-                // Apply the logic to the device results for this specific condition
+                // Aggregate device results according to `AND` or `OR` logic
                 $results[] = $logic === 'AND' ? !in_array(false, $deviceResults) : in_array(true, $deviceResults);
+                $conditionEvaluated = true;
+            }
+    
+            // Log if a condition was not evaluated (should not happen if conditions are well-formed)
+            if (!$conditionEvaluated) {
+                Log::warning("Condition was not evaluated", ['condition' => $condition]);
+                $results[] = false;  // Default to false if condition structure was unrecognized
             }
         }
     
-        // Final evaluation of all conditions according to the main logic (AND/OR)
-        Log::info("Final condition evaluation", ['results' => $results]);
-        return $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
-    }    
+        // Final evaluation according to the main logic
+        $finalResult = $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
+        Log::info("Final condition evaluation", ['results' => $results, 'final_result' => $finalResult]);
+    
+        return $finalResult;
+    }      
 
     private function executeAction($device)
     {
