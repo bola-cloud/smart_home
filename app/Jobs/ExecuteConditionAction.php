@@ -94,6 +94,17 @@ class ExecuteConditionAction implements ShouldQueue
         return true;
     }
 
+    private function checkComponentState($componentId)
+    {
+        $component = Component::find($componentId);
+        if ($component) {
+            return $component->status;  // Adjust this line to reflect the actual state field in your Component model
+        } else {
+            Log::error("Component with ID {$componentId} not found.");
+            return null;
+        }
+    }
+
     private function executeAction($device)
     {
         $component = Component::find($device['component_id']);
