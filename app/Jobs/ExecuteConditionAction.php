@@ -50,7 +50,7 @@ class ExecuteConditionAction implements ShouldQueue
             return;
         }
 
-        $ifConditions = $condition->cases['if']['conditions'] ?? [];
+        $ifConditions = $condition->cases[0]['if']['conditions'] ?? [];
         Log::error("Missing case_id in action for condition.",[
             'conditions'=>$ifConditions
         ]);
