@@ -121,7 +121,7 @@ class ExecuteConditionAction implements ShouldQueue
         $finalResult = $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
         Log::info("Final condition evaluation", ['results' => $results, 'final_result' => $finalResult]);
     
-        return $finalResult;
+        return true;
     }     
 
     private function executeAction($device)
