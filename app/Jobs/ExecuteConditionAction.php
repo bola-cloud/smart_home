@@ -76,21 +76,18 @@ class ExecuteConditionAction implements ShouldQueue
         $results = [];
     
         foreach ($conditions as $condition) {
-            // Track if this condition has been evaluated
-            $conditionEvaluated = false;
-    
-            // Check for a time-only condition
+            // Check if there is only a time condition, without devices
             if (empty($condition['devices']) && !empty($condition['time'])) {
                 $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
                 $results[] = $timeConditionMet;
-                $conditionEvaluated = true;
                 Log::info("Time-only condition evaluated", [
                     'condition_time' => $condition['time'], 
                     'result' => $timeConditionMet
                 ]);
+                continue;
             }
     
-            // Check for conditions that include devices
+            // Check if there are device conditions
             if (!empty($condition['devices'])) {
                 $deviceResults = [];
                 foreach ($condition['devices'] as $deviceCondition) {
@@ -105,7 +102,7 @@ class ExecuteConditionAction implements ShouldQueue
                     ]);
                 }
     
-                // Combine device results and any time condition if present
+                // If there's a time condition alongside devices, evaluate it as well
                 if (!empty($condition['time'])) {
                     $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
                     $deviceResults[] = $timeConditionMet;
@@ -115,15 +112,8 @@ class ExecuteConditionAction implements ShouldQueue
                     ]);
                 }
     
-                // Aggregate device results according to `AND` or `OR` logic
+                // Combine device results according to logic
                 $results[] = $logic === 'AND' ? !in_array(false, $deviceResults) : in_array(true, $deviceResults);
-                $conditionEvaluated = true;
-            }
-    
-            // Log if a condition was not evaluated (should not happen if conditions are well-formed)
-            if (!$conditionEvaluated) {
-                Log::warning("Condition was not evaluated", ['condition' => $condition]);
-                $results[] = false;  // Default to false if condition structure was unrecognized
             }
         }
     
@@ -132,7 +122,7 @@ class ExecuteConditionAction implements ShouldQueue
         Log::info("Final condition evaluation", ['results' => $results, 'final_result' => $finalResult]);
     
         return $finalResult;
-    }      
+    }     
 
     private function executeAction($device)
     {
