@@ -24,7 +24,6 @@ class ExecuteConditionAction implements ShouldQueue
     {
         $this->conditionId = $conditionId;
         $this->action = $action;
-
         Log::info("Job created for condition {$conditionId} with action: ", $action);
     }
 
