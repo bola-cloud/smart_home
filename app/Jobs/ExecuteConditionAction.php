@@ -54,7 +54,7 @@ class ExecuteConditionAction implements ShouldQueue
         // Access the `if` value
         $ifContent = $casesData['conditions'][0]['if'] ?? null;
 
-        $ifConditions = $casesData['if']['conditions'] ?? [];
+        $ifConditions = $casesData[0]['if']['conditions'] ?? [];
         Log::error("Missing case_id in action for condition.",[
             'conditions'=>$casesData,
             'ifContent'=>$ifContent,
