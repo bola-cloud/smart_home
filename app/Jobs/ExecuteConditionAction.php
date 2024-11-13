@@ -76,18 +76,17 @@ class ExecuteConditionAction implements ShouldQueue
         $results = [];
     
         foreach ($conditions as $condition) {
-            // Case 1: Only time condition (no devices or devices is null/empty)
-            if ((is_null($condition['devices']) || empty($condition['devices'])) && !empty($condition['time'])) {
-                $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
-                $results[] = $timeConditionMet;
-                Log::info("Time-only condition evaluated", [
-                    'condition_time' => $condition['time'],
-                    'result' => $timeConditionMet
+            // Case: Devices is null or empty, consider this condition as "true" directly
+            if (is_null($condition['devices']) || empty($condition['devices'])) {
+                $results[] = true; // Directly mark this as true
+                Log::info("Time-only condition evaluated as true", [
+                    'condition_time' => $condition['time'] ?? 'Not provided',
+                    'result' => true
                 ]);
-                continue; // Skip device checks in this case
+                continue; // Skip further checks for this condition
             }
     
-            // Case 2: Time condition with devices
+            // Case: Time condition with devices
             if (!empty($condition['devices']) && !empty($condition['time'])) {
                 // Check device statuses
                 $deviceResults = [];
@@ -116,7 +115,7 @@ class ExecuteConditionAction implements ShouldQueue
                 continue;
             }
     
-            // Case 3: Only devices, no time condition
+            // Case: Only devices, no time condition
             if (!empty($condition['devices']) && empty($condition['time'])) {
                 // Check device statuses
                 $deviceResults = [];
@@ -142,7 +141,7 @@ class ExecuteConditionAction implements ShouldQueue
         Log::info("Final condition evaluation", ['results' => $results, 'final_result' => $finalResult]);
     
         return $finalResult;
-    }    
+    }      
 
     private function executeAction($device)
     {
