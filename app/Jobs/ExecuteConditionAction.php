@@ -79,6 +79,7 @@ class ExecuteConditionAction implements ShouldQueue
         foreach ($conditions as $condition) {
             // Case: Devices is null or empty, consider this condition as "true" directly
             if (is_null($condition['devices'])) {
+                Log::info("start time");
                 $results[] = true;
                 continue;
             }
