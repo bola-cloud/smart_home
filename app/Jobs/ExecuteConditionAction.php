@@ -49,10 +49,15 @@ class ExecuteConditionAction implements ShouldQueue
             Log::info("Job for case {$caseId} is inactive and will not execute.");
             return;
         }
+        $casesData = json_decode($condition->cases, true);
 
-        $ifConditions = $condition->cases['if']['conditions'] ?? [];
+        // Access the `if` value
+        $ifContent = $casesData['conditions'][0]['if'] ?? null;
+
+        $ifConditions = $casesData['if']['conditions'] ?? [];
         Log::error("Missing case_id in action for condition.",[
-            'conditions'=>$condition->cases
+            'conditions'=>$casesData,
+            'ifContent'=>$ifContent,
         ]);
         $ifLogic = $condition->cases['if']['logic'] ?? 'OR';
 
