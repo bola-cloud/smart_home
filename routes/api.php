@@ -15,6 +15,8 @@ use App\Http\Controllers\Api\Component\ComponentController;
 use App\Http\Controllers\Api\User\UserController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Conditions\ConditionsController;
+use App\Http\Controllers\Api\IrCode\IrCodeController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -105,3 +107,7 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     // Logout route
     Route::post('/logout', [AuthController::class, 'logout']);
 });
+Route::get('/device-types', [IrCodeController::class, 'getDeviceTypes']);
+Route::get('/{deviceType}/brands', [IrCodeController::class, 'getBrands']);
+Route::get('/{deviceType}/{brand}/files', [IrCodeController::class, 'getFiles']);
+Route::get('/{deviceType}/{brand}/{filename}', [IrCodeController::class, 'getFileContent']);
