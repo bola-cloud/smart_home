@@ -60,60 +60,10 @@ class ExecuteConditionAction implements ShouldQueue
         $ifConditions = $condition->cases['if']['conditions'] ?? [];
         Log::info("Condition found and case is active for condition {$ifConditions} ,{$ifLogic}");
         // Evaluate the "if" conditions
-        // Log::info("Evaluating 'if' conditions for condition {$this->conditionId}");
-        // if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
-        //     Log::info("All 'if' conditions met for condition {$this->conditionId}");
-    
-        //     if (isset($this->action['devices']) && is_array($this->action['devices'])) {
-        //         foreach ($this->action['devices'] as $device) {
-        //             $componentState = $this->checkComponentState($device['component_id']);
-        //             Log::info("Checked component state for component ID {$device['component_id']} with expected status {$device['status']}, found: {$componentState}");
-    
-        //             if ($componentState === $device['status']) {
-        //                 Log::info("Condition met for action on component {$device['component_id']}, executing action");
-        //                 $this->executeAction($device);
-        //             } else {
-        //                 Log::info("Condition not met for action on component {$device['component_id']}, skipping execution");
-        //             }
-        //         }
-        //     } else {
-        //         Log::error("No devices provided in the 'then' actions for condition {$this->conditionId}");
-        //     }
-        // } else {
-        //     Log::info("One or more 'if' conditions failed for condition {$this->conditionId}");
-        // }
-    
-        // $this->scheduleNext();
-        // Log::info("Job handling completed for condition {$this->conditionId}");
     }      
 
     private function evaluateIfConditions($conditions, $logic)
-    {
-        // Log::info("Evaluating conditions with logic {$logic}");
-        // Log::info("Conditions data structure:", $conditions); // Log the structure of the conditions data
-    
-        // $results = [];
-        
-        // foreach ($conditions as $condition) {
-        //     Log::info("start foreach");
-        //     // If there are no devices and a time is specified, consider the condition as `true`
-        //     if (empty($condition['devices']) && !empty($condition['time'])) {
-        //         Log::info("Only time condition specified, defaulting to true for this condition.");
-        //         $results[] = true;
-        //     } else {
-        //         // Otherwise, evaluate the condition normally
-        //         $result = $this->evaluateSingleCondition($condition);
-        //         Log::info("Single condition evaluation result: " . ($result ? 'true' : 'false'));
-        //         $results[] = $result;
-        //     }
-        // }
-    
-        // Log::info("Condition evaluation results array: ", $results);
-    
-        // // Apply the AND/OR logic to the array of results
-        // $finalResult = $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
-        // Log::info("Final evaluation result for conditions with logic {$logic}: " . ($finalResult ? 'true' : 'false'));
-    
+    {    
         Log::info("Forcing evaluateIfConditions to return true for testing purposes.");
         return true;
     }
