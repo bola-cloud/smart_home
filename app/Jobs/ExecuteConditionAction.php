@@ -76,19 +76,19 @@ class ExecuteConditionAction implements ShouldQueue
         $results = [];
     
         foreach ($conditions as $condition) {
-            // Check if there is only a time condition, without devices
+            // Case 1: Only time condition
             if (empty($condition['devices']) && !empty($condition['time'])) {
                 $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
                 $results[] = $timeConditionMet;
                 Log::info("Time-only condition evaluated", [
-                    'condition_time' => $condition['time'], 
+                    'condition_time' => $condition['time'],
                     'result' => $timeConditionMet
                 ]);
                 continue;
             }
     
-            // Check if there are device conditions
-            if (!empty($condition['devices'])) {
+            // Case 2: Time condition with devices
+            if (!empty($condition['devices']) && !empty($condition['time'])) {
                 $deviceResults = [];
                 foreach ($condition['devices'] as $deviceCondition) {
                     $component = Component::find($deviceCondition['component_id']);
@@ -102,13 +102,31 @@ class ExecuteConditionAction implements ShouldQueue
                     ]);
                 }
     
-                // If there's a time condition alongside devices, evaluate it as well
-                if (!empty($condition['time'])) {
-                    $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
-                    $deviceResults[] = $timeConditionMet;
-                    Log::info("Time condition within device condition evaluated", [
-                        'condition_time' => $condition['time'],
-                        'time_result' => $timeConditionMet
+                // Evaluate time condition alongside device conditions
+                $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
+                $deviceResults[] = $timeConditionMet;
+                Log::info("Time condition within device condition evaluated", [
+                    'condition_time' => $condition['time'],
+                    'time_result' => $timeConditionMet
+                ]);
+    
+                // Combine device results according to logic
+                $results[] = $logic === 'AND' ? !in_array(false, $deviceResults) : in_array(true, $deviceResults);
+                continue;
+            }
+    
+            // Case 3: Only devices, no time condition
+            if (!empty($condition['devices']) && empty($condition['time'])) {
+                $deviceResults = [];
+                foreach ($condition['devices'] as $deviceCondition) {
+                    $component = Component::find($deviceCondition['component_id']);
+                    $statusMatch = $component && isset($deviceCondition['status']) && $component->status == $deviceCondition['status'];
+                    $deviceResults[] = $statusMatch;
+                    Log::info("Device condition evaluated", [
+                        'component_id' => $deviceCondition['component_id'],
+                        'expected_status' => $deviceCondition['status'] ?? 'not specified',
+                        'actual_status' => $component->status ?? 'not found',
+                        'result' => $statusMatch
                     ]);
                 }
     
@@ -117,12 +135,12 @@ class ExecuteConditionAction implements ShouldQueue
             }
         }
     
-        // Final evaluation according to the main logic
+        // Final evaluation according to the main logic (if there are multiple conditions)
         $finalResult = $logic === 'AND' ? !in_array(false, $results) : in_array(true, $results);
         Log::info("Final condition evaluation", ['results' => $results, 'final_result' => $finalResult]);
     
-        return true;
-    }     
+        return $finalResult;
+    }         
 
     private function executeAction($device)
     {
