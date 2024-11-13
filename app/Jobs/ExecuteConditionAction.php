@@ -76,8 +76,8 @@ class ExecuteConditionAction implements ShouldQueue
         $results = [];
     
         foreach ($conditions as $condition) {
-            // Case 1: Only time condition (no devices or devices is null)
-            if ((is_null($condition['devices']) || is_null($condition['devices'])) && !is_null($condition['time'])) {
+            // Case 1: Only time condition (no devices or devices is null/empty)
+            if ((is_null($condition['devices']) || empty($condition['devices'])) && !empty($condition['time'])) {
                 $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
                 $results[] = $timeConditionMet;
                 Log::info("Time-only condition evaluated", [
@@ -88,7 +88,7 @@ class ExecuteConditionAction implements ShouldQueue
             }
     
             // Case 2: Time condition with devices
-            if (!is_null($condition['devices']) && !empty($condition['time'])) {
+            if (!empty($condition['devices']) && !empty($condition['time'])) {
                 // Check device statuses
                 $deviceResults = [];
                 foreach ($condition['devices'] as $deviceCondition) {
@@ -142,7 +142,7 @@ class ExecuteConditionAction implements ShouldQueue
         Log::info("Final condition evaluation", ['results' => $results, 'final_result' => $finalResult]);
     
         return $finalResult;
-    }
+    }    
 
     private function executeAction($device)
     {
