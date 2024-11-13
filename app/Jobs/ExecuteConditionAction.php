@@ -58,6 +58,7 @@ class ExecuteConditionAction implements ShouldQueue
         Log::error("Missing case_id in action for condition.",[
             'conditions'=>$casesData,
             'ifContent'=>$ifContent,
+            'ifConditions'=>$ifConditions,
         ]);
         $ifLogic = $condition->cases['if']['logic'] ?? 'OR';
 
