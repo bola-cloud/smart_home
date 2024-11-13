@@ -38,7 +38,8 @@ class ConditionsController extends Controller
             'cases.*.then.actions.*.devices.*.component_id' => 'required|exists:components,id',
             'cases.*.then.actions.*.devices.*.action' => 'required|array',
             'cases.*.then.delay' => 'nullable|date_format:H:i',
-            'cases.*.then.actions.*.repetition' => 'nullable|string|in:every_day,every_week,every_month',
+            'cases.*.repetition' => 'nullable|array', // Update repetition field to array format
+            'cases.*.repetition.*' => 'in:sunday,monday,tuesday,wednesday,thursday,friday,saturday', // Validate day names
             'is_active' => 'nullable|boolean',
         ]);
     
@@ -51,7 +52,7 @@ class ConditionsController extends Controller
     
         // Generate a unique `case_id` for each case
         foreach ($cases as &$case) {
-            $case['case_id'] = uniqid();  // Generate unique case ID
+            $case['case_id'] = uniqid();
         }
     
         // Store the condition in the database
@@ -65,7 +66,7 @@ class ConditionsController extends Controller
         foreach ($cases as $case) {
             $ifConditions = $case['if']['conditions'];
             foreach ($case['then']['actions'] as $action) {
-                $this->scheduleAction($action, $condition->id, $case['case_id'], $ifConditions);
+                $this->scheduleAction($action, $condition->id, $case['case_id'], $ifConditions, $case['repetition'] ?? []);
             }
         }        
     
@@ -75,10 +76,11 @@ class ConditionsController extends Controller
         ], 200);
     }
     
-    private function scheduleAction($action, $conditionId, $caseId, $ifConditions)
+    private function scheduleAction($action, $conditionId, $caseId, $ifConditions, $repetition)
     {
         $jobId = Str::uuid()->toString();
         $action['case_id'] = $caseId;
+        $action['repetition'] = $repetition;
     
         // Find the 'time' condition within the 'if' conditions
         $scheduledTime = null;
@@ -91,18 +93,14 @@ class ConditionsController extends Controller
     
         if ($scheduledTime) {
             $currentTime = Carbon::now();
-            // Calculate delay in seconds until action time
             $delayInSeconds = $currentTime->diffInSeconds($scheduledTime, false);
-    
-            // Adjust delay to the next day if the specified time has already passed for today
+
             if ($delayInSeconds < 0) {
-                $delayInSeconds += 86400; // 86400 seconds in a day
+                $delayInSeconds += 86400;
             }
-    
-            // Schedule job with calculated delay
+
             $job = ExecuteConditionAction::dispatch($conditionId, $action)->delay(now()->addSeconds($delayInSeconds));
         } else {
-            // If no specific time condition, dispatch immediately
             $job = ExecuteConditionAction::dispatch($conditionId, $action);
         }
     
@@ -113,7 +111,7 @@ class ConditionsController extends Controller
         ]);
     
         Log::info("Scheduled job with ID {$jobId} for case {$caseId} in condition {$conditionId}");
-    }    
+    }
 
     public function index($projectId)
     {
