@@ -77,7 +77,7 @@ class ExecuteConditionAction implements ShouldQueue
     
         foreach ($conditions as $condition) {
             // Case: Devices is null or empty, consider this condition as "true" directly
-            if (is_null($condition['devices']) || empty($condition['devices'])) {
+            if (is_null($condition['devices']) || is_null($condition['devices'])) {
                 $results[] = true; // Directly mark this as true
                 Log::info("Time-only condition evaluated as true", [
                     'condition_time' => $condition['time'] ?? 'Not provided',
