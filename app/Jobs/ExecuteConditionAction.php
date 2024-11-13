@@ -53,20 +53,45 @@ class ExecuteConditionAction implements ShouldQueue
         }
     
         Log::info("Condition found and case is active for condition {$this->conditionId}");
-        Log::info("Bola");
-
-        // Safely access the 'if' conditions with a fallback
+    
+        // Access the 'if' conditions safely with detailed logging
         $ifLogic = $condition->cases['if']['logic'] ?? 'OR';
         $ifConditions = $condition->cases['if']['conditions'] ?? [];
-        Log::info("Condition found and case is active for condition {$ifConditions} ,{$ifLogic}");
-        // Evaluate the "if" conditions
-    }      
-
-    private function evaluateIfConditions($conditions, $logic)
-    {    
-        Log::info("Forcing evaluateIfConditions to return true for testing purposes.");
-        return true;
+        Log::info("Condition's 'if' conditions and logic retrieved", [
+            'if_conditions' => $ifConditions,
+            'if_logic' => $ifLogic,
+        ]);
+    
+        // Force evaluateIfConditions to return true for testing purposes
+        $evaluationResult = $this->evaluateIfConditions($ifConditions, $ifLogic);
+        Log::info("Forced evaluation result:", ['evaluation_result' => $evaluationResult]);
+    
+        if ($evaluationResult) {
+            Log::info("All 'if' conditions met for condition {$this->conditionId}");
+            // Perform actions here, such as calling executeAction
+            if (isset($this->action['devices']) && is_array($this->action['devices'])) {
+                foreach ($this->action['devices'] as $device) {
+                    $this->executeAction($device); // Commented device checking for testing
+                }
+            } else {
+                Log::error("No devices provided in the 'then' actions for condition {$this->conditionId}");
+            }
+        } else {
+            Log::info("One or more 'if' conditions failed for condition {$this->conditionId}");
+        }
+    
+        $this->scheduleNext();
+        Log::info("Job handling completed for condition {$this->conditionId}");
     }
+      
+    private function evaluateIfConditions($conditions, $logic)
+    {
+        Log::info("Forcing evaluateIfConditions to return true for testing purposes.", [
+            'conditions' => $conditions,
+            'logic' => $logic,
+        ]);
+        return true;
+    }    
     
     private function evaluateSingleCondition($condition)
     {
