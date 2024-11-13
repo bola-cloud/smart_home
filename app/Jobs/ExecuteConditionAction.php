@@ -30,6 +30,7 @@ class ExecuteConditionAction implements ShouldQueue
 
     public function handle()
     {
+        opcache_reset();
         Log::info("Job handling started for condition {$this->conditionId}");
     
         $condition = Condition::find($this->conditionId);
