@@ -59,11 +59,44 @@ class IrCodeController extends Controller
     public function getFileContent($deviceType, $brand, $filename)
     {
         $filePath = $this->basePath . '/' . $deviceType . '/' . $brand . '/' . $filename;
+
         if (!File::exists($filePath)) {
             return response()->json(['error' => 'File not found'], 404);
         }
 
         $fileContent = File::get($filePath);
-        return response()->json(['filename' => $filename, 'data' => $fileContent]);
+        $buttons = $this->parseIRFile($fileContent);
+
+        return response()->json(['filename' => $filename, 'buttons' => $buttons]);
+    }
+
+    /**
+     * Parses the contents of an IR file into structured JSON data.
+     *
+     * @param string $fileContent The raw content of the .ir file.
+     * @return array An array of parsed button data.
+     */
+    private function parseIRFile($fileContent)
+    {
+        $buttons = [];
+        $blocks = explode("#", $fileContent);
+
+        foreach ($blocks as $block) {
+            $lines = array_filter(array_map('trim', explode("\n", trim($block))));
+            $buttonData = [];
+
+            foreach ($lines as $line) {
+                if (strpos($line, ': ') !== false) {
+                    list($key, $value) = explode(': ', $line, 2);
+                    $buttonData[strtolower($key)] = trim($value);
+                }
+            }
+
+            if (!empty($buttonData)) {
+                $buttons[] = $buttonData;
+            }
+        }
+
+        return $buttons;
     }
 }
