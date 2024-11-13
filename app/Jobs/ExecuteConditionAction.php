@@ -76,7 +76,7 @@ class ExecuteConditionAction implements ShouldQueue
         $results = [];
     
         foreach ($conditions as $condition) {
-            // Case 1: Only time condition
+            // Case 1: Only time condition (no devices)
             if (empty($condition['devices']) && !empty($condition['time'])) {
                 $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
                 $results[] = $timeConditionMet;
@@ -84,11 +84,12 @@ class ExecuteConditionAction implements ShouldQueue
                     'condition_time' => $condition['time'],
                     'result' => $timeConditionMet
                 ]);
-                continue;
+                continue; // Skip device checks in this case
             }
     
             // Case 2: Time condition with devices
             if (!empty($condition['devices']) && !empty($condition['time'])) {
+                // Check device statuses
                 $deviceResults = [];
                 foreach ($condition['devices'] as $deviceCondition) {
                     $component = Component::find($deviceCondition['component_id']);
@@ -102,7 +103,7 @@ class ExecuteConditionAction implements ShouldQueue
                     ]);
                 }
     
-                // Evaluate time condition alongside device conditions
+                // Evaluate the time condition if it exists
                 $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
                 $deviceResults[] = $timeConditionMet;
                 Log::info("Time condition within device condition evaluated", [
@@ -117,6 +118,7 @@ class ExecuteConditionAction implements ShouldQueue
     
             // Case 3: Only devices, no time condition
             if (!empty($condition['devices']) && empty($condition['time'])) {
+                // Check device statuses
                 $deviceResults = [];
                 foreach ($condition['devices'] as $deviceCondition) {
                     $component = Component::find($deviceCondition['component_id']);
@@ -140,7 +142,7 @@ class ExecuteConditionAction implements ShouldQueue
         Log::info("Final condition evaluation", ['results' => $results, 'final_result' => $finalResult]);
     
         return $finalResult;
-    }         
+    }       
 
     private function executeAction($device)
     {
