@@ -95,53 +95,53 @@ class ExecuteConditionAction implements ShouldQueue
             }
     
             // Case: Time condition with devices
-            // if (!is_null($condition['devices']) && !is_null($condition['time'])) {
-            //     // Check device statuses
-            //     $deviceResults = [];
-            //     foreach ($condition['devices'] as $deviceCondition) {
-            //         $component = Component::find($deviceCondition['component_id']);
-            //         $statusMatch = $component && isset($deviceCondition['status']) && $component->status == $deviceCondition['status'];
-            //         $deviceResults[] = $statusMatch;
-            //         Log::info("Device condition evaluated", [
-            //             'component_id' => $deviceCondition['component_id'],
-            //             'expected_status' => $deviceCondition['status'] ?? 'not specified',
-            //             'actual_status' => $component->status ?? 'not found',
-            //             'result' => $statusMatch
-            //         ]);
-            //     }
+            if (!is_null($condition['devices']) && !is_null($condition['time'])) {
+                // Check device statuses
+                $deviceResults = [];
+                foreach ($condition['devices'] as $deviceCondition) {
+                    $component = Component::find($deviceCondition['component_id']);
+                    $statusMatch = $component && isset($deviceCondition['status']) && $component->status == $deviceCondition['status'];
+                    $deviceResults[] = $statusMatch;
+                    Log::info("Device condition evaluated", [
+                        'component_id' => $deviceCondition['component_id'],
+                        'expected_status' => $deviceCondition['status'] ?? 'not specified',
+                        'actual_status' => $component->status ?? 'not found',
+                        'result' => $statusMatch
+                    ]);
+                }
     
-            //     // Evaluate the time condition if it exists
-            //     $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
-            //     $deviceResults[] = $timeConditionMet;
-            //     Log::info("Time condition within device condition evaluated", [
-            //         'condition_time' => $condition['time'],
-            //         'time_result' => $timeConditionMet
-            //     ]);
+                // Evaluate the time condition if it exists
+                $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
+                $deviceResults[] = $timeConditionMet;
+                Log::info("Time condition within device condition evaluated", [
+                    'condition_time' => $condition['time'],
+                    'time_result' => $timeConditionMet
+                ]);
     
-            //     // Combine device results according to logic
-            //     $results[] = $logic === 'AND' ? !in_array(false, $deviceResults) : in_array(true, $deviceResults);
-            //     continue;
-            // }
+                // Combine device results according to logic
+                $results[] = $logic === 'AND' ? !in_array(false, $deviceResults) : in_array(true, $deviceResults);
+                continue;
+            }
     
-            // // Case: Only devices, no time condition
-            // if (!is_null($condition['devices']) && is_null($condition['time'])) {
-            //     // Check device statuses
-            //     $deviceResults = [];
-            //     foreach ($condition['devices'] as $deviceCondition) {
-            //         $component = Component::find($deviceCondition['component_id']);
-            //         $statusMatch = $component && isset($deviceCondition['status']) && $component->status == $deviceCondition['status'];
-            //         $deviceResults[] = $statusMatch;
-            //         Log::info("Device condition evaluated", [
-            //             'component_id' => $deviceCondition['component_id'],
-            //             'expected_status' => $deviceCondition['status'] ?? 'not specified',
-            //             'actual_status' => $component->status ?? 'not found',
-            //             'result' => $statusMatch
-            //         ]);
-            //     }
+            // Case: Only devices, no time condition
+            if (!is_null($condition['devices']) && is_null($condition['time'])) {
+                // Check device statuses
+                $deviceResults = [];
+                foreach ($condition['devices'] as $deviceCondition) {
+                    $component = Component::find($deviceCondition['component_id']);
+                    $statusMatch = $component && isset($deviceCondition['status']) && $component->status == $deviceCondition['status'];
+                    $deviceResults[] = $statusMatch;
+                    Log::info("Device condition evaluated", [
+                        'component_id' => $deviceCondition['component_id'],
+                        'expected_status' => $deviceCondition['status'] ?? 'not specified',
+                        'actual_status' => $component->status ?? 'not found',
+                        'result' => $statusMatch
+                    ]);
+                }
     
-            //     // Combine device results according to logic
-            //     $results[] = $logic === 'AND' ? !in_array(false, $deviceResults) : in_array(true, $deviceResults);
-            // }
+                // Combine device results according to logic
+                $results[] = $logic === 'AND' ? !in_array(false, $deviceResults) : in_array(true, $deviceResults);
+            }
         }
     
         // Final evaluation according to the main logic (if there are multiple conditions)
