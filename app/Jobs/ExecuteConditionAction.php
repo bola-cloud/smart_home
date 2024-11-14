@@ -51,9 +51,6 @@ class ExecuteConditionAction implements ShouldQueue
         }
         $casesData = json_decode($condition->cases, true);
 
-        // Access the `if` value
-        $ifContent = $casesData['conditions'][0]['if'] ?? null;
-
         $ifConditions = $casesData[0]['if']['conditions'] ?? [];
         Log::info("condition.",[
             'conditions'=>$casesData,
@@ -61,7 +58,7 @@ class ExecuteConditionAction implements ShouldQueue
             'ifConditions'=>$ifConditions,
             // 'if logic' =>$casesData['conditions'][0]['if']['logic'],
         ]);
-        $ifLogic = $casesData[0]->logic ?? 'OR';
+        $ifLogic = $casesData[0]['if']->logic ?? 'OR';
         Log::info("Logic index.",[
             'logic'=>$ifLogic,
             'real logic'=>$casesData->logic,
