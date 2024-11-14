@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Jobs\ExecuteConditionAction;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str; // For unique ID generation
+use Illuminate\Support\Str;
 
 class ConditionsController extends Controller
 {
@@ -89,10 +89,10 @@ class ConditionsController extends Controller
                 $delayInSeconds += 86400;
             }
 
-            $job = ExecuteConditionAction::dispatch($conditionId, $action, $repetitionDays)
+            $job = ExecuteConditionAction::dispatch($conditionId, $caseId, $repetitionDays)
                 ->delay(now()->addSeconds($delayInSeconds));
         } else {
-            $job = ExecuteConditionAction::dispatch($conditionId, $action, $repetitionDays);
+            $job = ExecuteConditionAction::dispatch($conditionId, $caseId, $repetitionDays);
         }
 
         JobTracker::create([
@@ -126,7 +126,6 @@ class ConditionsController extends Controller
 
     public function delete($conditionId)
     {
-        // Find the condition
         $condition = Condition::find($conditionId);
         if (!$condition) {
             return response()->json([
@@ -134,52 +133,38 @@ class ConditionsController extends Controller
                 'message' => 'Condition not found',
             ], 404);
         }
-    
-        // Cancel any running jobs associated with this condition
+
         $this->cancelRunningJobs($conditionId);
-    
-        // Delete the condition from the database
         $condition->delete();
-    
+
         return response()->json([
             'status' => true,
             'message' => 'Condition and associated jobs deleted successfully',
         ], 200);
     }
-    
+
     private function cancelRunningJobs($conditionId)
     {
-        // Get all jobs associated with this condition from the job tracker
         $jobs = JobTracker::where('condition_id', $conditionId)->get();
-    
-        if ($jobs) {
-            foreach ($jobs as $job) {
-                // Since we cannot directly delete a job from the queue by its ID in Laravel,
-                // we can handle it by marking it in the logs or implementing a custom solution if needed.
-                Log::info("Cancelling job with ID {$job->job_id} for condition {$conditionId}");
-        
-                // Delete the job tracker entry
-                $job->delete();
-            }
-            return response()->json(['status' => true, 'message' => 'deleted successfully']);
+
+        foreach ($jobs as $job) {
+            Log::info("Cancelling job with ID {$job->job_id} for condition {$conditionId}");
+            $job->delete();
         }
-        return response()->json(['status' => false, 'message' => 'Job not found'], 404);
-        // Optionally log that all job tracker entries are deleted
-        // Log::info("All job tracker entries for condition {$conditionId} have been deleted.");
-    }    
+
+        Log::info("All job tracker entries for condition {$conditionId} have been deleted.");
+    }
 
     public function deleteSpecificJob($jobId)
     {
-        // Optionally implement specific logic here to mark the job as canceled
-        // Since direct removal from the queue might not work for dispatched jobs
         $jobRecord = JobTracker::where('job_id', $jobId)->first();
-        
+
         if ($jobRecord) {
             $jobRecord->delete();
             Log::info("Job with ID {$jobId} has been deleted.");
             return response()->json(['status' => true, 'message' => 'Job deleted successfully']);
         }
-        
+
         return response()->json(['status' => false, 'message' => 'Job not found'], 404);
     }
 
@@ -192,9 +177,8 @@ class ConditionsController extends Controller
                 'message' => 'Condition not found',
             ], 404);
         }
-    
+
         $cases = json_decode($condition->cases, true);
-    
         $caseIndex = null;
         foreach ($cases as $index => $case) {
             if ($case['case_id'] === $caseId) {
@@ -202,41 +186,37 @@ class ConditionsController extends Controller
                 break;
             }
         }
-    
+
         if ($caseIndex === null) {
             return response()->json([
                 'status' => false,
                 'message' => 'Case not found',
             ], 404);
         }
-    
+
         array_splice($cases, $caseIndex, 1);
-    
         $this->cancelCaseJobs($conditionId, $caseId);
-    
+
         $condition->cases = json_encode($cases);
         $condition->save();
-    
+
         return response()->json([
             'status' => true,
             'message' => 'Case and associated jobs deleted successfully',
         ], 200);
     }
-    
 
     private function cancelCaseJobs($conditionId, $caseId)
     {
         $jobs = JobTracker::where('condition_id', $conditionId)
             ->where('case_id', $caseId)
             ->get();
-    
+
         foreach ($jobs as $job) {
             Log::info("Cancelling job with ID {$job->job_id} for case {$caseId} in condition {$conditionId}");
-            
             $job->delete();
         }
-    
+
         Log::info("All job tracker entries for case {$caseId} in condition {$conditionId} have been deleted.");
     }
-    
 }
