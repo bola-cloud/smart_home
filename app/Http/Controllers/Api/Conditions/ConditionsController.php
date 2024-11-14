@@ -219,20 +219,4 @@ class ConditionsController extends Controller
 
         Log::info("All job tracker entries for case {$caseId} in condition {$conditionId} have been deleted.");
     }
-
-    public function cancelDelayedJob($conditionId, $caseId)
-    {
-        $jobTracker = JobTracker::where('condition_id', $conditionId)
-            ->where('case_id', $caseId)
-            ->first();
-
-        if (!$jobTracker) {
-            return response()->json(['status' => false, 'message' => 'Job not found'], 404);
-        }
-
-        $jobTracker->update(['status' => 'canceled']);
-        Log::info("Job with ID {$jobTracker->job_id} for case {$caseId} in condition {$conditionId} has been marked as canceled.");
-
-        return response()->json(['status' => true, 'message' => 'Job canceled successfully'], 200);
-    }
 }
