@@ -1,158 +1,238 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Http\Controllers\Api\Conditions;
 
+use App\Http\Controllers\Controller;
 use App\Models\Condition;
-use App\Models\Component;
+use Illuminate\Support\Facades\Queue;
+use App\Models\JobTracker;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
+use App\Jobs\ExecuteConditionAction;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
-class ExecuteConditionAction implements ShouldQueue
+class ConditionsController extends Controller
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-    public $conditionId;
-    public $caseId;
-    public $repetitionDays;
-
-    public function __construct($conditionId, $caseId, $repetitionDays = null)
+    public function store(Request $request)
     {
-        $this->conditionId = $conditionId;
-        $this->caseId = $caseId;
-        $this->repetitionDays = $repetitionDays;
+        $validator = Validator::make($request->all(), [
+            'project_id' => 'required|exists:projects,id',
+            'cases' => 'required|array',
+            'cases.*.name' => 'required|string|max:256',
+            'cases.*.is_active' => 'nullable|boolean',
+            'cases.*.repetition' => 'nullable|array',
+            'cases.*.repetition.*' => 'required|string|in:sunday,monday,tuesday,wednesday,thursday,friday,saturday',
+            'cases.*.if.conditions' => 'required|array',
+            'cases.*.if.logic' => 'required|string|in:AND,OR',
+            'cases.*.if.conditions.*.devices' => 'nullable|array',
+            'cases.*.if.conditions.*.devices.*.component_id' => 'required|exists:components,id',
+            'cases.*.if.conditions.*.devices.*.status' => 'nullable|string',
+            'cases.*.if.conditions.*.time' => 'nullable|date_format:Y-m-d H:i',
+            'cases.*.then.actions' => 'required|array',
+            'cases.*.then.actions.*.devices' => 'required|array|min:1',
+            'cases.*.then.actions.*.devices.*.component_id' => 'required|exists:components,id',
+            'cases.*.then.actions.*.devices.*.action' => 'required|array',
+            'cases.*.then.delay' => 'nullable|date_format:H:i',
+        ]);
 
-        Log::info("Job created for condition {$conditionId}, case {$caseId}");
-    }
-
-    public function handle()
-    {
-        Log::info("Job handling started for condition {$this->conditionId}, case {$this->caseId}");
-
-        // Retrieve condition and locate specific case by caseId
-        $condition = Condition::find($this->conditionId);
-        if (!$condition) {
-            Log::error("Condition {$this->conditionId} not found.");
-            return;
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
 
-        $cases = json_decode($condition->cases, true);
-        $case = collect($cases)->firstWhere('case_id', $this->caseId);
+        $user = Auth::user();
+        $cases = $request->cases;
 
-        // Verify case existence and status
-        if (!$case || !$case['is_active']) {
-            Log::info("Case {$this->caseId} is inactive or not found; skipping execution.");
-            return;
+        foreach ($cases as &$case) {
+            $case['case_id'] = uniqid();
         }
 
-        // Evaluate `if` conditions
-        $ifConditions = $case['if']['conditions'] ?? [];
-        $ifLogic = $case['if']['logic'] ?? 'OR';
+        $condition = Condition::create([
+            'user_id' => $user->id,
+            'project_id' => $request->project_id,
+            'cases' => json_encode($cases),
+        ]);
 
-        if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
-            Log::info("All 'if' conditions met for case {$this->caseId} in condition {$this->conditionId}");
-
-            // Execute each action specified for the `then` block
+        foreach ($cases as $case) {
+            $ifConditions = $case['if']['conditions'];
             foreach ($case['then']['actions'] as $action) {
-                foreach ($action['devices'] as $device) {
-                    $this->executeAction($device);
-                }
+                $this->scheduleAction($action, $condition->id, $case['case_id'], $ifConditions, $case['repetition'] ?? null);
             }
-        } else {
-            Log::info("One or more 'if' conditions failed for case {$this->caseId} in condition {$this->conditionId}");
         }
 
-        // Schedule next execution if `repetitionDays` is specified
-        $this->scheduleNext();
-        Log::info("Job handling completed for condition {$this->conditionId}, case {$this->caseId}");
+        return response()->json([
+            'status' => true,
+            'message' => 'Condition created successfully with schedules',
+        ], 200);
     }
 
-    private function evaluateIfConditions($conditions, $logic)
+    private function scheduleAction($action, $conditionId, $caseId, $ifConditions, $repetitionDays = null)
     {
-        $results = [];
+        $jobId = Str::uuid()->toString();
+        $action['case_id'] = $caseId;
+        $scheduledTime = null;
 
-        foreach ($conditions as $condition) {
-            // Only time condition without devices, automatically true
-            if (is_null($condition['devices']) && !is_null($condition['time'])) {
-                $results[] = true;
-                continue;
-            }
-
-            // Both time and devices specified
-            if (!is_null($condition['devices']) && !is_null($condition['time'])) {
-                $deviceResults = [];
-                foreach ($condition['devices'] as $deviceCondition) {
-                    $component = Component::find($deviceCondition['component_id']);
-                    $statusMatch = $component && isset($deviceCondition['status']) && $component->status == $deviceCondition['status'];
-                    $deviceResults[] = $statusMatch;
-                }
-                // Time condition must also match
-                $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
-                $deviceResults[] = $timeConditionMet;
-
-                // Apply condition logic
-                $results[] = $logic === 'AND' ? !in_array(false, $deviceResults) : in_array(true, $deviceResults);
-                continue;
-            }
-
-            // Only devices specified
-            if (!is_null($condition['devices']) && is_null($condition['time'])) {
-                $deviceResults = [];
-                foreach ($condition['devices'] as $deviceCondition) {
-                    $component = Component::find($deviceCondition['component_id']);
-                    $statusMatch = $component && isset($deviceCondition['status']) && $component->status == $deviceCondition['status'];
-                    $deviceResults[] = $statusMatch;
-                }
-                // Apply condition logic
-                $results[] = $logic === 'AND' ? !in_array(false, $deviceResults) : in_array(true, $deviceResults);
-            }
-        }
-
-        // Final evaluation of all conditions
-        return $logic === 'AND' ? !in_array(false, $results, true) : in_array(true, $results, true);
-    }
-
-    private function executeAction($device)
-    {
-        $component = Component::find($device['component_id']);
-        if ($component) {
-            $component->update(['type' => "updated_type"]);
-            Log::info("Executed action for component", [
-                'component_id' => $device['component_id'],
-                'action' => $device['action']
-            ]);
-        } else {
-            Log::error("Component with ID {$device['component_id']} not found for action execution");
-        }
-    }
-
-    private function scheduleNext()
-    {
-        if (!$this->repetitionDays) {
-            Log::info("No repetition specified, job will not be rescheduled.");
-            return;
-        }
-
-        $today = Carbon::now()->format('l');
-        $nextExecutionDay = null;
-
-        foreach ($this->repetitionDays as $day) {
-            if (strtolower($day) === strtolower($today)) {
-                $nextExecutionDay = Carbon::now()->addWeek();
+        foreach ($ifConditions as $condition) {
+            if (!empty($condition['time'])) {
+                $scheduledTime = Carbon::parse($condition['time']);
                 break;
             }
         }
 
-        if ($nextExecutionDay) {
-            Log::info("Scheduling next execution for case {$this->caseId}", [
-                'next_execution' => $nextExecutionDay,
-            ]);
-            ExecuteConditionAction::dispatch($this->conditionId, $this->caseId, $this->repetitionDays)
-                ->delay($nextExecutionDay);
+        if ($scheduledTime) {
+            $currentTime = Carbon::now();
+            $delayInSeconds = $currentTime->diffInSeconds($scheduledTime, false);
+
+            if ($delayInSeconds < 0) {
+                $delayInSeconds += 86400;
+            }
+
+            $job = ExecuteConditionAction::dispatch($conditionId, $caseId, $repetitionDays)
+                ->delay(now()->addSeconds($delayInSeconds));
+        } else {
+            $job = ExecuteConditionAction::dispatch($conditionId, $caseId, $repetitionDays);
         }
+
+        JobTracker::create([
+            'job_id' => $jobId,
+            'condition_id' => $conditionId,
+            'case_id' => $caseId,
+        ]);
+
+        Log::info("Scheduled job with ID {$jobId} for case {$caseId} in condition {$conditionId}");
+    }
+
+    public function index($projectId)
+    {
+        $conditions = Condition::where('project_id', $projectId)->get();
+
+        $parsedConditions = $conditions->map(function ($condition) {
+            return [
+                'id' => $condition->id,
+                'user_id' => $condition->user_id,
+                'project_id' => $condition->project_id,
+                'cases' => json_decode($condition->cases, true),
+            ];
+        });
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Conditions retrieved successfully',
+            'data' => $parsedConditions,
+        ], 200);
+    }
+
+    public function delete($conditionId)
+    {
+        $condition = Condition::find($conditionId);
+        if (!$condition) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Condition not found',
+            ], 404);
+        }
+
+        $this->cancelRunningJobs($conditionId);
+        $condition->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Condition and associated jobs deleted successfully',
+        ], 200);
+    }
+
+    private function cancelRunningJobs($conditionId)
+    {
+        $jobs = JobTracker::where('condition_id', $conditionId)->get();
+
+        foreach ($jobs as $job) {
+            Log::info("Cancelling job with ID {$job->job_id} for condition {$conditionId}");
+            $job->delete();
+        }
+
+        Log::info("All job tracker entries for condition {$conditionId} have been deleted.");
+    }
+
+    public function deleteSpecificJob($jobId)
+    {
+        $jobRecord = JobTracker::where('job_id', $jobId)->first();
+
+        if ($jobRecord) {
+            $jobRecord->delete();
+            Log::info("Job with ID {$jobId} has been deleted.");
+            return response()->json(['status' => true, 'message' => 'Job deleted successfully']);
+        }
+
+        return response()->json(['status' => false, 'message' => 'Job not found'], 404);
+    }
+
+    public function deleteCase($conditionId, $caseId)
+    {
+        $condition = Condition::find($conditionId);
+        if (!$condition) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Condition not found',
+            ], 404);
+        }
+
+        $cases = json_decode($condition->cases, true);
+        $caseIndex = null;
+        foreach ($cases as $index => $case) {
+            if ($case['case_id'] === $caseId) {
+                $caseIndex = $index;
+                break;
+            }
+        }
+
+        if ($caseIndex === null) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Case not found',
+            ], 404);
+        }
+
+        array_splice($cases, $caseIndex, 1);
+        $this->cancelCaseJobs($conditionId, $caseId);
+
+        $condition->cases = json_encode($cases);
+        $condition->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Case and associated jobs deleted successfully',
+        ], 200);
+    }
+
+    private function cancelCaseJobs($conditionId, $caseId)
+    {
+        $jobs = JobTracker::where('condition_id', $conditionId)
+            ->where('case_id', $caseId)
+            ->get();
+
+        foreach ($jobs as $job) {
+            Log::info("Cancelling job with ID {$job->job_id} for case {$caseId} in condition {$conditionId}");
+            $job->delete();
+        }
+
+        Log::info("All job tracker entries for case {$caseId} in condition {$conditionId} have been deleted.");
+    }
+
+    public function cancelDelayedJob($conditionId, $caseId)
+    {
+        $jobTracker = JobTracker::where('condition_id', $conditionId)
+            ->where('case_id', $caseId)
+            ->first();
+
+        if (!$jobTracker) {
+            return response()->json(['status' => false, 'message' => 'Job not found'], 404);
+        }
+
+        $jobTracker->update(['status' => 'canceled']);
+        Log::info("Job with ID {$jobTracker->job_id} for case {$caseId} in condition {$conditionId} has been marked as canceled.");
+
+        return response()->json(['status' => true, 'message' => 'Job canceled successfully'], 200);
     }
 }

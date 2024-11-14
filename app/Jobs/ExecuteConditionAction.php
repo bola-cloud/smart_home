@@ -33,6 +33,7 @@ class ExecuteConditionAction implements ShouldQueue
     {
         Log::info("Job handling started for condition {$this->conditionId}, case {$this->caseId}");
 
+        // Retrieve condition and locate specific case by caseId
         $condition = Condition::find($this->conditionId);
         if (!$condition) {
             Log::error("Condition {$this->conditionId} not found.");
@@ -42,17 +43,20 @@ class ExecuteConditionAction implements ShouldQueue
         $cases = json_decode($condition->cases, true);
         $case = collect($cases)->firstWhere('case_id', $this->caseId);
 
+        // Verify case existence and status
         if (!$case || !$case['is_active']) {
             Log::info("Case {$this->caseId} is inactive or not found; skipping execution.");
             return;
         }
 
+        // Evaluate `if` conditions
         $ifConditions = $case['if']['conditions'] ?? [];
         $ifLogic = $case['if']['logic'] ?? 'OR';
 
         if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
             Log::info("All 'if' conditions met for case {$this->caseId} in condition {$this->conditionId}");
 
+            // Execute each action specified for the `then` block
             foreach ($case['then']['actions'] as $action) {
                 foreach ($action['devices'] as $device) {
                     $this->executeAction($device);
@@ -62,21 +66,23 @@ class ExecuteConditionAction implements ShouldQueue
             Log::info("One or more 'if' conditions failed for case {$this->caseId} in condition {$this->conditionId}");
         }
 
+        // Schedule next execution if `repetitionDays` is specified
         $this->scheduleNext();
         Log::info("Job handling completed for condition {$this->conditionId}, case {$this->caseId}");
     }
 
     private function evaluateIfConditions($conditions, $logic)
     {
-        // Same logic as before for evaluating conditions
         $results = [];
 
         foreach ($conditions as $condition) {
+            // Only time condition without devices, automatically true
             if (is_null($condition['devices']) && !is_null($condition['time'])) {
                 $results[] = true;
                 continue;
             }
 
+            // Both time and devices specified
             if (!is_null($condition['devices']) && !is_null($condition['time'])) {
                 $deviceResults = [];
                 foreach ($condition['devices'] as $deviceCondition) {
@@ -84,12 +90,16 @@ class ExecuteConditionAction implements ShouldQueue
                     $statusMatch = $component && isset($deviceCondition['status']) && $component->status == $deviceCondition['status'];
                     $deviceResults[] = $statusMatch;
                 }
+                // Time condition must also match
                 $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
                 $deviceResults[] = $timeConditionMet;
+
+                // Apply condition logic
                 $results[] = $logic === 'AND' ? !in_array(false, $deviceResults) : in_array(true, $deviceResults);
                 continue;
             }
 
+            // Only devices specified
             if (!is_null($condition['devices']) && is_null($condition['time'])) {
                 $deviceResults = [];
                 foreach ($condition['devices'] as $deviceCondition) {
@@ -97,10 +107,12 @@ class ExecuteConditionAction implements ShouldQueue
                     $statusMatch = $component && isset($deviceCondition['status']) && $component->status == $deviceCondition['status'];
                     $deviceResults[] = $statusMatch;
                 }
+                // Apply condition logic
                 $results[] = $logic === 'AND' ? !in_array(false, $deviceResults) : in_array(true, $deviceResults);
             }
         }
 
+        // Final evaluation of all conditions
         return $logic === 'AND' ? !in_array(false, $results, true) : in_array(true, $results, true);
     }
 
