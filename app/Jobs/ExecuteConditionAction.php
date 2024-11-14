@@ -61,9 +61,10 @@ class ExecuteConditionAction implements ShouldQueue
             'ifConditions'=>$ifConditions,
             // 'if logic' =>$casesData['conditions'][0]['if']['logic'],
         ]);
-        $ifLogic = $casesData['logic'] ?? 'OR';
+        $ifLogic = $casesData->logic ?? 'OR';
         Log::info("Logic index.",[
             'logic'=>$ifLogic,
+            'real logic'=>$casesData->logic,
         ]);
         if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
             Log::info("All 'if' conditions met for condition {$this->conditionId}");
