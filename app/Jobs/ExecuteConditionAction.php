@@ -59,7 +59,7 @@ class ExecuteConditionAction implements ShouldQueue
             'conditions'=>$casesData,
             'ifContent'=>$ifContent,
             'ifConditions'=>$ifConditions,
-            'if logic' =>$casesData['conditions'][0]['if']['logic'],
+            // 'if logic' =>$casesData['conditions'][0]['if']['logic'],
         ]);
         $ifLogic = $casesData['conditions'][0]['if']['logic'] ?? 'OR';
         // Log::info("Logic index.",[
