@@ -99,4 +99,38 @@ class IrCodeController extends Controller
 
         return $buttons;
     }
+
+    // Get contents of all IR files within a specific brand under a device type
+    public function getAllFilesContent($deviceType, $brand)
+    {
+        $brandPath = $this->basePath . '/' . $deviceType . '/' . $brand;
+
+        // Check if the brand directory exists
+        if (!File::exists($brandPath)) {
+            return response()->json(['error' => 'Brand not found'], 404);
+        }
+
+        // Initialize an array to hold the files and their content
+        $allFilesContent = [];
+
+        // Loop through each file in the brand directory
+        $files = File::files($brandPath);
+        foreach ($files as $file) {
+            $filename = $file->getFilename();
+            $fileContent = File::get($file->getPathname());
+
+            // Parse the file content to get button data
+            $buttons = $this->parseIRFile($fileContent);
+
+            // Add the file's content to the result array
+            $allFilesContent[] = [
+                'filename' => $filename,
+                'buttons' => $buttons
+            ];
+        }
+
+        // Return all files with their parsed content as JSON
+        return response()->json($allFilesContent);
+    }
+
 }
