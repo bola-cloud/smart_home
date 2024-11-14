@@ -149,9 +149,11 @@ class ExecuteConditionAction implements ShouldQueue
         if ($logic === "AND") {
             // All values in $results must be true
             $finalResult = !in_array(false, $results, true); // OR use array_reduce or collect()->every
+            Log::info("Final condition evaluation AND", ['results' => $results, 'final_result' => $finalResult]);
         } elseif ($logic === "OR") {
             // At least one value in $results must be true
             $finalResult = in_array(true, $results, true); // OR use collect()->contains
+            Log::info("Final condition evaluation OR", ['results' => $results, 'final_result' => $finalResult]);
         }
         Log::info("Final condition evaluation", ['results' => $results, 'final_result' => $finalResult]);
     
