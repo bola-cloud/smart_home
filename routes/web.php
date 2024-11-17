@@ -41,6 +41,7 @@ Route::group([
     Route::post('/devices/{device}/update-order', [\App\Http\Controllers\Admin\ComponentController::class, 'updateOrderAndEdit'])->name('components.update_order_and_edit');
     Route::resource('components', \App\Http\Controllers\Admin\DeviceController::class);
     Route::resource('blogs', App\Http\Controllers\Admin\BlogController::class);
+    Route::resource('products', App\Http\Controllers\Admin\ProductController::class);
 
     Route::resource('device_types', \App\Http\Controllers\Admin\DeviceTypeController::class);
 });
