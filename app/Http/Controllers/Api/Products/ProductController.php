@@ -12,6 +12,12 @@ class ProductController extends Controller
     {
         $products = Product::all();
 
+        $products = $products->map(function ($blog) {
+            // Generate full image URL using asset() helper
+            $products->image = asset('storage/' . $products->image);
+            return $products;
+        });
+        
         return response()->json([
             'success' => true,
             'data' => $products,
