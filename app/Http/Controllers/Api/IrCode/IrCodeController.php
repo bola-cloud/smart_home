@@ -78,7 +78,7 @@ class IrCodeController extends Controller
      *
      * @param string $fileContent The raw content of the .ir file.
      * @return array An array of parsed button data.
-     */
+    */
     private function parseIRFile($fileContent)
     {
         $buttons = [];
