@@ -155,7 +155,7 @@ class IrCodeController extends Controller
             return response()->json(['message' => 'This device does not exist'], 401);
         }
 
-        if ($component->device->user_id == Auth::user()->id) {
+        if ($component->device->user_id != Auth::user()->id) {
             return response()->json(['error' => 'This device does not belongs to you'], 404);
         }
 
