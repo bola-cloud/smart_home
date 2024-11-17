@@ -150,6 +150,10 @@ class IrCodeController extends Controller
         
         $component = Component::find($validated['component_id']);
 
+        if (!$component) {
+            return response()->json(['message' => 'This device does not exist'], 401);
+        }
+
         if ($component->device->user_id == Auth::user()->id) {
             return response()->json(['error' => 'This device does not belongs to you'], 404);
         }
