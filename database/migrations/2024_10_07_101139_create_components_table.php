@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreign('device_id')->references('id')->on('devices')
                 ->onUpdate('CASCADE')->onDelete('SET NULL');
             $table->string('name');
-            // $table->string('type')->nullable();
+            $table->string('type')->nullable();
             $table->integer('order');
             $table->timestamps();
         });

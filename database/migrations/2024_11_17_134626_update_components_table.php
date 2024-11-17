@@ -12,9 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('components', function (Blueprint $table) {
-            // Change the 'type' column to enum with default 'digital'
-            $table->enum('type', ['analog', 'digital'])->default('digital');
-
             // Add a new 'file_path' column
             $table->string('file_path')->nullable()->after('type');
         });
