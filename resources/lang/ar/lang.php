@@ -217,4 +217,5 @@ return [
     'No products found.' => 'لا توجد منتجات.',
     'success' => 'نجاح',
     'error' => 'خطأ',
+    'products_administration' =>'ادارة المنتجات'
 ];

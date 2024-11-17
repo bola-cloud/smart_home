@@ -216,4 +216,5 @@ return [
     'No products found.' => 'No products found.',
     'success' => 'Success',
     'error' => 'Error',
+    'products_administration' =>'Products Administration'
 ];

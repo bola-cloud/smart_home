@@ -231,6 +231,20 @@
                                 </li>
                             </ul>
                         </li>
+                        <li class="nav-item">
+                            <a href="">
+                                <i class="la la-tv"></i> <!-- Changed icon to represent TVs -->
+                                <span class="menu-title" data-i18n="nav.dash.main">{{ __('lang.products_administration') }}</span>
+                            </a>
+                            <ul class="menu-content">
+                                <li class="{{ Route::currentRouteName() == 'products.index' ? 'active' : '' }}">
+                                    <a class="menu-item" href="{{ route('products.index') }}" data-i18n="nav.dash.crypto">{{ __('lang.index') }}</a>
+                                </li>
+                                <li class="{{ Route::currentRouteName() == 'products.create' ? 'active' : '' }}">
+                                    <a class="menu-item" href="{{ route('products.create') }}" data-i18n="nav.dash.sales">{{ __('lang.create') }}</a>
+                                </li>
+                            </ul>
+                        </li>
                         
                     </ul>
                 </div>
