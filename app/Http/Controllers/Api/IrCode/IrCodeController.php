@@ -140,9 +140,10 @@ class IrCodeController extends Controller
     {
         // Validate the request
         $validated = $request->validate([
-            'component_id' => 'required|exist:components,id',
-            'file_path' => 'required|string', // Expect an array of file path/device pairs
+            'component_id' => 'required|exists:components,id', // Fixed typo: changed 'exist' to 'exists'
+            'file_path' => 'required|string',
         ]);
+        
         // Ensure the user is authenticated
         if (!Auth::check()) {
             return response()->json(['message' => 'You are not logged in'], 401);
