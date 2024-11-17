@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Component;
 
 class IrCodeController extends Controller
 {
@@ -139,51 +140,25 @@ class IrCodeController extends Controller
     {
         // Validate the request
         $validated = $request->validate([
-            'file_paths' => 'required|array', // Expect an array of file path/device pairs
-            'file_paths.*.path' => 'required|string', // Each file path must be a string
-            'file_paths.*.device' => 'required|string', // Each device name must be a string
+            'component_id' => 'required|exist:components,id',
+            'file_path' => 'required|string', // Expect an array of file path/device pairs
         ]);
         // Ensure the user is authenticated
         if (!Auth::check()) {
             return response()->json(['message' => 'You are not logged in'], 401);
         }
         
-        // Extract validated data
-        $userId = Auth::user()->id;
-        $filePaths = $validated['file_paths'];
-        $filePaths = $validated['file_paths'];
+        $component = Component::find($validated['component_id']);
 
-        // Save or update the user's file paths
-        $userFilePath = UserFilePath::updateOrCreate(
-            ['user_id' => $userId],
-            ['file_paths' => $filePaths]
-        );
-
-        return response()->json([
-            'message' => 'File paths attached successfully.',
-            'user_id' => $userId,
-            'file_paths' => $userFilePath->file_paths,
-        ], 200);
-    }
-
-    /**
-     * Retrieve a user's file paths.
-     *
-     * @param int $userId
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function getFilePaths($userId)
-    {
-        $userFilePaths = UserFilePath::where('user_id', $userId)->first();
-
-        if (!$userFilePaths) {
-            return response()->json(['error' => 'No file paths found for this user.'], 404);
-        }
-
-        return response()->json([
-            'user_id' => $userId,
-            'file_paths' => $userFilePaths->file_paths,
+        $filePath = $validated['file_path'];
+        $component->update([
+            'file_path' => $filePath
         ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'File paths attached successfully.',
+        ], 200);
     }
 
 }
