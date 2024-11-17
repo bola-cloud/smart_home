@@ -12,25 +12,23 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('components', function (Blueprint $table) {
-            // Change the 'type' column to enum with default 'digital'
-            $table->enum('type', ['analog', 'digital'])->default('digital')->change();
+            // Add a temporary enum column
+            $table->enum('type_enum', ['analog', 'digital'])->default('digital')->after('type');
 
-            // Add a new 'file_path' column
-            $table->string('file_path')->nullable()->after('type');
+            // Update the new column with valid data from the old column
+            DB::statement("UPDATE components SET type_enum = IF(type NOT IN ('analog', 'digital'), 'digital', type)");
+
+            // Drop the old column and rename the new one
+            $table->dropColumn('type');
+            $table->renameColumn('type_enum', 'type');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('components', function (Blueprint $table) {
-            // Revert 'type' column back to its original state
-            $table->string('type')->nullable()->change();
-
-            // Drop the 'file_path' column
-            $table->dropColumn('file_path');
+            // Revert to a string type for the type column
+            $table->string('type')->nullable()->after('name');
         });
     }
 };
