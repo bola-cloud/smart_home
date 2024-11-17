@@ -150,6 +150,10 @@ class IrCodeController extends Controller
         
         $component = Component::find($validated['component_id']);
 
+        if ($component->device->user_id == Auth::user()->id) {
+            return response()->json(['error' => 'This device does not belongs to you'], 404);
+        }
+
         $filePath = $validated['file_path'];
         $component->update([
             'file_path' => $filePath
