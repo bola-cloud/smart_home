@@ -142,6 +142,8 @@ class IrCodeController extends Controller
         $validated = $request->validate([
             'component_id' => 'required|exists:components,id', // Fixed typo: changed 'exist' to 'exists'
             'file_path' => 'required|string',
+            'name' => 'required|string',
+            'type' => 'required|string',
         ]);
         
         // Ensure the user is authenticated
@@ -161,7 +163,9 @@ class IrCodeController extends Controller
 
         $filePath = $validated['file_path'];
         $component->update([
-            'file_path' => $filePath
+            'file_path' => $filePath,
+            'name' => $validated['name'],
+            'type' => $validated['type'],
         ]);
 
         return response()->json([
