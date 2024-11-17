@@ -4,8 +4,8 @@
 <div class="container-fluid">
     <div class="card p-3">
         <div class="card-header d-flex justify-content-between">
-            <h1>{{ __('Products Management') }}</h1>
-            <a href="{{ route('products.create') }}" class="btn btn-primary">{{ __('Create Product') }}</a>
+            <h1>{{ __('lang.Products Management') }}</h1>
+            <a href="{{ route('products.create') }}" class="btn btn-primary">{{ __('lang.Create Product') }}</a>
         </div>
 
         @if(session('success'))
@@ -15,11 +15,11 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>{{ __('Title') }}</th>
-                    <th>{{ __('Small Description') }}</th>
-                    <th>{{ __('Image') }}</th>
-                    <th>{{ __('Price') }}</th>
-                    <th>{{ __('Actions') }}</th>
+                    <th>{{ __('lang.Title') }}</th>
+                    <th>{{ __('lang.Small Description') }}</th>
+                    <th>{{ __('lang.Image') }}</th>
+                    <th>{{ __('lang.Price') }}</th>
+                    <th>{{ __('lang.Actions') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -30,17 +30,17 @@
                     <td><img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->title }}" width="100"></td>
                     <td>${{ $product->price }}</td>
                     <td>
-                        <a href="{{ route('products.edit', $product->id) }}" class="btn btn-warning">{{ __('Edit') }}</a>
+                        <a href="{{ route('products.edit', $product->id) }}" class="btn btn-warning">{{ __('lang.Edit') }}</a>
                         <form action="{{ route('products.destroy', $product->id) }}" method="POST" style="display:inline-block;">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-danger">{{ __('Delete') }}</button>
+                            <button type="submit" class="btn btn-danger">{{ __('lang.Delete') }}</button>
                         </form>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5">{{ __('No products found.') }}</td>
+                    <td colspan="5">{{ __('lang.No products found.') }}</td>
                 </tr>
                 @endforelse
             </tbody>
