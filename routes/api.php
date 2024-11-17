@@ -16,7 +16,7 @@ use App\Http\Controllers\Api\User\UserController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Conditions\ConditionsController;
 use App\Http\Controllers\Api\IrCode\IrCodeController;
-
+use App\Http\Controllers\Api\Products\ProductController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -106,6 +106,7 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     
     Route::post('/ir/attach/file', [IrCodeController::class, 'attachFilePaths']);
 
+    Route::get('/products', [ProductController::class, 'index']);
     // Logout route
     Route::post('/logout', [AuthController::class, 'logout']);
 });
