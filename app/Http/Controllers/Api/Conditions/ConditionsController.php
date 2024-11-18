@@ -37,7 +37,7 @@ class ConditionsController extends Controller
             'cases.*.then.actions.*.devices.*.action' => 'required|array',
             'cases.*.then.delay' => 'nullable|date_format:H:i',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
@@ -50,12 +50,26 @@ class ConditionsController extends Controller
             $case['case_id'] = uniqid();
         }
     
-        // Store the condition in the database
-        $condition = Condition::create([
-            'user_id' => $user->id,
-            'project_id' => $request->project_id,
-            'cases' => json_encode($cases),
-        ]);
+        // Check if a condition exists for the same user and project
+        $condition = Condition::where('user_id', $user->id)
+            ->where('project_id', $request->project_id)
+            ->first();
+    
+        if ($condition) {
+            // Update existing condition
+            $condition->cases = json_encode($cases);
+            $condition->save();
+    
+            // Clear existing schedules and create new ones
+            $this->clearSchedules($condition->id); // Assuming a method to clear existing schedules
+        } else {
+            // Create new condition
+            $condition = Condition::create([
+                'user_id' => $user->id,
+                'project_id' => $request->project_id,
+                'cases' => json_encode($cases),
+            ]);
+        }
     
         // Schedule actions for each case
         foreach ($cases as $case) {
@@ -65,10 +79,10 @@ class ConditionsController extends Controller
             }
         }
     
-        // Return the created condition in the desired format
+        // Return the updated or created condition in the desired format
         return response()->json([
             'status' => true,
-            'message' => 'Condition created successfully with schedules',
+            'message' => 'Condition created/updated successfully with schedules',
             'data' => [
                 [
                     'id' => $condition->id,
@@ -78,7 +92,7 @@ class ConditionsController extends Controller
                 ],
             ],
         ], 200);
-    }
+    }    
 
     private function scheduleAction($action, $conditionId, $caseId, $ifConditions, $repetitionDays = null)
     {
