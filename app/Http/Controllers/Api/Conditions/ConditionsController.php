@@ -170,6 +170,7 @@ class ConditionsController extends Controller
 
     public function deleteCase($conditionId, $caseId)
     {
+        // Find the condition by ID
         $condition = Condition::find($conditionId);
         if (!$condition) {
             return response()->json([
@@ -177,8 +178,17 @@ class ConditionsController extends Controller
                 'message' => 'Condition not found',
             ], 404);
         }
-
+    
+        // Decode the cases JSON into an array
         $cases = json_decode($condition->cases, true);
+        if (!is_array($cases)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid cases data format',
+            ], 400);
+        }
+    
+        // Find the case index by its ID
         $caseIndex = null;
         foreach ($cases as $index => $case) {
             if ($case['case_id'] === $caseId) {
@@ -186,25 +196,39 @@ class ConditionsController extends Controller
                 break;
             }
         }
-
+    
+        // If the case is not found, return an error response
         if ($caseIndex === null) {
             return response()->json([
                 'status' => false,
                 'message' => 'Case not found',
             ], 404);
         }
-
+    
+        // If this is the only case, delete the condition
+        if (count($cases) === 1) {
+            $this->cancelCaseJobs($conditionId, $caseId); // Cancel jobs related to the case
+            $condition->delete(); // Delete the condition itself
+    
+            return response()->json([
+                'status' => true,
+                'message' => 'Condition and its only case deleted successfully',
+            ], 200);
+        }
+    
+        // Otherwise, remove the specific case from the cases array
         array_splice($cases, $caseIndex, 1);
-        $this->cancelCaseJobs($conditionId, $caseId);
-
+        $this->cancelCaseJobs($conditionId, $caseId); // Cancel jobs related to the case
+    
+        // Save the updated cases back to the condition
         $condition->cases = json_encode($cases);
         $condition->save();
-
+    
         return response()->json([
             'status' => true,
             'message' => 'Case and associated jobs deleted successfully',
         ], 200);
-    }
+    }    
 
     private function cancelCaseJobs($conditionId, $caseId)
     {
