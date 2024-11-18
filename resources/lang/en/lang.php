@@ -216,5 +216,22 @@ return [
     'No products found.' => 'No products found.',
     'success' => 'Success',
     'error' => 'Error',
-    'products_administration' =>'Products Administration'
+    'products_administration' =>'Products Administration',
+    'Create Product' => 'Create Product',
+    'Edit Product' => 'Edit Product',
+    'Products Management' => 'Products Management',
+    'Arabic Title' => 'Arabic Title',
+    'English Title' => 'English Title',
+    'Arabic Small Description' => 'Arabic Small Description',
+    'English Small Description' => 'English Small Description',
+    'Arabic Description' => 'Arabic Description',
+    'English Description' => 'English Description',
+    'Image' => 'Image',
+    'Price' => 'Price',
+    'Create' => 'Create',
+    'Update' => 'Update',
+    'Delete' => 'Delete',
+    'Actions' => 'Actions',
+    'No products found.' => 'No products found.',
+    
 ];
