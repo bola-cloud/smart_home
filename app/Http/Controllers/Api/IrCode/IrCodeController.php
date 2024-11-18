@@ -174,4 +174,39 @@ class IrCodeController extends Controller
         ], 200);
     }
 
+    public function deattachFilePaths(Request $request)
+    {
+        // Validate the request
+        $validated = $request->validate([
+            'component_id' => 'required|exists:components,id', 
+        ]);
+        
+        // Ensure the user is authenticated
+        if (!Auth::check()) {
+            return response()->json(['message' => 'You are not logged in'], 401);
+        }
+        
+        $component = Component::find($validated['component_id']);
+
+        if (!$component) {
+            return response()->json(['message' => 'This device does not exist'], 401);
+        }
+
+        if ($component->file_path == null) {
+            return response()->json(['message' => 'This remote does not exist'], 401);
+        }
+
+        if ($component->device->user_id != Auth::user()->id) {
+            return response()->json(['error' => 'This device does not belongs to you'], 404);
+        }
+
+        $component->update([
+            'file_path' => null,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'File paths attached successfully.',
+        ], 200);
+    }
 }

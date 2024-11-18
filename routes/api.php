@@ -105,6 +105,7 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     Route::delete('conditions/{conditionId}/case/{caseId}', [ConditionsController::class, 'deleteCase']);
     
     Route::post('/ir/attach/file', [IrCodeController::class, 'attachFilePaths']);
+    Route::post('/ir/deattach', [IrCodeController::class, 'deattachFilePaths']);
 
     Route::get('/products', [ProductController::class, 'index']);
     // Logout route
