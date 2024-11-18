@@ -9,9 +9,12 @@ class Product extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'title',
-        'description',
-        'small_description',
+        'ar_title',
+        'en_title',
+        'ar_description',
+        'en_description',
+        'ar_small_description',
+        'en_small_description',
         'image',
         'price',
     ];

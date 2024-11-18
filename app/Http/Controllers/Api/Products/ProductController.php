@@ -10,7 +10,6 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        dd($request->all());
         $products = Product::all();
 
         $products = $products->map(function ($products) {
