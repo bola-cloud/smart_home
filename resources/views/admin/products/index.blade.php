@@ -15,8 +15,8 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>{{ __('lang.Title') }}</th>
-                    <th>{{ __('lang.Small Description') }}</th>
+                    <th>{{ __('lang.Arabic Title') }}</th>
+                    <th>{{ __('lang.English Title') }}</th>
                     <th>{{ __('lang.Image') }}</th>
                     <th>{{ __('lang.Price') }}</th>
                     <th>{{ __('lang.Actions') }}</th>
@@ -25,9 +25,9 @@
             <tbody>
                 @forelse($products as $product)
                 <tr>
-                    <td>{{ $product->title }}</td>
-                    <td>{{ $product->small_description }}</td>
-                    <td><img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->title }}" width="100"></td>
+                    <td>{{ $product->ar_title }}</td>
+                    <td>{{ $product->en_title }}</td>
+                    <td><img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->en_title }}" width="100"></td>
                     <td>${{ $product->price }}</td>
                     <td>
                         <a href="{{ route('products.edit', $product->id) }}" class="btn btn-warning">{{ __('lang.Edit') }}</a>

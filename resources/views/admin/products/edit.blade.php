@@ -20,24 +20,39 @@
             @method('PUT')
 
             <div class="form-group">
-                <label for="title">{{ __('lang.Title') }}</label>
-                <input type="text" name="title" class="form-control" value="{{ $product->title }}" required>
+                <label for="ar_title">{{ __('lang.Arabic Title') }}</label>
+                <input type="text" name="ar_title" class="form-control" value="{{ $product->ar_title }}" required>
             </div>
 
             <div class="form-group">
-                <label for="small_description">{{ __('lang.Small Description') }}</label>
-                <input type="text" name="small_description" class="form-control" value="{{ $product->small_description }}" required>
+                <label for="en_title">{{ __('lang.English Title') }}</label>
+                <input type="text" name="en_title" class="form-control" value="{{ $product->en_title }}" required>
             </div>
 
             <div class="form-group">
-                <label for="description">{{ __('lang.Description') }}</label>
-                <textarea name="description" class="form-control">{{ $product->description }}</textarea>
+                <label for="ar_small_description">{{ __('lang.Arabic Small Description') }}</label>
+                <input type="text" name="ar_small_description" class="form-control" value="{{ $product->ar_small_description }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="en_small_description">{{ __('lang.English Small Description') }}</label>
+                <input type="text" name="en_small_description" class="form-control" value="{{ $product->en_small_description }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="ar_description">{{ __('lang.Arabic Description') }}</label>
+                <textarea name="ar_description" class="form-control">{{ $product->ar_description }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="en_description">{{ __('lang.English Description') }}</label>
+                <textarea name="en_description" class="form-control">{{ $product->en_description }}</textarea>
             </div>
 
             <div class="form-group">
                 <label for="image">{{ __('lang.Image') }}</label>
                 <input type="file" name="image" class="form-control">
-                <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->title }}" width="100">
+                <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->en_title }}" width="100">
             </div>
 
             <div class="form-group">

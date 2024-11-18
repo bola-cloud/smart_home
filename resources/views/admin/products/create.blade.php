@@ -19,18 +19,33 @@
             @csrf
 
             <div class="form-group">
-                <label for="title">{{ __('lang.Title') }}</label>
-                <input type="text" name="title" class="form-control" required>
+                <label for="ar_title">{{ __('lang.Arabic Title') }}</label>
+                <input type="text" name="ar_title" class="form-control" required>
             </div>
 
             <div class="form-group">
-                <label for="small_description">{{ __('lang.Small Description') }}</label>
-                <input type="text" name="small_description" class="form-control" required>
+                <label for="en_title">{{ __('lang.English Title') }}</label>
+                <input type="text" name="en_title" class="form-control" required>
             </div>
 
             <div class="form-group">
-                <label for="description">{{ __('lang.Description') }}</label>
-                <textarea name="description" class="form-control"></textarea>
+                <label for="ar_small_description">{{ __('lang.Arabic Small Description') }}</label>
+                <input type="text" name="ar_small_description" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="en_small_description">{{ __('lang.English Small Description') }}</label>
+                <input type="text" name="en_small_description" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="ar_description">{{ __('lang.Arabic Description') }}</label>
+                <textarea name="ar_description" class="form-control"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="en_description">{{ __('lang.English Description') }}</label>
+                <textarea name="en_description" class="form-control"></textarea>
             </div>
 
             <div class="form-group">

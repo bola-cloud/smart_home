@@ -22,9 +22,12 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
-            'small_description' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'ar_title' => 'required|string|max:255',
+            'en_title' => 'required|string|max:255',
+            'ar_small_description' => 'required|string|max:255',
+            'en_small_description' => 'required|string|max:255',
+            'ar_description' => 'nullable|string',
+            'en_description' => 'nullable|string',
             'image' => 'required|image|max:2048',
             'price' => 'nullable|integer|min:0',
         ]);
@@ -32,9 +35,12 @@ class ProductController extends Controller
         $imagePath = $request->file('image')->store('products', 'public');
 
         Product::create([
-            'title' => $request->input('title'),
-            'small_description' => $request->input('small_description'),
-            'description' => $request->input('description'),
+            'ar_title' => $request->input('ar_title'),
+            'en_title' => $request->input('en_title'),
+            'ar_small_description' => $request->input('ar_small_description'),
+            'en_small_description' => $request->input('en_small_description'),
+            'ar_description' => $request->input('ar_description'),
+            'en_description' => $request->input('en_description'),
             'image' => $imagePath,
             'price' => $request->input('price'),
         ]);
@@ -50,9 +56,12 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
-            'small_description' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'ar_title' => 'required|string|max:255',
+            'en_title' => 'required|string|max:255',
+            'ar_small_description' => 'required|string|max:255',
+            'en_small_description' => 'required|string|max:255',
+            'ar_description' => 'nullable|string',
+            'en_description' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
             'price' => 'nullable|integer|min:0',
         ]);
@@ -63,9 +72,12 @@ class ProductController extends Controller
         }
 
         $product->update([
-            'title' => $request->input('title'),
-            'small_description' => $request->input('small_description'),
-            'description' => $request->input('description'),
+            'ar_title' => $request->input('ar_title'),
+            'en_title' => $request->input('en_title'),
+            'ar_small_description' => $request->input('ar_small_description'),
+            'en_small_description' => $request->input('en_small_description'),
+            'ar_description' => $request->input('ar_description'),
+            'en_description' => $request->input('en_description'),
             'price' => $request->input('price'),
         ]);
 
