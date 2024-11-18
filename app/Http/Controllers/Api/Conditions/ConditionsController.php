@@ -41,30 +41,42 @@ class ConditionsController extends Controller
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
-
+    
         $user = Auth::user();
         $cases = $request->cases;
-
+    
+        // Add unique IDs for each case
         foreach ($cases as &$case) {
             $case['case_id'] = uniqid();
         }
-
+    
+        // Store the condition in the database
         $condition = Condition::create([
             'user_id' => $user->id,
             'project_id' => $request->project_id,
             'cases' => json_encode($cases),
         ]);
-
+    
+        // Schedule actions for each case
         foreach ($cases as $case) {
             $ifConditions = $case['if']['conditions'];
             foreach ($case['then']['actions'] as $action) {
                 $this->scheduleAction($action, $condition->id, $case['case_id'], $ifConditions, $case['repetition'] ?? null);
             }
         }
-
+    
+        // Return the created condition in the desired format
         return response()->json([
             'status' => true,
             'message' => 'Condition created successfully with schedules',
+            'data' => [
+                [
+                    'id' => $condition->id,
+                    'user_id' => $condition->user_id,
+                    'project_id' => $condition->project_id,
+                    'cases' => json_decode($condition->cases), // Decode cases to include in the response
+                ],
+            ],
         ], 200);
     }
 
