@@ -185,35 +185,36 @@ class ConditionsController extends Controller
             'case.then.actions.*.devices.*.action' => 'required|array',
             'case.then.delay' => 'nullable|date_format:H:i',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
-
+    
         $condition = Condition::find($request->condition_id);
         $newCase = $request->case;
-
+    
         // Assign a unique case ID
         $newCase['case_id'] = uniqid();
-
+    
         // Decode the existing cases, append the new case, and re-encode
         $existingCases = json_decode($condition->cases, true);
         $existingCases[] = $newCase;
-
+    
         $condition->cases = json_encode($existingCases);
         $condition->save();
-
+    
         // Schedule the new case
         foreach ($newCase['then']['actions'] as $action) {
             $this->scheduleAction($action, $condition->id, $newCase['case_id'], $newCase['if']['conditions'], $newCase['repetition'] ?? null);
         }
-
+    
         return response()->json([
             'status' => true,
             'message' => 'Case added successfully and scheduled.',
-            'data' => $condition,
+            'data' => $condition, // Return the entire condition, including cases
         ], 200);
     }
+    
 
     private function scheduleAction($action, $conditionId, $caseId, $ifConditions, $repetitionDays = null)
     {
