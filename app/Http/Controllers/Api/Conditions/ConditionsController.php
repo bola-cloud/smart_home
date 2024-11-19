@@ -92,6 +92,132 @@ class ConditionsController extends Controller
         ], 200);
     }
 
+    public function editCase(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'condition_id' => 'required|exists:conditions,id',
+            'case_id' => 'required|string',
+            'case.name' => 'required|string|max:256',
+            'case.is_active' => 'nullable|boolean',
+            'case.repetition' => 'nullable|array',
+            'case.repetition.*' => 'required|string|in:sunday,monday,tuesday,wednesday,thursday,friday,saturday',
+            'case.if.conditions' => 'required|array',
+            'case.if.logic' => 'required|string|in:AND,OR',
+            'case.if.conditions.*.devices' => 'nullable|array',
+            'case.if.conditions.*.devices.*.component_id' => 'required|exists:components,id',
+            'case.if.conditions.*.devices.*.status' => 'nullable|string',
+            'case.if.conditions.*.time' => 'nullable|date_format:Y-m-d H:i',
+            'case.then.actions' => 'required|array',
+            'case.then.actions.*.devices' => 'required|array|min:1',
+            'case.then.actions.*.devices.*.component_id' => 'required|exists:components,id',
+            'case.then.actions.*.devices.*.action' => 'required|array',
+            'case.then.delay' => 'nullable|date_format:H:i',
+        ]);
+    
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
+        }
+    
+        $condition = Condition::find($request->condition_id);
+        $updatedCase = $request->case;
+    
+        // Decode the existing cases
+        $existingCases = json_decode($condition->cases, true);
+    
+        // Find the index of the case to update
+        $caseIndex = null;
+        foreach ($existingCases as $index => $case) {
+            if ($case['case_id'] === $request->case_id) {
+                $caseIndex = $index;
+                break;
+            }
+        }
+    
+        if ($caseIndex === null) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Case not found in the condition.',
+            ], 404);
+        }
+    
+        // Cancel the existing job for the case
+        $this->cancelCaseJobs($condition->id, $request->case_id);
+    
+        // Update the case in the array
+        $existingCases[$caseIndex] = array_merge($existingCases[$caseIndex], $updatedCase);
+    
+        // Save the updated cases back to the condition
+        $condition->cases = json_encode($existingCases);
+        $condition->save();
+    
+        // Schedule the updated case
+        foreach ($updatedCase['then']['actions'] as $action) {
+            $this->scheduleAction($action, $condition->id, $request->case_id, $updatedCase['if']['conditions'], $updatedCase['repetition'] ?? null);
+        }
+    
+        return response()->json([
+            'status' => true,
+            'message' => 'Case updated successfully and rescheduled.',
+            'data' => [
+                'condition_id' => $condition->id,
+                'cases' => $existingCases,
+            ],
+        ], 200);
+    }    
+
+    public function addCase(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'condition_id' => 'required|exists:conditions,id',
+            'case.name' => 'required|string|max:256',
+            'case.is_active' => 'nullable|boolean',
+            'case.repetition' => 'nullable|array',
+            'case.repetition.*' => 'required|string|in:sunday,monday,tuesday,wednesday,thursday,friday,saturday',
+            'case.if.conditions' => 'required|array',
+            'case.if.logic' => 'required|string|in:AND,OR',
+            'case.if.conditions.*.devices' => 'nullable|array',
+            'case.if.conditions.*.devices.*.component_id' => 'required|exists:components,id',
+            'case.if.conditions.*.devices.*.status' => 'nullable|string',
+            'case.if.conditions.*.time' => 'nullable|date_format:Y-m-d H:i',
+            'case.then.actions' => 'required|array',
+            'case.then.actions.*.devices' => 'required|array|min:1',
+            'case.then.actions.*.devices.*.component_id' => 'required|exists:components,id',
+            'case.then.actions.*.devices.*.action' => 'required|array',
+            'case.then.delay' => 'nullable|date_format:H:i',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $condition = Condition::find($request->condition_id);
+        $newCase = $request->case;
+
+        // Assign a unique case ID
+        $newCase['case_id'] = uniqid();
+
+        // Decode the existing cases, append the new case, and re-encode
+        $existingCases = json_decode($condition->cases, true);
+        $existingCases[] = $newCase;
+
+        $condition->cases = json_encode($existingCases);
+        $condition->save();
+
+        // Schedule the new case
+        foreach ($newCase['then']['actions'] as $action) {
+            $this->scheduleAction($action, $condition->id, $newCase['case_id'], $newCase['if']['conditions'], $newCase['repetition'] ?? null);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Case added successfully and scheduled.',
+            'data' => [
+                'condition_id' => $condition->id,
+                'cases' => $existingCases,
+            ],
+        ], 200);
+    }
+
     private function scheduleAction($action, $conditionId, $caseId, $ifConditions, $repetitionDays = null)
     {
         $jobId = Str::uuid()->toString();
