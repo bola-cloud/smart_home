@@ -211,7 +211,14 @@ class ConditionsController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Case added successfully and scheduled.',
-            'data' => $condition, // Return the entire condition, including cases
+            'data' => [
+                [
+                    'id' => $condition->id,
+                    'user_id' => $condition->user_id,
+                    'project_id' => $condition->project_id,
+                    'cases' => json_decode($condition->cases), // Decode cases to include in the response
+                ],
+            ],
         ], 200);
     }
     
