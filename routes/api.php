@@ -104,7 +104,7 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     Route::delete('/delete/{condition_id}/conditions', [ConditionsController::class, 'delete']);
     Route::delete('conditions/{conditionId}/case/{caseId}', [ConditionsController::class, 'deleteCase']);
     Route::post('/condition/add/case', [ConditionsController::class, 'addCase']);
-    Route::put('/condition/edit/case', [ConditionsController::class, 'editCase']);
+    Route::post('/condition/edit/case', [ConditionsController::class, 'editCase']);
     Route::post('/inactivate-case', [ConditionsController::class, 'inactivateCase']);
 
     Route::post('/ir/attach/file', [IrCodeController::class, 'attachFilePaths']);
