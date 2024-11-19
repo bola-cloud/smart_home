@@ -52,7 +52,7 @@ class ConditionsController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'A condition for this user and project already exists.',
-            ], 422);
+            ], 409);
         }
 
         $cases = $request->cases;
