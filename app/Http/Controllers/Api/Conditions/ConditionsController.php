@@ -211,10 +211,7 @@ class ConditionsController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Case added successfully and scheduled.',
-            'data' => [
-                'condition_id' => $condition->id,
-                'cases' => $existingCases,
-            ],
+            'data' => $condition,
         ], 200);
     }
 
