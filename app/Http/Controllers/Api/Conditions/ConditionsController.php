@@ -159,8 +159,10 @@ class ConditionsController extends Controller
             'status' => true,
             'message' => 'Case updated successfully and rescheduled.',
             'data' => [
-                'condition_id' => $condition->id,
-                'cases' => $existingCases,
+                'id' => $condition->id,
+                'user_id' => $condition->user_id,
+                'project_id' => $condition->project_id,
+                'cases' => json_decode($condition->cases), // Decode cases to include in the response
             ],
         ], 200);
     }    
@@ -221,7 +223,59 @@ class ConditionsController extends Controller
             ],
         ], 200);
     }
-    
+
+    public function inactivateCase(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'condition_id' => 'required|exists:conditions,id',
+            'case_id' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $condition = Condition::find($request->condition_id);
+
+        // Decode the cases JSON to an array
+        $cases = json_decode($condition->cases, true);
+
+        // Find the case by `case_id`
+        $caseIndex = null;
+        foreach ($cases as $index => $case) {
+            if ($case['case_id'] === $request->case_id) {
+                $caseIndex = $index;
+                break;
+            }
+        }
+
+        if ($caseIndex === null) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Case not found in the condition.',
+            ], 404);
+        }
+
+        // Set the `is_active` flag to false for the specified case
+        $cases[$caseIndex]['is_active'] = false;
+
+        // Save the updated cases back to the condition
+        $condition->cases = json_encode($cases);
+        $condition->save();
+
+        // Cancel any jobs associated with the case
+        $this->cancelCaseJobs($condition->id, $request->case_id);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Case inactivated successfully.',
+            'data' => [
+                'condition_id' => $condition->id,
+                'case_id' => $request->case_id,
+                'cases' => $cases, // Return the updated cases for reference
+            ],
+        ], 200);
+    }
 
     private function scheduleAction($action, $conditionId, $caseId, $ifConditions, $repetitionDays = null)
     {
