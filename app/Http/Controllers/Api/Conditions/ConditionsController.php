@@ -43,6 +43,18 @@ class ConditionsController extends Controller
         }
     
         $user = Auth::user();
+        // Check if a condition already exists for the user and project
+        $existingCondition = Condition::where('user_id', $user->id)
+        ->where('project_id', $request->project_id)
+        ->first();
+
+        if ($existingCondition) {
+            return response()->json([
+                'status' => false,
+                'message' => 'A condition for this user and project already exists.',
+            ], 400);
+        }
+
         $cases = $request->cases;
     
         // Add unique IDs for each case
