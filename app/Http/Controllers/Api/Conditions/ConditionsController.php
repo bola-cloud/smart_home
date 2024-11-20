@@ -159,7 +159,12 @@ class ConditionsController extends Controller
         $updatedCase = $request->cases;
     
         // Decode the existing cases
-        $existingCases = json_decode($condition->cases, true);
+        $existingCases = json_decode($condition->cases, true) ?? [];
+    
+        // Ensure cases is an array
+        if (!is_array($existingCases)) {
+            $existingCases = [];
+        }
     
         // Find the index of the case to update
         $caseIndex = null;
@@ -199,7 +204,7 @@ class ConditionsController extends Controller
                 'id' => $condition->id,
                 'user_id' => $condition->user_id,
                 'project_id' => $condition->project_id,
-                'cases' => json_decode($condition->cases), // Decode cases to include in the response
+                'cases' => $existingCases, // Return cases as an array
             ],
         ], 200);
     }    
