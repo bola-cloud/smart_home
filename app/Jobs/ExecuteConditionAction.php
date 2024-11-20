@@ -154,19 +154,29 @@ class ExecuteConditionAction implements ShouldQueue
         }
     
         $currentTime = Carbon::now();
-        $today = strtolower($currentTime->format('l')); // Get today's day name in lowercase
+        $today = strtolower($currentTime->format('l')); // Get current day name in lowercase
     
-        // Normalize repetition days to strings and lowercase for consistent comparison
+        // Normalize repetition days to strings and lowercase
         $repetitionDaysLower = array_map(function ($day) {
             if (is_string($day)) {
                 return strtolower($day);
             }
-            Log::error("Invalid repetition day format: " . json_encode($day));
-            return null; // Filter out invalid days
+            if (is_array($day)) {
+                Log::error("Invalid repetition day format: array provided instead of string.");
+            } else {
+                Log::error("Invalid repetition day format: " . json_encode($day));
+            }
+            return null;
         }, $this->repetitionDays);
     
-        // Remove invalid days (nulls)
+        // Filter out invalid days (null values)
         $repetitionDaysLower = array_filter($repetitionDaysLower);
+    
+        // Check if there are any valid days left
+        if (empty($repetitionDaysLower)) {
+            Log::error("No valid repetition days found after filtering.");
+            return;
+        }
     
         $nextExecutionDay = null;
     
@@ -193,4 +203,30 @@ class ExecuteConditionAction implements ShouldQueue
             ->delay($nextExecutionDay);
     }
     
+
+    private function as()
+    {
+        if (!$this->repetitionDays) {
+            Log::info("No repetition specified, job will not be rescheduled.");
+            return;
+        }
+
+        $today = Carbon::now()->format('l');
+        $nextExecutionDay = null;
+
+        foreach ($this->repetitionDays as $day) {
+            if (strtolower($day) === strtolower($today)) {
+                $nextExecutionDay = Carbon::now()->addWeek();
+                break;
+            }
+        }
+
+        if ($nextExecutionDay) {
+            Log::info("Scheduling next execution for case {$this->caseId}", [
+                'next_execution' => $nextExecutionDay,
+            ]);
+            ExecuteConditionAction::dispatch($this->conditionId, $this->caseId, $this->repetitionDays)
+                ->delay($nextExecutionDay);
+        }
+    }
 }
