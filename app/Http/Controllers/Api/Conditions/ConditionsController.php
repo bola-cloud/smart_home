@@ -156,7 +156,7 @@ class ConditionsController extends Controller
         }
     
         $condition = Condition::find($request->id);
-        $updatedCase = $request->cases;
+        $updatedCase = $request->cases[0];
     
         // Decode the existing cases
         $existingCases = json_decode($condition->cases, true);
