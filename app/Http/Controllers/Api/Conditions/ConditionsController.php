@@ -98,37 +98,45 @@ class ConditionsController extends Controller
     {
         $jobId = Str::uuid()->toString();
         $action['case_id'] = $caseId;
+    
+        // Parse delay in "HH:mm" format
+        $delayInSeconds = 0;
+        if (!empty($action['delay'])) {
+            list($hours, $minutes) = explode(':', $action['delay']);
+            $delayInSeconds = ((int)$hours * 3600) + ((int)$minutes * 60);
+        }
+    
         $scheduledTime = null;
-
+    
         foreach ($ifConditions as $condition) {
             if (!empty($condition['time'])) {
                 $scheduledTime = Carbon::parse($condition['time']);
                 break;
             }
         }
-
+    
         if ($scheduledTime) {
             $currentTime = Carbon::now();
-            $delayInSeconds = $currentTime->diffInSeconds($scheduledTime, false);
-
-            if ($delayInSeconds < 0) {
-                $delayInSeconds += 86400;
+            $baseDelay = $currentTime->diffInSeconds($scheduledTime, false);
+    
+            if ($baseDelay < 0) {
+                $baseDelay += 86400; // Handle negative delay for the next day
             }
-
-            $job = ExecuteConditionAction::dispatch($conditionId, $caseId, $repetitionDays)
-                ->delay(now()->addSeconds($delayInSeconds));
+    
+            $job = ExecuteConditionAction::dispatch($conditionId, $caseId, $action, $repetitionDays)
+                ->delay(now()->addSeconds($baseDelay));
         } else {
-            $job = ExecuteConditionAction::dispatch($conditionId, $caseId, $repetitionDays);
+            $job = ExecuteConditionAction::dispatch($conditionId, $caseId, $action, $repetitionDays);
         }
-
+    
         JobTracker::create([
             'job_id' => $jobId,
             'condition_id' => $conditionId,
             'case_id' => $caseId,
         ]);
-
+    
         Log::info("Scheduled job with ID {$jobId} for case {$caseId} in condition {$conditionId}");
-    }
+    }    
 
     public function editCase(Request $request)
     {
