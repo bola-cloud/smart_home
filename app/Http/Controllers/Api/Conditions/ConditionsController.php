@@ -58,17 +58,18 @@ class ConditionsController extends Controller
         $cases = $request->cases;
     
         // Add unique IDs for each case
-        foreach ($cases as &$case) {
-            $case['case_id'] = uniqid();
-        }
-    
+        $cases = array_map(function ($case) {
+            $case['case_id'] = uniqid(); // Assign unique case_id
+            return $case;
+        }, $cases);
+
         // Store the condition in the database
         $condition = Condition::create([
             'user_id' => $user->id,
             'project_id' => $request->project_id,
             'cases' => json_encode($cases),
         ]);
-    
+
         // Schedule actions for each case
         foreach ($cases as $case) {
             $ifConditions = $case['if']['conditions'];
