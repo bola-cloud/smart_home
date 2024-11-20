@@ -156,7 +156,7 @@ class ConditionsController extends Controller
         }
     
         $condition = Condition::find($request->id);
-        $updatedCase = $request->case;
+        $updatedCase = $request->cases;
     
         // Decode the existing cases
         $existingCases = json_decode($condition->cases, true);
@@ -229,8 +229,8 @@ class ConditionsController extends Controller
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
     
-        $condition = Condition::find($request->condition_id);
-        $newCase = $request->case;
+        $condition = Condition::find($request->id);
+        $newCase = $request->cases;
     
         // Assign a unique case ID
         $newCase['case_id'] = uniqid();
