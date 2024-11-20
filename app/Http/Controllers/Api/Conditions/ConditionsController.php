@@ -95,7 +95,7 @@ class ConditionsController extends Controller
     public function editCase(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'condition_id' => 'required|exists:conditions,id',
+            'id' => 'required|exists:conditions,id',
             'case_id' => 'required|string',
             'case.name' => 'required|string|max:256',
             'case.is_active' => 'nullable|boolean',
@@ -118,7 +118,7 @@ class ConditionsController extends Controller
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
     
-        $condition = Condition::find($request->condition_id);
+        $condition = Condition::find($request->id);
         $updatedCase = $request->case;
     
         // Decode the existing cases
