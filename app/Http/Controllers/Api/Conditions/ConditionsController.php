@@ -92,6 +92,42 @@ class ConditionsController extends Controller
         ], 200);
     }
 
+    private function scheduleAction($action, $conditionId, $caseId, $ifConditions, $repetitionDays = null)
+    {
+        $jobId = Str::uuid()->toString();
+        $action['case_id'] = $caseId;
+        $scheduledTime = null;
+
+        foreach ($ifConditions as $condition) {
+            if (!empty($condition['time'])) {
+                $scheduledTime = Carbon::parse($condition['time']);
+                break;
+            }
+        }
+
+        if ($scheduledTime) {
+            $currentTime = Carbon::now();
+            $delayInSeconds = $currentTime->diffInSeconds($scheduledTime, false);
+
+            if ($delayInSeconds < 0) {
+                $delayInSeconds += 86400;
+            }
+
+            $job = ExecuteConditionAction::dispatch($conditionId, $caseId, $repetitionDays)
+                ->delay(now()->addSeconds($delayInSeconds));
+        } else {
+            $job = ExecuteConditionAction::dispatch($conditionId, $caseId, $repetitionDays);
+        }
+
+        JobTracker::create([
+            'job_id' => $jobId,
+            'condition_id' => $conditionId,
+            'case_id' => $caseId,
+        ]);
+
+        Log::info("Scheduled job with ID {$jobId} for case {$caseId} in condition {$conditionId}");
+    }
+
     public function editCase(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -275,42 +311,6 @@ class ConditionsController extends Controller
                 'cases' => $cases, // Return the updated cases for reference
             ],
         ], 200);
-    }
-
-    private function scheduleAction($action, $conditionId, $caseId, $ifConditions, $repetitionDays = null)
-    {
-        $jobId = Str::uuid()->toString();
-        $action['case_id'] = $caseId;
-        $scheduledTime = null;
-
-        foreach ($ifConditions as $condition) {
-            if (!empty($condition['time'])) {
-                $scheduledTime = Carbon::parse($condition['time']);
-                break;
-            }
-        }
-
-        if ($scheduledTime) {
-            $currentTime = Carbon::now();
-            $delayInSeconds = $currentTime->diffInSeconds($scheduledTime, false);
-
-            if ($delayInSeconds < 0) {
-                $delayInSeconds += 86400;
-            }
-
-            $job = ExecuteConditionAction::dispatch($conditionId, $caseId, $repetitionDays)
-                ->delay(now()->addSeconds($delayInSeconds));
-        } else {
-            $job = ExecuteConditionAction::dispatch($conditionId, $caseId, $repetitionDays);
-        }
-
-        JobTracker::create([
-            'job_id' => $jobId,
-            'condition_id' => $conditionId,
-            'case_id' => $caseId,
-        ]);
-
-        Log::info("Scheduled job with ID {$jobId} for case {$caseId} in condition {$conditionId}");
     }
 
     public function index($projectId)
