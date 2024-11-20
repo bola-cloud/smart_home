@@ -108,6 +108,7 @@ class ConditionsController extends Controller
     
         $scheduledTime = null;
     
+        // Check for `time` in `ifConditions`
         foreach ($ifConditions as $condition) {
             if (!empty($condition['time'])) {
                 $scheduledTime = Carbon::parse($condition['time']);
@@ -123,10 +124,12 @@ class ConditionsController extends Controller
                 $baseDelay += 86400; // Handle negative delay for the next day
             }
     
-            $job = ExecuteConditionAction::dispatch($conditionId, $caseId, $action, $repetitionDays)
+            // Pass `repetitionDays` when dispatching
+            $job = ExecuteConditionAction::dispatch($conditionId, $caseId, $repetitionDays)
                 ->delay(now()->addSeconds($baseDelay));
         } else {
-            $job = ExecuteConditionAction::dispatch($conditionId, $caseId, $action, $repetitionDays);
+            // Pass `repetitionDays` even when no scheduled time is set
+            $job = ExecuteConditionAction::dispatch($conditionId, $caseId, $repetitionDays);
         }
     
         JobTracker::create([
@@ -136,7 +139,8 @@ class ConditionsController extends Controller
         ]);
     
         Log::info("Scheduled job with ID {$jobId} for case {$caseId} in condition {$conditionId}");
-    }    
+    }
+      
 
     public function editCase(Request $request)
     {
