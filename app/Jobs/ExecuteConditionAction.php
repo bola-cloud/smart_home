@@ -148,33 +148,39 @@ class ExecuteConditionAction implements ShouldQueue
 
     private function scheduleNext()
     {
-        if (!$this->repetitionDays) {
-            Log::info("No repetition specified, job will not be rescheduled.");
+        if (!$this->repetitionDays || !is_array($this->repetitionDays)) {
+            Log::info("No valid repetition specified, job will not be rescheduled.");
             return;
         }
-
+    
         $currentTime = Carbon::now();
-        $today = strtolower($currentTime->format('l'));
-
-        // Find the next repetition day
+        $today = strtolower($currentTime->format('l')); // Current day of the week in lowercase
+    
+        // Ensure all repetition days are strings and lowercase for comparison
+        $repetitionDaysLower = array_map('strtolower', $this->repetitionDays);
+    
         $nextExecutionDay = null;
-        foreach ($this->repetitionDays as $day) {
-            if (strtolower($day) === $today && $currentTime->isBefore($currentTime->copy()->endOfDay())) {
+    
+        foreach ($repetitionDaysLower as $day) {
+            // Find the next valid day in the repetition list
+            if ($day === $today && $currentTime->isBefore($currentTime->copy()->endOfDay())) {
+                // If today matches and there's time left, schedule for today
                 $nextExecutionDay = $currentTime->addWeek();
                 break;
-            } elseif (strtolower($day) > $today) {
-                $nextExecutionDay = $currentTime->copy()->next(strtolower($day));
+            } elseif ($day > $today) {
+                // Schedule for the next matching day
+                $nextExecutionDay = $currentTime->copy()->next($day);
                 break;
             }
         }
-
-        // If no day found, use the first repetition day in the next week
+    
+        // If no next day is found, use the first repetition day in the next week
         if (!$nextExecutionDay) {
-            $nextExecutionDay = $currentTime->copy()->next(strtolower($this->repetitionDays[0]));
+            $nextExecutionDay = $currentTime->copy()->next($repetitionDaysLower[0]);
         }
-
+    
         Log::info("Scheduling next execution for condition {$this->conditionId}, case {$this->caseId} on {$nextExecutionDay}");
         ExecuteConditionAction::dispatch($this->conditionId, $this->caseId, $this->repetitionDays)
             ->delay($nextExecutionDay);
-    }
+    }    
 }
