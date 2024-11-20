@@ -146,7 +146,7 @@ class ExecuteConditionAction implements ShouldQueue
         }
     }
 
-    private function scheduleNext()
+    private function as()
     {
         if (!$this->repetitionDays || !is_array($this->repetitionDays)) {
             Log::info("No valid repetition specified, job will not be rescheduled.");
@@ -202,9 +202,8 @@ class ExecuteConditionAction implements ShouldQueue
         ExecuteConditionAction::dispatch($this->conditionId, $this->caseId, $this->repetitionDays)
             ->delay($nextExecutionDay);
     }
-    
 
-    private function as()
+    private function scheduleNext()
     {
         if (!$this->repetitionDays) {
             Log::info("No repetition specified, job will not be rescheduled.");
