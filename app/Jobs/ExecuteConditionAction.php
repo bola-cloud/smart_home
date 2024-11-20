@@ -156,8 +156,8 @@ class ExecuteConditionAction implements ShouldQueue
         $currentTime = Carbon::now();
         $today = $currentTime->format('l'); // Get today's name with the first letter capitalized
     
-        // Normalize repetition days to strings with proper case
-        $repetitionDaysLower = array_filter(array_map(function ($day) {
+        // Normalize repetition days to strings and validate
+        $repetitionDaysNormalized = array_filter(array_map(function ($day) {
             if (is_string($day)) {
                 return ucfirst(strtolower(trim($day))); // Normalize to "Monday" format
             }
@@ -165,37 +165,36 @@ class ExecuteConditionAction implements ShouldQueue
             return null;
         }, $this->repetitionDays));
     
-        if (empty($repetitionDaysLower)) {
+        if (empty($repetitionDaysNormalized)) {
             Log::error("No valid repetition days found after filtering.");
             return;
         }
     
+        // Determine the next execution day
         $nextExecutionDay = null;
-    
-        foreach ($repetitionDaysLower as $day) {
-            if ($day === $today && $currentTime->isBefore($currentTime->copy()->endOfDay())) {
-                // If it's today and the execution time is still in the future
-                $nextExecutionDay = $currentTime->addWeek(); // Schedule for the same day next week
+        foreach ($repetitionDaysNormalized as $day) {
+            if ($day === $today) {
+                // If it's today, check if the current time is before the end of the day
+                $nextExecutionDay = $currentTime->copy()->addWeek(); // Schedule for the same day next week
                 break;
-            }
-    
-            // If the day is later in the week, schedule it
-            if (strtotime($day) > strtotime($today)) {
+            } elseif (Carbon::parse($day)->isFuture()) {
+                // If the day is later in the week
                 $nextExecutionDay = $currentTime->copy()->next($day);
                 break;
             }
         }
     
         if (!$nextExecutionDay) {
-            // If no valid day is found, schedule for the first day in the repetition list next week
-            $nextExecutionDay = $currentTime->copy()->next($repetitionDaysLower[0]);
+            // If no valid day is found, schedule for the first day in the repetition list
+            $nextExecutionDay = $currentTime->copy()->next($repetitionDaysNormalized[0]);
         }
     
         Log::info("Scheduling next execution for condition {$this->conditionId}, case {$this->caseId} on {$nextExecutionDay}");
     
         ExecuteConditionAction::dispatch($this->conditionId, $this->caseId, $this->repetitionDays)
             ->delay($nextExecutionDay);
-    }    
+    }
+    
 
     private function as()
     {
