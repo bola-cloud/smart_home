@@ -134,23 +134,22 @@ class ConditionsController extends Controller
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:conditions,id',
             'case_id' => 'required|string',
-            'cases' => 'required|array',
-            'cases.*.name' => 'required|string|max:256',
-            'cases.*.is_active' => 'nullable|boolean',
-            'cases.*.repetition' => 'nullable|array',
-            'cases.*.repetition.*' => 'required|string|in:sunday,monday,tuesday,wednesday,thursday,friday,saturday',
-            'cases.*.if.conditions' => 'required|array',
-            'cases.*.if.logic' => 'required|string|in:AND,OR',
-            'cases.*.if.conditions.*.devices' => 'nullable|array',
-            'cases.*.if.conditions.*.devices.*.component_id' => 'required|exists:components,id',
-            'cases.*.if.conditions.*.devices.*.status' => 'nullable|string',
-            'cases.*.if.conditions.*.time' => 'nullable|date_format:Y-m-d H:i',
-            'cases.*.then.actions' => 'required|array',
-            'cases.*.then.actions.*.devices' => 'required|array|min:1',
-            'cases.*.then.actions.*.devices.*.component_id' => 'required|exists:components,id',
-            'cases.*.then.actions.*.devices.*.action' => 'required|array',
-            'cases.*.then.delay' => 'nullable|date_format:H:i',
-        ]);        
+            'cases.name' => 'required|string|max:256',
+            'cases.is_active' => 'nullable|boolean',
+            'cases.repetition' => 'nullable|array',
+            'cases.repetition.*' => 'required|string|in:sunday,monday,tuesday,wednesday,thursday,friday,saturday',
+            'cases.if.conditions' => 'required|array',
+            'cases.if.logic' => 'required|string|in:AND,OR',
+            'cases.if.conditions.*.devices' => 'nullable|array',
+            'cases.if.conditions.*.devices.*.component_id' => 'required|exists:components,id',
+            'cases.if.conditions.*.devices.*.status' => 'nullable|string',
+            'cases.if.conditions.*.time' => 'nullable|date_format:Y-m-d H:i',
+            'cases.then.actions' => 'required|array',
+            'cases.then.actions.*.devices' => 'required|array|min:1',
+            'cases.then.actions.*.devices.*.component_id' => 'required|exists:components,id',
+            'cases.then.actions.*.devices.*.action' => 'required|array',
+            'cases.then.delay' => 'nullable|date_format:H:i',
+        ]);
     
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
@@ -160,12 +159,7 @@ class ConditionsController extends Controller
         $updatedCase = $request->cases;
     
         // Decode the existing cases
-        $existingCases = json_decode($condition->cases, true) ?? [];
-    
-        // Ensure cases is an array
-        if (!is_array($existingCases)) {
-            $existingCases = [];
-        }
+        $existingCases = json_decode($condition->cases, true);
     
         // Find the index of the case to update
         $caseIndex = null;
@@ -205,7 +199,7 @@ class ConditionsController extends Controller
                 'id' => $condition->id,
                 'user_id' => $condition->user_id,
                 'project_id' => $condition->project_id,
-                'cases' => $existingCases, // Return cases as an array
+                'cases' => json_decode($condition->cases), // Decode cases to include in the response
             ],
         ], 200);
     }    
