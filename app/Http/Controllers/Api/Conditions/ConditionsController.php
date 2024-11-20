@@ -74,7 +74,7 @@ class ConditionsController extends Controller
             $ifConditions = $case['if']['conditions'];
             foreach ($case['then']['actions'] as $action) {
                 $this->scheduleAction($action, $condition->id, $case['case_id'], $ifConditions, $case['repetition'] ?? null);
-                Log::info("scheduleAction with ID case {$case['case_id']} in condition {$conditionId}");
+                Log::info("scheduleAction with ID case {$case['case_id']} in condition {$condition->id}");
             }
         }
     
