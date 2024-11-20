@@ -154,12 +154,12 @@ class ExecuteConditionAction implements ShouldQueue
         }
     
         $currentTime = Carbon::now();
-        $today = strtolower($currentTime->format('l'));
+        $today = $currentTime->format('l'); // Get today's name with the first letter capitalized
     
-        // Normalize repetition days to strings and lowercase
+        // Normalize repetition days to strings with proper case
         $repetitionDaysLower = array_filter(array_map(function ($day) {
             if (is_string($day)) {
-                return strtolower(trim($day));
+                return ucfirst(strtolower(trim($day))); // Normalize to "Monday" format
             }
             Log::error("Invalid repetition day format: " . json_encode($day));
             return null;
@@ -171,27 +171,31 @@ class ExecuteConditionAction implements ShouldQueue
         }
     
         $nextExecutionDay = null;
+    
         foreach ($repetitionDaysLower as $day) {
             if ($day === $today && $currentTime->isBefore($currentTime->copy()->endOfDay())) {
-                $nextExecutionDay = $currentTime->addWeek();
+                // If it's today and the execution time is still in the future
+                $nextExecutionDay = $currentTime->addWeek(); // Schedule for the same day next week
                 break;
             }
     
-            if ($day > $today) {
+            // If the day is later in the week, schedule it
+            if (strtotime($day) > strtotime($today)) {
                 $nextExecutionDay = $currentTime->copy()->next($day);
                 break;
             }
         }
     
         if (!$nextExecutionDay) {
+            // If no valid day is found, schedule for the first day in the repetition list next week
             $nextExecutionDay = $currentTime->copy()->next($repetitionDaysLower[0]);
         }
     
         Log::info("Scheduling next execution for condition {$this->conditionId}, case {$this->caseId} on {$nextExecutionDay}");
+    
         ExecuteConditionAction::dispatch($this->conditionId, $this->caseId, $this->repetitionDays)
             ->delay($nextExecutionDay);
-    }
-    
+    }    
 
     private function as()
     {
