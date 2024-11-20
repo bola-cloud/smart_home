@@ -134,6 +134,7 @@ class ConditionsController extends Controller
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:conditions,id',
             'case_id' => 'required|string',
+            'cases' => 'required|array',
             'cases.*.name' => 'required|string|max:256',
             'cases.*.is_active' => 'nullable|boolean',
             'cases.*.repetition' => 'nullable|array',
@@ -208,6 +209,7 @@ class ConditionsController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:conditions,id',
+            'cases' => 'required|array',
             'cases.*.name' => 'required|string|max:256',
             'cases.*.is_active' => 'nullable|boolean',
             'cases.*.repetition' => 'nullable|array',
