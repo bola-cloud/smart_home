@@ -448,6 +448,14 @@ class ConditionsController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Case and associated jobs deleted successfully',
+            'data' => [
+                [
+                    'id' => $condition->id,
+                    'user_id' => $condition->user_id,
+                    'project_id' => $condition->project_id,
+                    'cases' => json_decode($condition->cases), // Decode cases to include in the response
+                ],
+            ],
         ], 200);
     }    
 
