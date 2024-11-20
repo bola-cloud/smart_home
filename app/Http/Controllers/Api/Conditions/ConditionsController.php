@@ -317,11 +317,6 @@ class ConditionsController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Case inactivated successfully.',
-            'data' => [
-                'condition_id' => $condition->id,
-                'case_id' => $request->case_id,
-                'cases' => $cases, // Return the updated cases for reference
-            ],
         ], 200);
     }
 
