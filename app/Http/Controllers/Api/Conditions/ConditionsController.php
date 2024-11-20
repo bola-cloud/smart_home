@@ -205,10 +205,12 @@ class ConditionsController extends Controller
             'status' => true,
             'message' => 'Case updated successfully and rescheduled.',
             'data' => [
-                'id' => $condition->id,
-                'user_id' => $condition->user_id,
-                'project_id' => $condition->project_id,
-                'cases' => json_decode($condition->cases), // Decode cases to include in the response
+                [
+                    'id' => $condition->id,
+                    'user_id' => $condition->user_id,
+                    'project_id' => $condition->project_id,
+                    'cases' => json_decode($condition->cases), // Decode cases to include in the response
+                ],
             ],
         ], 200);
     }    
