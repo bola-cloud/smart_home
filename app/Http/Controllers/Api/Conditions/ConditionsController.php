@@ -305,7 +305,7 @@ class ConditionsController extends Controller
         }
 
         // Set the `is_active` flag to false for the specified case
-        $cases[$caseIndex]['is_active'] = false;
+        $cases[$caseIndex]['is_active'] = false ? true : false;
 
         // Save the updated cases back to the condition
         $condition->cases = json_encode($cases);
