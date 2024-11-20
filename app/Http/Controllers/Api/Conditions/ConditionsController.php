@@ -134,22 +134,21 @@ class ConditionsController extends Controller
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:conditions,id',
             'case_id' => 'required|string',
-            'cases' => 'required|array',
-            'cases.*.name' => 'required|string|max:256',
-            'cases.*.is_active' => 'nullable|boolean',
-            'cases.*.repetition' => 'nullable|array',
-            'cases.*.repetition.*' => 'required|string|in:sunday,monday,tuesday,wednesday,thursday,friday,saturday',
-            'cases.*.if.conditions' => 'required|array',
-            'cases.*.if.logic' => 'required|string|in:AND,OR',
-            'cases.*.if.conditions.*.devices' => 'nullable|array',
-            'cases.*.if.conditions.*.devices.*.component_id' => 'required|exists:components,id',
-            'cases.*.if.conditions.*.devices.*.status' => 'nullable|string',
-            'cases.*.if.conditions.*.time' => 'nullable|date_format:Y-m-d H:i',
-            'cases.*.then.actions' => 'required|array',
-            'cases.*.then.actions.*.devices' => 'required|array|min:1',
-            'cases.*.then.actions.*.devices.*.component_id' => 'required|exists:components,id',
-            'cases.*.then.actions.*.devices.*.action' => 'required|array',
-            'cases.*.then.delay' => 'nullable|date_format:H:i',
+            'cases.name' => 'required|string|max:256',
+            'cases.is_active' => 'nullable|boolean',
+            'cases.repetition' => 'nullable|array',
+            'cases.repetition.*' => 'required|string|in:sunday,monday,tuesday,wednesday,thursday,friday,saturday',
+            'cases.if.conditions' => 'required|array',
+            'cases.if.logic' => 'required|string|in:AND,OR',
+            'cases.if.conditions.*.devices' => 'nullable|array',
+            'cases.if.conditions.*.devices.*.component_id' => 'required|exists:components,id',
+            'cases.if.conditions.*.devices.*.status' => 'nullable|string',
+            'cases.if.conditions.*.time' => 'nullable|date_format:Y-m-d H:i',
+            'cases.then.actions' => 'required|array',
+            'cases.then.actions.*.devices' => 'required|array|min:1',
+            'cases.then.actions.*.devices.*.component_id' => 'required|exists:components,id',
+            'cases.then.actions.*.devices.*.action' => 'required|array',
+            'cases.then.delay' => 'nullable|date_format:H:i',
         ]);
     
         if ($validator->fails()) {
@@ -157,16 +156,7 @@ class ConditionsController extends Controller
         }
     
         $condition = Condition::find($request->id);
-    
-        // Locate the specific case to update from the request's cases array
-        $updatedCase = collect($request->cases)->firstWhere('case_id', $request->case_id);
-    
-        if (!$updatedCase) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Case not found in the provided cases array.',
-            ], 404);
-        }
+        $updatedCase = $request->cases;
     
         // Decode the existing cases
         $existingCases = json_decode($condition->cases, true);
@@ -212,28 +202,27 @@ class ConditionsController extends Controller
                 'cases' => json_decode($condition->cases), // Decode cases to include in the response
             ],
         ], 200);
-    }      
+    }    
 
     public function addCase(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:conditions,id',
-            'cases' => 'required|array',
-            'cases.*.name' => 'required|string|max:256',
-            'cases.*.is_active' => 'nullable|boolean',
-            'cases.*.repetition' => 'nullable|array',
-            'cases.*.repetition.*' => 'required|string|in:sunday,monday,tuesday,wednesday,thursday,friday,saturday',
-            'cases.*.if.conditions' => 'required|array',
-            'cases.*.if.logic' => 'required|string|in:AND,OR',
-            'cases.*.if.conditions.*.devices' => 'nullable|array',
-            'cases.*.if.conditions.*.devices.*.component_id' => 'required|exists:components,id',
-            'cases.*.if.conditions.*.devices.*.status' => 'nullable|string',
-            'cases.*.if.conditions.*.time' => 'nullable|date_format:Y-m-d H:i',
-            'cases.*.then.actions' => 'required|array',
-            'cases.*.then.actions.*.devices' => 'required|array|min:1',
-            'cases.*.then.actions.*.devices.*.component_id' => 'required|exists:components,id',
-            'cases.*.then.actions.*.devices.*.action' => 'required|array',
-            'cases.*.then.delay' => 'nullable|date_format:H:i',
+            'cases.name' => 'required|string|max:256',
+            'cases.is_active' => 'nullable|boolean',
+            'cases.repetition' => 'nullable|array',
+            'cases.repetition.*' => 'required|string|in:sunday,monday,tuesday,wednesday,thursday,friday,saturday',
+            'cases.if.conditions' => 'required|array',
+            'cases.if.logic' => 'required|string|in:AND,OR',
+            'cases.if.conditions.*.devices' => 'nullable|array',
+            'cases.if.conditions.*.devices.*.component_id' => 'required|exists:components,id',
+            'cases.if.conditions.*.devices.*.status' => 'nullable|string',
+            'cases.if.conditions.*.time' => 'nullable|date_format:Y-m-d H:i',
+            'cases.then.actions' => 'required|array',
+            'cases.then.actions.*.devices' => 'required|array|min:1',
+            'cases.then.actions.*.devices.*.component_id' => 'required|exists:components,id',
+            'cases.then.actions.*.devices.*.action' => 'required|array',
+            'cases.then.delay' => 'nullable|date_format:H:i',
         ]);
     
         if ($validator->fails()) {
