@@ -157,7 +157,16 @@ class ConditionsController extends Controller
         }
     
         $condition = Condition::find($request->id);
-        $updatedCase = $request->cases;
+    
+        // Locate the specific case to update from the request's cases array
+        $updatedCase = collect($request->cases)->firstWhere('case_id', $request->case_id);
+    
+        if (!$updatedCase) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Case not found in the provided cases array.',
+            ], 404);
+        }
     
         // Decode the existing cases
         $existingCases = json_decode($condition->cases, true);
@@ -203,7 +212,7 @@ class ConditionsController extends Controller
                 'cases' => json_decode($condition->cases), // Decode cases to include in the response
             ],
         ], 200);
-    }    
+    }      
 
     public function addCase(Request $request)
     {
