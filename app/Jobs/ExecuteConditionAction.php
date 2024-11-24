@@ -59,7 +59,7 @@ class ExecuteConditionAction implements ShouldQueue
             // Execute each action in the `then` block with specified delays
             foreach ($case['then']['actions'] as $action) {
                 foreach ($action['devices'] as $device) {
-                    $this->executeActionWithDelay($device, $action['delay'] ?? '00:00');
+                    $this->executeActionWithDelay($device, $case['then']['delay'] ?? '00:00');
                 }
             }
         } else {
