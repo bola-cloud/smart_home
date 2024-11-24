@@ -59,8 +59,8 @@ class ExecuteConditionAction implements ShouldQueue
             Log::info("All 'if' conditions met for case {$this->caseId} in condition {$this->conditionId}");
 
             // Apply delay only if this is not already a delayed job
+            $delay = $case['then']['delay'] ?? '00:00';
             if (!$this->isDelayed) {
-                $delay = $case['then']['delay'] ?? '00:00';
                 $this->dispatchDelayedJob($delay);
                 return; // Exit as the delayed job will handle the execution
             }
@@ -131,11 +131,15 @@ class ExecuteConditionAction implements ShouldQueue
         list($hours, $minutes) = explode(':', $delay);
         $delayInSeconds = ((int)$hours * 3600) + ((int)$minutes * 60);
 
-        if ($delayInSeconds > 0) {
-            Log::info("Dispatching delayed job for condition {$this->conditionId}, case {$this->caseId} by {$delayInSeconds} seconds.");
-            ExecuteConditionAction::dispatch($this->conditionId, $this->caseId, $this->repetitionDays, true)
-                ->delay(now()->addSeconds($delayInSeconds));
+        if ($delayInSeconds === 0) {
+            Log::info("No delay required (delay: {$delay}). Proceeding immediately.");
+            ExecuteConditionAction::dispatch($this->conditionId, $this->caseId, $this->repetitionDays, true);
+            return;
         }
+
+        Log::info("Dispatching delayed job for condition {$this->conditionId}, case {$this->caseId} by {$delayInSeconds} seconds.");
+        ExecuteConditionAction::dispatch($this->conditionId, $this->caseId, $this->repetitionDays, true)
+            ->delay(now()->addSeconds($delayInSeconds));
     }
 
     private function executeAction($device)
