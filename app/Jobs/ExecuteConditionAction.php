@@ -19,19 +19,21 @@ class ExecuteConditionAction implements ShouldQueue
     public $conditionId;
     public $caseId;
     public $repetitionDays;
+    public $isDelayed; // Flag to indicate if this is already a delayed job
 
-    public function __construct($conditionId, $caseId, $repetitionDays = null)
+    public function __construct($conditionId, $caseId, $repetitionDays = null, $isDelayed = false)
     {
         $this->conditionId = $conditionId;
         $this->caseId = $caseId;
         $this->repetitionDays = $repetitionDays;
+        $this->isDelayed = $isDelayed; // Initialize the flag
 
-        Log::info("Job created for condition {$conditionId}, case {$caseId}");
+        Log::info("Job created for condition {$conditionId}, case {$caseId}, isDelayed: " . ($isDelayed ? 'true' : 'false'));
     }
 
     public function handle()
     {
-        Log::info("Job handling started for condition {$this->conditionId}, case {$this->caseId}");
+        Log::info("Job handling started for condition {$this->conditionId}, case {$this->caseId}, isDelayed: " . ($this->isDelayed ? 'true' : 'false'));
 
         // Retrieve condition and locate specific case by caseId
         $condition = Condition::find($this->conditionId);
@@ -56,9 +58,12 @@ class ExecuteConditionAction implements ShouldQueue
         if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
             Log::info("All 'if' conditions met for case {$this->caseId} in condition {$this->conditionId}");
 
-            // Apply delay once before executing all actions
-            $delay = $case['then']['delay'] ?? '00:00';
-            $this->applyDelay($delay);
+            // Apply delay only if this is not already a delayed job
+            if (!$this->isDelayed) {
+                $delay = $case['then']['delay'] ?? '00:00';
+                $this->dispatchDelayedJob($delay);
+                return; // Exit as the delayed job will handle the execution
+            }
 
             // Execute all actions in the `then` block
             foreach ($case['then']['actions'] as $action) {
@@ -120,16 +125,16 @@ class ExecuteConditionAction implements ShouldQueue
         return $logic === 'AND' ? !in_array(false, $results, true) : in_array(true, $results, true);
     }
 
-    private function applyDelay($delay)
+    private function dispatchDelayedJob($delay)
     {
         // Parse delay
         list($hours, $minutes) = explode(':', $delay);
         $delayInSeconds = ((int)$hours * 3600) + ((int)$minutes * 60);
 
-        // Log the delay
         if ($delayInSeconds > 0) {
-            Log::info("Delaying execution by {$delayInSeconds} seconds (delay: {$delay})");
-            sleep($delayInSeconds);
+            Log::info("Dispatching delayed job for condition {$this->conditionId}, case {$this->caseId} by {$delayInSeconds} seconds.");
+            ExecuteConditionAction::dispatch($this->conditionId, $this->caseId, $this->repetitionDays, true)
+                ->delay(now()->addSeconds($delayInSeconds));
         }
     }
 
