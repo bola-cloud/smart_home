@@ -108,6 +108,7 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     Route::post('/inactivate-case', [ConditionsController::class, 'inactivateCase']);
 
     Route::post('/ir/attach/file', [IrCodeController::class, 'attachFilePaths']);
+    Route::post('/create/device-file', [IrCodeController::class, 'createDeviceFile']);
     Route::post('/ir/deattach', [IrCodeController::class, 'deattachFilePaths']);
 
     Route::get('/products', [ProductController::class, 'index']);
