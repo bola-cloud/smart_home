@@ -32,44 +32,45 @@ class ExecuteConditionAction implements ShouldQueue
     public function handle()
     {
         Log::info("Job handling started for condition {$this->conditionId}, case {$this->caseId}");
-
+    
         // Retrieve condition and locate specific case by caseId
         $condition = Condition::find($this->conditionId);
         if (!$condition) {
             Log::error("Condition {$this->conditionId} not found.");
             return;
         }
-
+    
         $cases = json_decode($condition->cases, true);
         $case = collect($cases)->firstWhere('case_id', $this->caseId);
-
+    
         // Verify case existence and status
         if (!$case || !$case['is_active']) {
             Log::info("Case {$this->caseId} is inactive or not found; skipping execution.");
             return;
         }
-
+    
         // Evaluate `if` conditions
         $ifConditions = $case['if']['conditions'] ?? [];
         $ifLogic = $case['if']['logic'] ?? 'OR';
-
+    
         if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
             Log::info("All 'if' conditions met for case {$this->caseId} in condition {$this->conditionId}");
-
+    
             // Execute each action in the `then` block with specified delays
             foreach ($case['then']['actions'] as $action) {
                 foreach ($action['devices'] as $device) {
+                    // Execute with delay
                     $this->executeActionWithDelay($device, $case['then']['delay'] ?? '00:00');
                 }
             }
         } else {
             Log::info("One or more 'if' conditions failed for case {$this->caseId} in condition {$this->conditionId}");
         }
-
-        // Schedule next execution if `repetitionDays` is specified
+    
+        // Only schedule the next execution if repetition days are set
         $this->scheduleNext();
         Log::info("Job handling completed for condition {$this->conditionId}, case {$this->caseId}");
-    }
+    }    
 
     private function evaluateIfConditions($conditions, $logic)
     {
@@ -121,17 +122,16 @@ class ExecuteConditionAction implements ShouldQueue
         // Parse delay
         list($hours, $minutes) = explode(':', $delay);
         $delayInSeconds = ((int)$hours * 3600) + ((int)$minutes * 60);
+    
+        // Log the delay calculation
         Log::info("Delaying {$delay} by {$delayInSeconds} seconds");
-
-        // Delay execution
-        if ($delayInSeconds > 0) {
-            Log::info("Delaying action for component {$device['component_id']} by {$delayInSeconds} seconds");
-            sleep($delayInSeconds);
-        }
-
-        // Execute action
-        $this->executeAction($device);
-    }
+    
+        // Dispatch a new job for delayed execution
+        ExecuteConditionAction::dispatch($this->conditionId, $this->caseId, $this->repetitionDays)
+            ->delay(now()->addSeconds($delayInSeconds));
+    
+        Log::info("Dispatched delayed execution for component {$device['component_id']} by {$delayInSeconds} seconds");
+    }    
 
     private function executeAction($device)
     {
@@ -178,7 +178,7 @@ class ExecuteConditionAction implements ShouldQueue
                 // If it's today, check if the current time is before the end of the day
                 $nextExecutionDay = $currentTime->copy()->addWeek(); // Schedule for the same day next week
                 break;
-            } elseif (Carbon::parse($day)->isFuture()) {
+            } elseif (Carbon::now()->lt(Carbon::parse($day))) {
                 // If the day is later in the week
                 $nextExecutionDay = $currentTime->copy()->next($day);
                 break;
@@ -196,7 +196,6 @@ class ExecuteConditionAction implements ShouldQueue
             ->delay($nextExecutionDay);
     }
     
-
     private function as()
     {
         if (!$this->repetitionDays) {
