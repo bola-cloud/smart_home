@@ -56,11 +56,11 @@ class ExecuteConditionAction implements ShouldQueue
         if ($this->evaluateIfConditions($ifConditions, $ifLogic)) {
             Log::info("All 'if' conditions met for case {$this->caseId} in condition {$this->conditionId}");
 
-            // Apply delay before executing actions
+            // Apply delay once before executing all actions
             $delay = $case['then']['delay'] ?? '00:00';
             $this->applyDelay($delay);
 
-            // Execute each action in the `then` block
+            // Execute all actions in the `then` block
             foreach ($case['then']['actions'] as $action) {
                 foreach ($action['devices'] as $device) {
                     $this->executeAction($device);
@@ -178,7 +178,7 @@ class ExecuteConditionAction implements ShouldQueue
                 // If it's today, schedule for the same day next week
                 $nextExecutionDay = $currentTime->copy()->addWeek();
                 break;
-            } elseif (Carbon::now()->lt(Carbon::parse($day))) {
+            } elseif ($currentTime->lt(Carbon::parse($day))) {
                 // If the day is later in the week
                 $nextExecutionDay = $currentTime->copy()->next($day);
                 break;
