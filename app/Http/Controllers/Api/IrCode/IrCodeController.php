@@ -270,6 +270,6 @@ class IrCodeController extends Controller
             'status' => true,
             'message' => 'File created successfully.',
             'file_path' => $filePath,
-        ], 201);
+        ], 200);
     }
 }
