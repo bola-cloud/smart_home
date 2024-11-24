@@ -59,8 +59,8 @@ class ExecuteConditionAction implements ShouldQueue
             // Execute each action in the `then` block with specified delays
             foreach ($case['then']['actions'] as $action) {
                 foreach ($action['devices'] as $device) {
-                    // Execute action with delay
-                    $this->executeActionWithDelay($device, $action['delay'] ?? '00:00', $case['then']['logic'] ?? 'AND');
+                    // Calculate the exact time when the action should occur by applying delay
+                    $this->executeActionWithDelay($device, $action['delay'] ?? '00:00');
                 }
             }
         } else {
@@ -70,8 +70,7 @@ class ExecuteConditionAction implements ShouldQueue
         // Schedule next execution if `repetitionDays` is specified
         $this->scheduleNext();
         Log::info("Job handling completed for condition {$this->conditionId}, case {$this->caseId}");
-    }
-    
+    }    
 
     private function evaluateIfConditions($conditions, $logic)
     {
@@ -120,34 +119,39 @@ class ExecuteConditionAction implements ShouldQueue
 
     private function executeActionWithDelay($device, $delay)
     {
-        // Parse delay
+        // Parse the delay into hours and minutes
         list($hours, $minutes) = explode(':', $delay);
         $delayInSeconds = ((int)$hours * 3600) + ((int)$minutes * 60);
-
-        // Delay execution
+    
+        // Get the original action time from the `then` block (if available)
+        $actionTime = Carbon::parse('2024-11-24 12:22');  // Replace with the actual action time from the data
+    
+        // Add the delay to the action time
+        $actionTime->addSeconds($delayInSeconds);
+    
+        // Log the adjusted action time
+        Log::info("Scheduled action for component {$device['component_id']} at {$actionTime} (after delay)");
+    
+        // Wait for the delay before executing the action
         if ($delayInSeconds > 0) {
             Log::info("Delaying action for component {$device['component_id']} by {$delayInSeconds} seconds");
-            sleep($delayInSeconds);
+            sleep($delayInSeconds);  // Delays the execution
         }
-
-        // Execute action
-        $this->executeAction($device);
-    }
+    
+        // Execute action at the adjusted time
+        $this->executeAction($device, $actionTime);
+    }    
 
     private function executeAction($device, $actionTime)
     {
         $component = Component::find($device['component_id']);
         if ($component) {
             $component->update(['type' => "updated_type"]);
-            Log::info("Executed action for component", [
-                'component_id' => $device['component_id'],
-                'action' => $device['action'],
-                'scheduled_time' => $actionTime
-            ]);
+            Log::info("Executed action for component {$device['component_id']} at {$actionTime}");
         } else {
             Log::error("Component with ID {$device['component_id']} not found for action execution");
         }
-    }    
+    }      
 
     private function scheduleNext()
     {
