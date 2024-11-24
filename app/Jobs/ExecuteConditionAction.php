@@ -121,6 +121,7 @@ class ExecuteConditionAction implements ShouldQueue
         // Parse delay
         list($hours, $minutes) = explode(':', $delay);
         $delayInSeconds = ((int)$hours * 3600) + ((int)$minutes * 60);
+        Log::info("Delaying {$delay} by {$delayInSeconds} seconds");
 
         // Delay execution
         if ($delayInSeconds > 0) {
