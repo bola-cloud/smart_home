@@ -45,33 +45,51 @@ class IrCodeController extends Controller
     // Get all files for a specific brand under a device type
     public function getFiles($deviceType, $brand)
     {
-        $brandPath = $this->basePath . '/' . $deviceType . '/' . $brand;
-        if (!File::exists($brandPath)) {
+        $directoryPath = $this->basePath . '/' . $deviceType . '/' . $brand;
+    
+        // Check if the directory exists
+        if (!File::exists($directoryPath)) {
             return response()->json(['error' => 'Brand not found'], 404);
         }
-
-        $files = File::files($brandPath);
-        $fileNames = array_map(function ($file) {
-            return $file->getFilename();
+    
+        // Get all files in the directory
+        $files = File::files($directoryPath);
+    
+        // Prepare the response with the user-added flag
+        $fileList = array_map(function ($file) {
+            return [
+                'file_name' => $file->getFilename(),
+                'is_user_added' => strpos($file->getFilename(), 'user_') === 0, // Check if file name starts with 'user_'
+            ];
         }, $files);
-
-        return response()->json($fileNames);
-    }
+    
+        return response()->json($fileList);
+    }    
 
     // Get contents of a specific IR file
-    public function getFileContent($deviceType, $brand, $filename)
+    public function getFileContent($deviceType, $brand, $fileName)
     {
-        $filePath = $this->basePath . '/' . $deviceType . '/' . $brand . '/' . $filename;
-
+        $filePath = $this->basePath . '/' . $deviceType . '/' . $brand . '/' . $fileName;
+    
+        // Check if the file exists
         if (!File::exists($filePath)) {
             return response()->json(['error' => 'File not found'], 404);
         }
-
+    
+        // Get the file content
         $fileContent = File::get($filePath);
-        $buttons = $this->parseIRFile($fileContent);
-
-        return response()->json(['filename' => $filename, 'buttons' => $buttons]);
+    
+        // Determine if the file is user-added
+        $isUserAdded = strpos($fileName, 'user_') === 0;
+    
+        // Return the file content with the flag
+        return response()->json([
+            'file_name' => $fileName,
+            'is_user_added' => $isUserAdded,
+            'content' => $fileContent,
+        ]);
     }
+    
 
     /**
      * Parses the contents of an IR file into structured JSON data.
@@ -106,35 +124,30 @@ class IrCodeController extends Controller
     // Get contents of all IR files within a specific brand under a device type
     public function getAllFilesContent($deviceType, $brand)
     {
-        $brandPath = $this->basePath . '/' . $deviceType . '/' . $brand;
-
+        $directoryPath = $this->basePath . '/' . $deviceType . '/' . $brand;
+    
         // Check if the brand directory exists
-        if (!File::exists($brandPath)) {
+        if (!File::exists($directoryPath)) {
             return response()->json(['error' => 'Brand not found'], 404);
         }
-
-        // Initialize an array to hold the files and their content
+    
+        $files = File::files($directoryPath);
         $allFilesContent = [];
-
-        // Loop through each file in the brand directory
-        $files = File::files($brandPath);
+    
         foreach ($files as $file) {
-            $filename = $file->getFilename();
+            $fileName = $file->getFilename();
             $fileContent = File::get($file->getPathname());
-
-            // Parse the file content to get button data
-            $buttons = $this->parseIRFile($fileContent);
-
-            // Add the file's content to the result array
+    
+            // Add the file content and flag
             $allFilesContent[] = [
-                'filename' => $filename,
-                'buttons' => $buttons
+                'file_name' => $fileName,
+                'is_user_added' => strpos($fileName, 'user_') === 0, // Check file name prefix
+                'content' => $fileContent,
             ];
         }
-
-        // Return all files with their parsed content as JSON
+    
         return response()->json($allFilesContent);
-    }
+    }    
 
     public function attachFilePaths(Request $request)
     {
@@ -221,7 +234,6 @@ class IrCodeController extends Controller
             'brand_name' => 'required|string', // Example: Amazon
             'file_name' => 'required|string', // Example: FireTV_Omni_Series_4K.ir
             'file_content' => 'required|string', // File content
-            'is_user_added' => 'required|boolean', // Flag to indicate user-added file
         ]);
     
         if ($validator->fails()) {
@@ -235,13 +247,8 @@ class IrCodeController extends Controller
         $deviceType = $decodedData['device'];
         $brandName = $decodedData['brand_name'];
         $fileName = $decodedData['file_name'];
-        $fileContent = $decodedData['file_content'];
-        $isUserAdded = $decodedData['is_user_added'];
-    
-        // Add a prefix to the file name if it's user-added
-        if ($isUserAdded) {
-            $fileName = 'user_' . $fileName;
-        }
+        $fileContent = $decodedData['file_content'];    
+        $fileName = 'user_' . $fileName;
     
         // Construct the directory path
         $directoryPath = $this->basePath . '/' . $deviceType . '/' . $brandName;
