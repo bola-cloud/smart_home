@@ -214,31 +214,38 @@ class IrCodeController extends Controller
     {
         // Decode the JSON input
         $decodedData = json_decode($request->getContent(), true);
-
+    
         // Validate the required fields
         $validator = \Validator::make($decodedData, [
             'device' => 'required|string', // Example: TVs, ACs
             'brand_name' => 'required|string', // Example: Amazon
             'file_name' => 'required|string', // Example: FireTV_Omni_Series_4K.ir
             'file_content' => 'required|string', // File content
+            'is_user_added' => 'required|boolean', // Flag to indicate user-added file
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
                 'errors' => $validator->errors()
             ], 400);
         }
-
+    
         // Extract validated data
         $deviceType = $decodedData['device'];
         $brandName = $decodedData['brand_name'];
         $fileName = $decodedData['file_name'];
         $fileContent = $decodedData['file_content'];
-
+        $isUserAdded = $decodedData['is_user_added'];
+    
+        // Add a prefix to the file name if it's user-added
+        if ($isUserAdded) {
+            $fileName = 'user_' . $fileName;
+        }
+    
         // Construct the directory path
         $directoryPath = $this->basePath . '/' . $deviceType . '/' . $brandName;
-
+    
         // Check if the device type directory exists
         if (!File::exists($this->basePath . '/' . $deviceType)) {
             return response()->json([
@@ -246,15 +253,15 @@ class IrCodeController extends Controller
                 'message' => 'Device type does not exist.',
             ], 404);
         }
-
+    
         // Ensure the brand directory exists
         if (!File::exists($directoryPath)) {
             File::makeDirectory($directoryPath, 0755, true); // Create folders recursively
         }
-
+    
         // Define the full file path
         $filePath = $directoryPath . '/' . $fileName;
-
+    
         // Check if the file already exists
         if (File::exists($filePath)) {
             return response()->json([
@@ -262,13 +269,14 @@ class IrCodeController extends Controller
                 'message' => 'File already exists.'
             ], 400);
         }
-
+    
         // Save the file content
         File::put($filePath, $fileContent);
-
+    
         return response()->json([
             'status' => true,
             'message' => 'File created successfully.',
-        ], 200);
-    }
+            'file_path' => 'storage/irdata/' . $deviceType . '/' . $brandName . '/' . $fileName,
+        ], 201);
+    }    
 }

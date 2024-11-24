@@ -47,8 +47,14 @@ class ExecuteConditionAction implements ShouldQueue
 
         // Verify case existence and status
         if (!$case || !$case['is_active']) {
-            Log::info("Case {$this->caseId} is inactive or not found; skipping execution.");
-            return;
+            Log::info("Case {$this->caseId} is inactive. Rescheduling for next repetition.");
+
+            // Schedule the next execution if repetition days are defined
+            if (!empty($this->repetitionDays)) {
+                $this->scheduleNext();
+            }
+
+            return; // Skip execution for inactive case
         }
 
         // Evaluate `if` conditions
