@@ -269,7 +269,7 @@ class IrCodeController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'File created successfully.',
-            'file_path' => $filePath,
+            'file_path' => 'storage/irdata/' . $deviceType . '/' . $brandName . '/' . $fileName,
         ], 200);
     }
 }
