@@ -276,10 +276,10 @@ class IrCodeController extends Controller
                 'message' => 'File already exists.'
             ], 400);
         }
-    
+        dd($filePath);
         // Save the file content
         File::put($filePath, $fileContent);
-    
+        
         return response()->json([
             'status' => true,
             'message' => 'File created successfully.',
