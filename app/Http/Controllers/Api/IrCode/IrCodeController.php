@@ -330,7 +330,7 @@ class IrCodeController extends Controller
             'status' => true,
             'message' => $isNewFile ? 'File created successfully.' : 'Buttons added successfully.',
             'file_path' => 'storage/irdata/' . $deviceType . '/' . $brandName . '/' . $fileName,
-        ], 201);
+        ], 200);
     }
     
 }
