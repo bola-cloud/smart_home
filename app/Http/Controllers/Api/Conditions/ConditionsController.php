@@ -140,7 +140,6 @@ class ConditionsController extends Controller
     
         Log::info("Scheduled job with ID {$jobId} for case {$caseId} in condition {$conditionId}");
     }
-      
 
     public function editCase(Request $request)
     {
