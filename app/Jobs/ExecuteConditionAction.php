@@ -119,6 +119,7 @@ class ExecuteConditionAction implements ShouldQueue
 
     private function executeActionWithDelay($device, $delay)
     {
+        Log::info("executeActionWithDelay");
         // Parse the delay into hours and minutes
         list($hours, $minutes) = explode(':', $delay);
         $delayInSeconds = ((int)$hours * 3600) + ((int)$minutes * 60);
@@ -144,6 +145,7 @@ class ExecuteConditionAction implements ShouldQueue
 
     private function executeAction($device, $actionTime)
     {
+        Log::info("executeAction");
         $component = Component::find($device['component_id']);
         if ($component) {
             $component->update(['type' => "updated_type"]);
