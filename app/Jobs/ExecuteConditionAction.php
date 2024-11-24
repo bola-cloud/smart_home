@@ -67,10 +67,10 @@ class ExecuteConditionAction implements ShouldQueue
             Log::info("One or more 'if' conditions failed for case {$this->caseId} in condition {$this->conditionId}");
         }
     
-        // Only schedule the next execution if repetition days are set
+        // Schedule next execution if `repetitionDays` is specified
         $this->scheduleNext();
         Log::info("Job handling completed for condition {$this->conditionId}, case {$this->caseId}");
-    }    
+    }      
 
     private function evaluateIfConditions($conditions, $logic)
     {
@@ -124,14 +124,16 @@ class ExecuteConditionAction implements ShouldQueue
         $delayInSeconds = ((int)$hours * 3600) + ((int)$minutes * 60);
     
         // Log the delay calculation
-        Log::info("Delaying {$delay} by {$delayInSeconds} seconds");
+        Log::info("Delaying action for component {$device['component_id']} by {$delayInSeconds} seconds");
     
-        // Dispatch a new job for delayed execution
-        ExecuteConditionAction::dispatch($this->conditionId, $this->caseId, $this->repetitionDays)
-            ->delay(now()->addSeconds($delayInSeconds));
+        // Delay the execution
+        if ($delayInSeconds > 0) {
+            sleep($delayInSeconds);
+        }
     
-        Log::info("Dispatched delayed execution for component {$device['component_id']} by {$delayInSeconds} seconds");
-    }    
+        // Execute action after the delay
+        $this->executeAction($device);
+    }     
 
     private function executeAction($device)
     {
@@ -145,7 +147,7 @@ class ExecuteConditionAction implements ShouldQueue
         } else {
             Log::error("Component with ID {$device['component_id']} not found for action execution");
         }
-    }
+    }    
 
     private function scheduleNext()
     {
