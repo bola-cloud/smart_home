@@ -122,7 +122,7 @@ class ExecuteConditionAction implements ShouldQueue
         // Parse the delay into hours and minutes
         list($hours, $minutes) = explode(':', $delay);
         $delayInSeconds = ((int)$hours * 3600) + ((int)$minutes * 60);
-    
+        Log::info("delay at {$delayInSeconds} ");
         // Get the original action time from the `then` block (if available)
         $actionTime = Carbon::parse('2024-11-24 12:22');  // Replace with the actual action time from the data
     
