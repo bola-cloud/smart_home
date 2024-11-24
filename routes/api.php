@@ -120,4 +120,4 @@ Route::get('/{deviceType}/{brand}/files', [IrCodeController::class, 'getFiles'])
 Route::get('/{deviceType}/{brand}/{filename}', [IrCodeController::class, 'getFileContent']);
 // Route for retrieving all files with content
 Route::get('/ircode/files/content/{deviceType}/{brand}', [IrCodeController::class, 'getAllFilesContent']);
-Route::get('/create/device-file', [IrCodeController::class, 'createDeviceFile']);
+Route::post('/create/device-file', [IrCodeController::class, 'createDeviceFile']);
