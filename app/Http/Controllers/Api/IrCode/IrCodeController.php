@@ -86,7 +86,7 @@ class IrCodeController extends Controller
         return response()->json([
             'file_name' => $fileName,
             'is_user_added' => $isUserAdded,
-            'content' => json_decode($fileContent),
+            'content' => json_encode($fileContent),
         ]);
     }
     
