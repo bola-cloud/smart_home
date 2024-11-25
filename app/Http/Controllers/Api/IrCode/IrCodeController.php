@@ -329,7 +329,7 @@ class IrCodeController extends Controller
             }
     
             $component->update([
-                'file_path' => 'storage/irdata/' . $deviceType . '/' . $brandName . '/' . $fileName,
+                'file_path' => $deviceType . '/' . $brandName . '/' . $fileName,
                 'manual' => true,
             ]);
         }
