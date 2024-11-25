@@ -232,7 +232,7 @@ class IrCodeController extends Controller
         $validator = \Validator::make($decodedData, [
             'device' => 'required|string', // Example: TVs, ACs
             'brand_name' => 'required|string', // Example: Amazon
-            'name' => 'required|string', // Example: FireTV_Omni_Series_4K.ir
+            'name' => 'required|string', // Example: Component name (used to generate file name)
             'file_content' => 'nullable|string', // File content for new files
             'buttons' => 'nullable|array', // Buttons to add to the file
             'is_new_file' => 'required|boolean', // Flag for new file creation
@@ -249,11 +249,14 @@ class IrCodeController extends Controller
         // Extract validated data
         $deviceType = $decodedData['device'];
         $brandName = $decodedData['brand_name'];
-        $fileName = $decodedData['name'];
+        $componentName = $decodedData['name']; // Component name
         $isNewFile = $decodedData['is_new_file'];
         $fileContent = $decodedData['file_content'] ?? '';
         $buttons = $decodedData['buttons'] ?? [];
         $componentId = $decodedData['component_id'];
+    
+        // Generate a file name based on the component name
+        $fileName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $componentName) . '.ir'; // Replace invalid characters with '_'
     
         // Construct the directory path
         $directoryPath = $this->basePath . '/' . $deviceType . '/' . $brandName;
@@ -323,14 +326,14 @@ class IrCodeController extends Controller
             if (!$component) {
                 return response()->json(['message' => 'Component not found.'], 404);
             }
-            // dd($component->device->user_id,Auth::user()->id);
+    
             if (!Auth::check() || $component->device->user_id != Auth::user()->id) {
                 return response()->json(['error' => 'You do not have permission to attach this file.'], 403);
             }
     
             $component->update([
                 'file_path' => $deviceType . '/' . $brandName . '/' . $fileName,
-                'name' => $fileName,
+                'name' => $componentName,
                 'manual' => true,
             ]);
         }
@@ -340,5 +343,6 @@ class IrCodeController extends Controller
             'message' => $isNewFile ? 'File created successfully with commands.' : 'Buttons added successfully.',
             'file_path' => $deviceType . '/' . $brandName . '/' . $fileName,
         ], 200);
-    }    
+    }
+    
 }
