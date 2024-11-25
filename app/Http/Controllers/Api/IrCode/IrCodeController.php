@@ -315,9 +315,9 @@ class IrCodeController extends Controller
                 return response()->json(['message' => 'Component not found.'], 404);
             }
     
-            if (!Auth::check() || $component->device->user_id != Auth::user()->id) {
-                return response()->json(['error' => 'You do not have permission to attach this file.'], 403);
-            }
+            // if (!Auth::check() || $component->device->user_id != Auth::user()->id) {
+            //     return response()->json(['error' => 'You do not have permission to attach this file.'], 403);
+            // }
     
             $component->update([
                 'file_path' => 'storage/irdata/' . $deviceType . '/' . $brandName . '/' . $fileName,
