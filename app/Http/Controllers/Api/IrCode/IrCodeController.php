@@ -234,6 +234,7 @@ class IrCodeController extends Controller
             'device' => 'required|string', // Example: TVs, ACs
             'brand_name' => 'required|string', // Example: Amazon
             'name' => 'required|string', // Example: Component name (used to generate file name)
+            'type' => 'required|string',
             'file_content' => 'nullable|string', // File content for new files
             'buttons' => 'nullable|array', // Buttons to add to the file
             'is_new_file' => 'required|boolean', // Flag for new file creation
@@ -250,7 +251,8 @@ class IrCodeController extends Controller
         // Extract validated data
         $deviceType = $decodedData['device'];
         $brandName = $decodedData['brand_name'];
-        $componentName = $decodedData['name']; // Component name
+        $componentName = $decodedData['name']; 
+        $type = $decodedData['type']; 
         $isNewFile = $decodedData['is_new_file'];
         $fileContent = $decodedData['file_content'] ?? '';
         $buttons = $decodedData['buttons'] ?? [];
@@ -336,6 +338,7 @@ class IrCodeController extends Controller
                 'file_path' => $deviceType . '/' . $brandName . '/' . $fileName,
                 'name' => $componentName,
                 'manual' => true,
+                'type' => $type,
             ]);
         }
     
