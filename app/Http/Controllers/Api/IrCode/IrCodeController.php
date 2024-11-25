@@ -324,7 +324,7 @@ class IrCodeController extends Controller
                 return response()->json(['message' => 'Component not found.'], 404);
             }
             // dd($component->device->user_id,Auth::user()->id);
-            dd(auth()->user()->id);
+            dd(auth()->user());
             if (!Auth::check() || $component->device->user_id != Auth::user()->id) {
                 return response()->json(['error' => 'You do not have permission to attach this file.'], 403);
             }
