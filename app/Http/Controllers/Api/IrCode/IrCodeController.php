@@ -337,7 +337,7 @@ class IrCodeController extends Controller
         return response()->json([
             'status' => true,
             'message' => $isNewFile ? 'File created successfully with commands.' : 'Buttons added successfully.',
-            'file_path' => 'storage/irdata/' . $deviceType . '/' . $brandName . '/' . $fileName,
+            'file_path' => $deviceType . '/' . $brandName . '/' . $fileName,
         ], 200);
     }    
 }
