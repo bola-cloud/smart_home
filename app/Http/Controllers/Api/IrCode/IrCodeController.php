@@ -66,7 +66,6 @@ class IrCodeController extends Controller
         return response()->json($fileList);
     }    
 
-    // Get contents of a specific IR file
     public function getFileContent($deviceType, $brand, $fileName)
     {
         $filePath = $this->basePath . '/' . $deviceType . '/' . $brand . '/' . $fileName;
@@ -82,44 +81,46 @@ class IrCodeController extends Controller
         // Determine if the file is user-added
         $isUserAdded = strpos($fileName, 'user_') === 0;
     
-        // Return the file content with the flag
+        // Parse the file content into JSON
+        $buttons = $this->parseIRFile($fileContent);
+    
+        // Return the file content with the flag and parsed data
         return response()->json([
             'file_name' => $fileName,
             'is_user_added' => $isUserAdded,
-            'content' => $fileContent,
+            'buttons' => $buttons,
         ]);
     }
     
-
     /**
-     * Parses the contents of an IR file into structured JSON data.
+     * Parse IR file content into structured JSON.
      *
-     * @param string $fileContent The raw content of the .ir file.
-     * @return array An array of parsed button data.
-    */
+     * @param string $fileContent
+     * @return array
+     */
     private function parseIRFile($fileContent)
     {
         $buttons = [];
-        $blocks = explode("#", $fileContent);
-
+        $blocks = explode("#", $fileContent); // Split content by sections
+    
         foreach ($blocks as $block) {
             $lines = array_filter(array_map('trim', explode("\n", trim($block))));
             $buttonData = [];
-
+    
             foreach ($lines as $line) {
                 if (strpos($line, ': ') !== false) {
                     list($key, $value) = explode(': ', $line, 2);
                     $buttonData[strtolower($key)] = trim($value);
                 }
             }
-
+    
             if (!empty($buttonData)) {
                 $buttons[] = $buttonData;
             }
         }
-
+    
         return $buttons;
-    }
+    }    
 
     // Get contents of all IR files within a specific brand under a device type
     public function getAllFilesContent($deviceType, $brand)
