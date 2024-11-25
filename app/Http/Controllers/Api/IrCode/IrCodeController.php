@@ -232,7 +232,7 @@ class IrCodeController extends Controller
         $validator = \Validator::make($decodedData, [
             'device' => 'required|string', // Example: TVs, ACs
             'brand_name' => 'required|string', // Example: Amazon
-            'file_name' => 'required|string', // Example: FireTV_Omni_Series_4K.ir
+            'name' => 'required|string', // Example: FireTV_Omni_Series_4K.ir
             'file_content' => 'nullable|string', // File content for new files
             'buttons' => 'nullable|array', // Buttons to add to the file
             'is_new_file' => 'required|boolean', // Flag for new file creation
@@ -249,7 +249,7 @@ class IrCodeController extends Controller
         // Extract validated data
         $deviceType = $decodedData['device'];
         $brandName = $decodedData['brand_name'];
-        $fileName = $decodedData['file_name'];
+        $fileName = $decodedData['name'];
         $isNewFile = $decodedData['is_new_file'];
         $fileContent = $decodedData['file_content'] ?? '';
         $buttons = $decodedData['buttons'] ?? [];
@@ -330,6 +330,7 @@ class IrCodeController extends Controller
     
             $component->update([
                 'file_path' => $deviceType . '/' . $brandName . '/' . $fileName,
+                'name' => $fileName,
                 'manual' => true,
             ]);
         }
