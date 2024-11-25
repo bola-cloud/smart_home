@@ -39,6 +39,7 @@ class DeviceController extends Controller
                         'type' => $matchingComponent->type,
                         'order' => $matchingComponent->order,
                         'file_path' => $matchingComponent->file_path,
+                        'manual' => $matchingComponent->manual,
                         'created_at' => $matchingComponent->created_at,
                         'updated_at' => $matchingComponent->updated_at,
                     ];
@@ -96,6 +97,7 @@ class DeviceController extends Controller
                                 'type' => $matchingComponent->type,
                                 'order' => $matchingComponent->order,
                                 'file_path' => $matchingComponent->file_path,
+                                'manual' => $matchingComponent->manual,
                                 'permission' => $permission['permission'] ?? null,
                                 'created_at' => $matchingComponent->created_at,
                                 'updated_at' => $matchingComponent->updated_at,
