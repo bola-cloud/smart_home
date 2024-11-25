@@ -234,7 +234,7 @@ class IrCodeController extends Controller
             'brand_name' => 'required|string', // Example: Amazon
             'file_name' => 'required|string', // Example: FireTV_Omni_Series_4K.ir
             'file_content' => 'nullable|string', // File content for new files
-            'buttons' => 'nullable|array', // Buttons to add to an existing file
+            'buttons' => 'nullable|array', // Buttons to add to the file
             'is_new_file' => 'required|boolean', // Flag for new file creation
             'component_id' => 'nullable|exists:components,id', // Optional: Component ID to attach file
         ]);
@@ -275,7 +275,7 @@ class IrCodeController extends Controller
         $filePath = $directoryPath . '/' . $fileName;
     
         if ($isNewFile) {
-            // Create a new file
+            // Handle new file creation
             if (File::exists($filePath)) {
                 return response()->json([
                     'status' => false,
@@ -283,10 +283,19 @@ class IrCodeController extends Controller
                 ], 400);
             }
     
-            // Save the file content
-            File::put($filePath, $fileContent);
+            // Prepare the initial file content
+            $newFileContent = $fileContent;
+    
+            // Append buttons/commands if provided
+            foreach ($buttons as $button) {
+                $buttonBlock = "\n#\nname: {$button['name']}\ntype: {$button['type']}\nprotocol: {$button['protocol']}\naddress: {$button['address']}\ncommand: {$button['command']}\n";
+                $newFileContent .= $buttonBlock;
+            }
+    
+            // Save the new file content
+            File::put($filePath, $newFileContent);
         } else {
-            // Add buttons to an existing file
+            // Handle updating an existing file
             if (!File::exists($filePath)) {
                 return response()->json([
                     'status' => false,
@@ -297,7 +306,7 @@ class IrCodeController extends Controller
             // Read the existing content
             $existingContent = File::get($filePath);
     
-            // Append new buttons
+            // Append buttons/commands
             foreach ($buttons as $button) {
                 $buttonBlock = "\n#\nname: {$button['name']}\ntype: {$button['type']}\nprotocol: {$button['protocol']}\naddress: {$button['address']}\ncommand: {$button['command']}\n";
                 $existingContent .= $buttonBlock;
@@ -315,9 +324,9 @@ class IrCodeController extends Controller
                 return response()->json(['message' => 'Component not found.'], 404);
             }
     
-            // if (!Auth::check() || $component->device->user_id != Auth::user()->id) {
-            //     return response()->json(['error' => 'You do not have permission to attach this file.'], 403);
-            // }
+            if (!Auth::check() || $component->device->user_id != Auth::user()->id) {
+                return response()->json(['error' => 'You do not have permission to attach this file.'], 403);
+            }
     
             $component->update([
                 'file_path' => 'storage/irdata/' . $deviceType . '/' . $brandName . '/' . $fileName,
@@ -328,9 +337,8 @@ class IrCodeController extends Controller
     
         return response()->json([
             'status' => true,
-            'message' => $isNewFile ? 'File created successfully.' : 'Buttons added successfully.',
+            'message' => $isNewFile ? 'File created successfully with commands.' : 'Buttons added successfully.',
             'file_path' => 'storage/irdata/' . $deviceType . '/' . $brandName . '/' . $fileName,
         ], 200);
-    }
-    
+    }    
 }
