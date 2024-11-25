@@ -233,8 +233,7 @@ class IrCodeController extends Controller
         $validator = \Validator::make($decodedData, [
             'device' => 'required|string', // Example: TVs, ACs
             'brand_name' => 'required|string', // Example: Amazon
-            'name' => 'required|string', // Example: Component name (used to generate file name)
-            'type' => 'required|string',
+            'name' => 'required|string', // Example: Component name
             'file_content' => 'nullable|string', // File content for new files
             'buttons' => 'nullable|array', // Buttons to add to the file
             'is_new_file' => 'required|boolean', // Flag for new file creation
@@ -251,10 +250,9 @@ class IrCodeController extends Controller
         // Extract validated data
         $deviceType = $decodedData['device'];
         $brandName = $decodedData['brand_name'];
-        $componentName = $decodedData['name']; 
-        $type = $decodedData['type']; 
+        $componentName = $decodedData['name']; // Component name
         $isNewFile = $decodedData['is_new_file'];
-        $fileContent = $decodedData['file_content'] ?? '';
+        $fileContent = $decodedData['file_content'] ?? "Filetype: IR signals file\nVersion: 1\n";
         $buttons = $decodedData['buttons'] ?? [];
         $componentId = $decodedData['component_id'];
     
@@ -289,17 +287,13 @@ class IrCodeController extends Controller
                 ], 400);
             }
     
-            // Prepare the initial file content
-            $newFileContent = $fileContent;
-    
             // Append buttons/commands if provided
             foreach ($buttons as $button) {
-                $buttonBlock = "\n#\nname: {$button['name']}\ntype: {$button['type']}\nprotocol: {$button['protocol']}\naddress: {$button['address']}\ncommand: {$button['command']}\n";
-                $newFileContent .= $buttonBlock;
+                $fileContent .= $this->formatButtonData($button);
             }
     
             // Save the new file content
-            File::put($filePath, $newFileContent);
+            File::put($filePath, $fileContent);
         } else {
             // Handle updating an existing file
             if (!File::exists($filePath)) {
@@ -314,8 +308,7 @@ class IrCodeController extends Controller
     
             // Append buttons/commands
             foreach ($buttons as $button) {
-                $buttonBlock = "\n#\nname: {$button['name']}\ntype: {$button['type']}\nprotocol: {$button['protocol']}\naddress: {$button['address']}\ncommand: {$button['command']}\n";
-                $existingContent .= $buttonBlock;
+                $existingContent .= $this->formatButtonData($button);
             }
     
             // Save the updated content
@@ -338,7 +331,6 @@ class IrCodeController extends Controller
                 'file_path' => $deviceType . '/' . $brandName . '/' . $fileName,
                 'name' => $componentName,
                 'manual' => true,
-                'type' => $type,
             ]);
         }
     
@@ -347,6 +339,31 @@ class IrCodeController extends Controller
             'message' => $isNewFile ? 'File created successfully with commands.' : 'Buttons added successfully.',
             'file_path' => $deviceType . '/' . $brandName . '/' . $fileName,
         ], 200);
+    }
+    
+    /**
+     * Format button data into the file structure.
+     *
+     * @param array $button
+     * @return string
+     */
+    private function formatButtonData($button)
+    {
+        $buttonBlock = "\n#\n";
+        $buttonBlock .= "name: {$button['name']}\n";
+        $buttonBlock .= "type: {$button['type']}\n";
+    
+        if ($button['type'] === 'raw') {
+            $buttonBlock .= "frequency: {$button['frequency']}\n";
+            $buttonBlock .= "duty_cycle: {$button['duty_cycle']}\n";
+            $buttonBlock .= "data: {$button['data']}\n";
+        } else {
+            $buttonBlock .= "protocol: {$button['protocol']}\n";
+            $buttonBlock .= "address: {$button['address']}\n";
+            $buttonBlock .= "command: {$button['command']}\n";
+        }
+    
+        return $buttonBlock;
     }
     
 }
