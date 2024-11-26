@@ -52,8 +52,12 @@ class MqttController extends Controller
     public function subscribeFromDevice(Request $request)
     {
         $request->validate([
-            'device_id' => 'required|integer',
             'component_id' => 'required|integer',
+        ]);
+        $this->mqttService->getLastState($request->component_id);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Last state retrieved successfully',
         ]);
     }
 }
