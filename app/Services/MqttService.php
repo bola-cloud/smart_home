@@ -55,9 +55,11 @@ class MqttService
         $lastMessage = null;
         
         try {
-            // Connect to MQTT broker
-            $this->connect();
-            
+            // Connect to MQTT broker if not already connected
+            if (!$this->mqttClient->isConnected()) {
+                $this->connect();
+            }
+    
             // Subscribe to the topic
             Log::info("Subscribing to topic: {$topic}");
             $this->mqttClient->subscribe($topic, function (string $topic, string $message) use (&$lastMessage) {
@@ -66,9 +68,9 @@ class MqttService
                 Log::info("Message received on topic {$topic}: {$message}");
             }, MqttClient::QOS_AT_LEAST_ONCE);
     
-            // Timeout Handling: Give it 10 seconds to receive the message, with a limit on loop count
+            // Timeout Handling: Give it 10 seconds to receive the message
             $startTime = time();
-            $maxLoops = 50;  // Max attempts
+            $maxLoops = 50;
             $loopCount = 0;
             while (time() - $startTime < 10 && $loopCount < $maxLoops) {
                 $this->mqttClient->loop(100);  // Run the MQTT loop for 100ms
@@ -112,7 +114,7 @@ class MqttService
             // Ensure that we give a delay before disconnecting
             sleep(3);  // Delay before disconnecting
             
-            // Add additional check here to ensure the connection is still active before disconnecting
+            // Check if we are connected before disconnecting
             if ($this->mqttClient->isConnected()) {
                 Log::info("Disconnecting from MQTT broker...");
                 $this->disconnect();
@@ -120,7 +122,8 @@ class MqttService
                 Log::warning("MQTT client is already disconnected.");
             }
         }
-    }    
+    }
+    
     
     public function disconnect()
     {
