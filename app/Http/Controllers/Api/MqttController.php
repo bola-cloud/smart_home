@@ -49,15 +49,30 @@ class MqttController extends Controller
     }
     
 
-    public function subscribeFromDevice(Request $request)
+    public function getLastStateFromDevice(Request $request)
     {
         $request->validate([
-            'component_id' => 'required|integer',
+            'device_id' => 'required|integer',
+            'component_order' => 'required|integer',
         ]);
-        $this->mqttService->getLastState($request->component_id);
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Last state retrieved successfully',
-        ]);
+    
+        $deviceId = $request->device_id;
+        $componentOrder = $request->component_order;
+    
+        // Get the last state from the MQTT topic
+        $lastState = $this->mqttService->getLastState($deviceId, $componentOrder);
+    
+        if ($lastState) {
+            return response()->json([
+                'status' => 'success',
+                'last_state' => $lastState,
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No state received or topic not found',
+            ]);
+        }
     }
+    
 }
