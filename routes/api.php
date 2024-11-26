@@ -53,7 +53,7 @@ Route::post('/member/password/reset', [MemberController::class, 'resetPassword']
 
 
 Route::post('/publish-device', [MqttController::class, 'publishToDevice']);
-Route::post('/subscribe-device', [MqttController::class, 'subscribeFromDevice']);
+Route::get('/subscribe-device', [MqttController::class, 'subscribeFromDevice']);
 
 // Protected Routes (Require authentication)
 Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
