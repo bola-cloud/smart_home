@@ -45,11 +45,31 @@ class MqttService
     public function getLastMessage($deviceId, $componentOrder)
     {
         $topic = "Mazaya/{$deviceId}/{$componentOrder}";
-
-        $response = $this->httpClient->get('/last-message', [
-            'query' => ['topic' => $topic],
-        ]);
-
-        return json_decode($response->getBody(), true);
+    
+        try {
+            $response = $this->httpClient->get('/last-message', [
+                'query' => ['topic' => $topic],
+            ]);
+    
+            $result = json_decode($response->getBody(), true);
+    
+            if (!$result['success'] || $result['message'] === null) {
+                return [
+                    'status' => 'error',
+                    'message' => 'No state received or topic not found',
+                ];
+            }
+    
+            return [
+                'status' => 'success',
+                'last_state' => json_decode($result['message'], true),
+            ];
+        } catch (\Exception $e) {
+            return [
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ];
+        }
     }
+    
 }
