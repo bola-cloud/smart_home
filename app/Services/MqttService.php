@@ -35,7 +35,7 @@ class MqttService
         }
     }
 
-    public function publishAction($deviceId, $componentId, $action, $retain = false)
+    public function publishAction($deviceId, $componentId, $action, $retain = true)
     {
         // Find the component and construct the topic
         $component = Component::find($componentId);
