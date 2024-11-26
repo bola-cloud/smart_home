@@ -51,17 +51,17 @@ class MqttController extends Controller
 
     public function getLastStateFromDevice(Request $request)
     {
-        $request->validate([
-            'device_id' => 'required|integer',
-            'component_order' => 'required|integer',
-        ]);
+        // $request->validate([
+        //     'device_id' => 'required|integer',
+        //     'component_order' => 'required|integer',
+        // ]);
     
-        $deviceId = $request->device_id;
+        // $deviceId = $request->device_id;
         $componentOrder = $request->component_order;
     
         // dd($deviceId,$componentOrder);
         // Get the last state from the MQTT topic
-        $lastState = $this->mqttService->getLastMessage($deviceId, $componentOrder);
+        $lastState = $this->mqttService->getLastMessage(11, 3);
     
         if ($lastState) {
             return response()->json([
