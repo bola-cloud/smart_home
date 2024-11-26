@@ -31,7 +31,7 @@ class MqttController extends Controller
     
         // JSON encode the message before passing it to MQTT
         $messageJson = json_encode($message); 
-        dd($messageJson);  // This will output the raw array
+
         // Connect to the MQTT broker
         $this->mqttService->connect();
     
