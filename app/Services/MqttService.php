@@ -34,13 +34,14 @@ class MqttService
     {
         //////////////////        Note    //////////////////////////////////////
         //Change the topic to be "Mazaya/{$deviceId}/{$componentOrder}"
+        $component = Component::find($componentId);
 
-        $topic = "Mazaya/{$deviceId}/{$componentId}";
+        $topic = "Mazaya/{$deviceId}/{$component->order}";
         $message = json_encode(['action' => $action]);
 
         try {
             $this->mqttClient->publish($topic, $message);
-            echo "Published {$action} to device {$deviceId}, component {$componentId}\n";
+            echo "Published {$action} to device {$deviceId}, component {$component->order}\n";
         } catch (MqttClientException $e) {
             echo "Failed to publish action: {$e->getMessage()}\n";
         }
