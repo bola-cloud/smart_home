@@ -66,7 +66,7 @@ class MqttService
             $this->mqttClient->subscribe($topic, function (string $topic, string $message) use (&$lastMessage) {
                 $lastMessage = json_decode($message, true); // Decode the received message
                 Log::info("Message received: {$message}");
-            }, MqttClient::QOS_AT_MOST_ZERO);
+            }, MqttClient::QOS_AT_MOST_ONCE);
     
             // Run the loop, break immediately once the message is received
             Log::info("Starting MQTT loop to wait for messages");
