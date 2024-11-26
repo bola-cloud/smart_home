@@ -53,7 +53,8 @@ class MqttService
         Log::info("getLastMessage");
         $topic = "Mazaya/{$deviceId}/{$componentOrder}";
         $lastMessage = null;
-    
+        Log::info("{$topic}");
+
         try {
             // Connect to the MQTT broker
             $this->connect();
