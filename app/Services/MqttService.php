@@ -50,36 +50,43 @@ class MqttService
         }
     }
 
-    public function getLastState($componentId)
+    public function getLastState($deviceId, $componentOrder)
     {
-        $component = Component::find($componentId);
-        if (!$component || !$component->device) {
-            echo "Component or device not found for component ID {$componentId}\n";
-            return null;
-        }
+        // Construct the topic to subscribe to
+        $topic = "Mazaya/{$deviceId}/{$componentOrder}";
     
-        $deviceId = $component->device->id;
-        $topic = "Mazaya/{$deviceId}/{$component->order}";
+        // Variable to hold the last state (this will be returned)
+        $lastState = null;
     
         try {
+            // Connect to the MQTT broker
             $this->connect();
-            $this->mqttClient->subscribe($topic, function (string $topic, string $message) use ($componentId) {
+    
+            // Subscribe to the topic and set up a callback to handle incoming messages
+            $this->mqttClient->subscribe($topic, function (string $topic, string $message) use (&$lastState) {
+                // When a message is received, decode it into an array
                 $data = json_decode($message, true);
+                
+                // Ensure the data is valid and is an array
                 if (is_array($data) && !empty($data)) {
-                    $firstKey = array_key_first($data);
-                    $this->lastStates[$componentId] = $data[$firstKey];
+                    $lastState = $data;  // Store the last state
                 }
             }, MqttClient::QOS_AT_MOST_ONCE);
     
+            // Wait for a message to be received (you can adjust the timeout as needed)
             $this->mqttClient->loop(true, 5000); // Wait for 5 seconds to receive messages
-            $this->disconnect();
     
+            // Disconnect from the MQTT broker after receiving the message
+            $this->disconnect();
+            
         } catch (MqttClientException $e) {
             echo "Failed to subscribe to topic for last state: {$e->getMessage()}\n";
         }
     
-        return $this->lastStates[$componentId] ?? null;
+        // Return the last state (or null if no state received)
+        return $lastState;
     }
+    
     
     public function disconnect()
     {
