@@ -109,12 +109,18 @@ class MqttService
                 'message' => 'Unexpected error occurred: ' . $e->getMessage()
             ], 500);
         } finally {
-            // Delay for 3 seconds before disconnecting
-            sleep(3);  // Sleep for 3 seconds
-            // Ensure that disconnect happens after the delay
-            $this->disconnect();
+            // Ensure that we give a delay before disconnecting
+            sleep(3);  // Delay before disconnecting
+            
+            // Add additional check here to ensure the connection is still active before disconnecting
+            if ($this->mqttClient->isConnected()) {
+                Log::info("Disconnecting from MQTT broker...");
+                $this->disconnect();
+            } else {
+                Log::warning("MQTT client is already disconnected.");
+            }
         }
-    }
+    }    
     
     public function disconnect()
     {
