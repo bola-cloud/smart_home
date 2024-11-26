@@ -30,62 +30,53 @@ class MqttService
         }
     }
 
-    public function publishAction($deviceId, $componentId, $action)
+    public function publishAction($deviceId, $componentId, $action, $retain = false)
     {
-        //////////////////        Note    //////////////////////////////////////
-        // Change the topic to be "Mazaya/{$deviceId}/{$componentOrder}"
+        // Find the component and construct the topic
         $component = Component::find($componentId);
-
         $topic = "Mazaya/{$deviceId}/{$component->order}";
-
-        // Ensure the message is encoded as a JSON string
-        $message = $action;
-
+        $message = json_encode(['action' => $action]);
+    
         try {
-            // Publish the message after encoding to JSON
-            $this->mqttClient->publish($topic, $message);
+            // Publish with the retain flag set to true if desired
+            $this->mqttClient->publish($topic, $message, MqttClient::QOS_AT_MOST_ONCE, $retain);
             echo "Published {$action} to device {$deviceId}, component {$component->order}\n";
         } catch (MqttClientException $e) {
             echo "Failed to publish action: {$e->getMessage()}\n";
         }
     }
+    
 
-    public function getLastState($deviceId, $componentOrder)
+    public function getLastMessage($deviceId, $componentOrder)
     {
         // Construct the topic to subscribe to
         $topic = "Mazaya/{$deviceId}/{$componentOrder}";
     
-        // Variable to hold the last state (this will be returned)
-        $lastState = null;
+        $lastMessage = null;
     
         try {
             // Connect to the MQTT broker
             $this->connect();
     
-            // Subscribe to the topic and set up a callback to handle incoming messages
-            $this->mqttClient->subscribe($topic, function (string $topic, string $message) use (&$lastState) {
-                // When a message is received, decode it into an array
-                $data = json_decode($message, true);
-                
-                // Ensure the data is valid and is an array
-                if (is_array($data) && !empty($data)) {
-                    $lastState = $data;  // Store the last state
-                }
+            // Subscribe to the topic and handle the received message
+            $this->mqttClient->subscribe($topic, function (string $topic, string $message) use (&$lastMessage) {
+                // Decode the received message
+                $lastMessage = json_decode($message, true);
             }, MqttClient::QOS_AT_MOST_ONCE);
     
-            // Wait for a message to be received (you can adjust the timeout as needed)
-            $this->mqttClient->loop(true, 5000); // Wait for 5 seconds to receive messages
+            // Wait for the last retained message to be received
+            $this->mqttClient->loop(true, 5000); // Wait for 5 seconds
     
-            // Disconnect from the MQTT broker after receiving the message
+            // Disconnect after receiving the message
             $this->disconnect();
-            
+    
         } catch (MqttClientException $e) {
-            echo "Failed to subscribe to topic for last state: {$e->getMessage()}\n";
+            echo "Failed to subscribe to topic for last message: {$e->getMessage()}\n";
         }
     
-        // Return the last state (or null if no state received)
-        return $lastState;
-    }
+        // Return the last message (or null if no message received)
+        return $lastMessage;
+    }    
     
     
     public function disconnect()
