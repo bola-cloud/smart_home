@@ -2,132 +2,54 @@
 
 namespace App\Services;
 
-use PhpMqtt\Client\MqttClient;
-use PhpMqtt\Client\Exceptions\MqttClientException;
-use Illuminate\Support\Facades\Log;
-use App\Models\Component;
-use Carbon\Carbon;
+use GuzzleHttp\Client;
 
 class MqttService
 {
-    protected $mqttClient;
-    protected $lastStates = []; // To store the latest state per component
+    protected $httpClient;
 
     public function __construct()
     {
-        // Generate a unique client ID based on device ID or timestamp
-        $uniqueClientId = 'mqtt-laravel-mazaya-' . uniqid();
-        
-        $host = '91.108.102.82'; // Replace with your MQTT broker IP
-        $port = 1883;             // Default MQTT port
-        
-        // Initialize the MQTT client with the unique client ID
-        $this->mqttClient = new MqttClient($host, $port, $uniqueClientId);
-    }
-    
-    public function connect()
-    {
-        try {
-            $this->mqttClient->connect();
-            Log::info("Connected to MQTT broker with client ID: " . $this->mqttClient->getClientId());
-        } catch (MqttClientException $e) {
-            Log::error("Failed to connect to MQTT broker: {$e->getMessage()}");
-        }
+        $this->httpClient = new Client(['base_uri' => 'http://localhost:3000']);
     }
 
-    public function publishAction($deviceId, $componentId, $action, $retain = true)
+    public function publishAction($deviceId, $componentId, $action, $retain = false)
     {
-        // Find the component and construct the topic
-        $component = Component::find($componentId);
-        $topic = "Mazaya/{$deviceId}/{$component->order}";
+        $topic = "Mazaya/{$deviceId}/{$componentId}";
         $message = json_encode(['action' => $action]);
-    
-        try {
-            // Publish with the retain flag set to true if desired
-            $this->mqttClient->publish($topic, $message, MqttClient::QOS_AT_MOST_ONCE, $retain);
-            echo "Published {$action} to device {$deviceId}, component {$component->order}\n";
-        } catch (MqttClientException $e) {
-            echo "Failed to publish action: {$e->getMessage()}\n";
-        }
+
+        $response = $this->httpClient->post('/publish', [
+            'json' => [
+                'topic' => $topic,
+                'message' => $message,
+                'retain' => $retain,
+            ],
+        ]);
+
+        return json_decode($response->getBody(), true);
+    }
+
+    public function subscribeToTopic($deviceId, $componentId)
+    {
+        $topic = "Mazaya/{$deviceId}/{$componentId}";
+
+        $response = $this->httpClient->post('/subscribe', [
+            'json' => [
+                'topic' => $topic,
+            ],
+        ]);
+
+        return json_decode($response->getBody(), true);
     }
 
     public function getLastMessage($deviceId, $componentOrder)
     {
-        Log::info("getLastMessage called for device {$deviceId}, component {$componentOrder}");
-    
         $topic = "Mazaya/{$deviceId}/{$componentOrder}";
-        $lastMessage = null;
-    
-        try {
-            // Connect to MQTT broker if not already connected
-            if (!$this->mqttClient->isConnected()) {
-                $this->connect();
-            }
-    
-            // Subscribe to the topic
-            Log::info("Subscribing to topic: {$topic}");
-            $this->mqttClient->subscribe($topic, function (string $topic, string $message) use (&$lastMessage) {
-                // Store the last received message
-                $lastMessage = json_decode($message, true);
-                Log::info("Message received on topic {$topic}: {$message}");
-            }, MqttClient::QOS_AT_MOST_ONCE);
-    
-            // Wait for the retained message or any new message
-            $startTime = time();
-            while (time() - $startTime < 10) {
-                $this->mqttClient->loop(500);  // Run the MQTT loop for 500ms
-                if ($lastMessage !== null) {
-                    break;  // If message received, break the loop
-                }
-            }
-    
-            // Check if the message was received or not
-            if ($lastMessage !== null) {
-                Log::info("Last state received: " . json_encode($lastMessage));
-                return response()->json([
-                    'status' => 'success',
-                    'last_state' => $lastMessage,
-                ]);
-            } else {
-                Log::error("No message received after 10 seconds or topic not found.");
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'No state received or topic not found',
-                ], 404);
-            }
-        } catch (MqttClientException $e) {
-            Log::error("MQTT Client Error: {$e->getMessage()}");
-            return response()->json([
-                'status' => 'error',
-                'message' => 'MQTT client error: ' . $e->getMessage()
-            ], 500);
-        } catch (\Exception $e) {
-            Log::error("Unexpected Error: {$e->getMessage()}");
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unexpected error occurred: ' . $e->getMessage()
-            ], 500);
-        } finally {
-            // Ensure that we give a longer delay before disconnecting
-            sleep(5);  // Increase delay before disconnecting if necessary
-    
-            // Check if we are connected before disconnecting
-            if ($this->mqttClient->isConnected()) {
-                Log::info("Disconnecting from MQTT broker...");
-                $this->disconnect();
-            } else {
-                Log::warning("MQTT client is already disconnected.");
-            }
-        }
-    }    
-    
-    public function disconnect()
-    {
-        try {
-            $this->mqttClient->disconnect();
-            echo "Disconnected from MQTT broker\n";
-        } catch (MqttClientException $e) {
-            echo "Failed to disconnect from MQTT broker: {$e->getMessage()}\n";
-        }
+
+        $response = $this->httpClient->get('/last-message', [
+            'query' => ['topic' => $topic],
+        ]);
+
+        return json_decode($response->getBody(), true);
     }
 }
