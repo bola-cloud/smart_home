@@ -50,7 +50,7 @@ class MqttService
     public function getLastMessage($deviceId, $componentOrder)
     {
         // Construct the topic to subscribe to
-        $topic = "Mazaya/11/3";
+        $topic = "Mazaya/{$deviceId}/{$componentOrder}";
     
         $lastMessage = null;
     
