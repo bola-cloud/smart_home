@@ -67,34 +67,46 @@ class MqttService
             // Subscribe to the topic
             Log::info("Subscribing to topic: {$topic}");
             $this->mqttClient->subscribe($topic, function (string $topic, string $message) use (&$lastMessage) {
-                // Store the last message when received
+                // Store the last received message
                 $lastMessage = json_decode($message, true);
                 Log::info("Message received on topic {$topic}: {$message}");
-            }, MqttClient::QOS_AT_LEAST_ONCE);
+            }, MqttClient::QOS_AT_MOST_ONCE);
     
-            // Timeout Handling: Wait for up to 10 seconds or until we receive the message
+            // Wait for the retained message or any new message
             $startTime = time();
             while (time() - $startTime < 10) {
-                $this->mqttClient->loop(500); // Run the MQTT loop for 500ms
+                $this->mqttClient->loop(500);  // Run the MQTT loop for 500ms
                 if ($lastMessage !== null) {
-                    break; // If message received, break the loop
+                    break;  // If message received, break the loop
                 }
             }
     
             // Check if the message was received or not
             if ($lastMessage !== null) {
                 Log::info("Last state received: " . json_encode($lastMessage));
-                return $lastMessage;  // Return just the message here
+                return response()->json([
+                    'status' => 'success',
+                    'last_state' => $lastMessage,
+                ]);
             } else {
                 Log::error("No message received after 10 seconds or topic not found.");
-                return null;  // Return null if no message received
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No state received or topic not found',
+                ], 404);
             }
         } catch (MqttClientException $e) {
             Log::error("MQTT Client Error: {$e->getMessage()}");
-            return null;
+            return response()->json([
+                'status' => 'error',
+                'message' => 'MQTT client error: ' . $e->getMessage()
+            ], 500);
         } catch (\Exception $e) {
             Log::error("Unexpected Error: {$e->getMessage()}");
-            return null;
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unexpected error occurred: ' . $e->getMessage()
+            ], 500);
         } finally {
             // Ensure that we give a longer delay before disconnecting
             sleep(5);  // Increase delay before disconnecting if necessary
@@ -107,7 +119,7 @@ class MqttService
                 Log::warning("MQTT client is already disconnected.");
             }
         }
-    }
+    }    
     
     public function disconnect()
     {
