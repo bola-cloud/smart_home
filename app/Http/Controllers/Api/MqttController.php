@@ -20,7 +20,7 @@ class MqttController extends Controller
         $request->validate([
             'device_id' => 'required|integer',
             'component_id' => 'required|integer',
-            'message' => 'required|string',
+            'message' => 'required',
         ]);
 
         $deviceId = $request->device_id;
