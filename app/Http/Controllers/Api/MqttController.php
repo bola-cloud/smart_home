@@ -22,26 +22,32 @@ class MqttController extends Controller
             'component_id' => 'required|integer',
             'message' => 'required|array', // Ensure message is an array
         ]);
-
+    
         $deviceId = $request->device_id;
         $componentId = $request->component_id;
         $message = $request->message;
-        dd($message);
+    
+        // Debugging - you can comment this out later
+    
+        // JSON encode the message before passing it to MQTT
+        $messageJson = json_encode($message); 
+        dd($messageJson);  // This will output the raw array
         // Connect to the MQTT broker
         $this->mqttService->connect();
-
+    
         // Publish the message on the topic Mazaya/device_id/component_id
-        // Ensure the message is a valid JSON string before publishing
-        $this->mqttService->publishAction($deviceId, $componentId, $message);
-
+        // Publish the JSON-encoded message
+        $this->mqttService->publishAction($deviceId, $componentId, $messageJson);
+    
         // Disconnect from the MQTT broker
         $this->mqttService->disconnect();
-
+    
         return response()->json([
             'status' => 'success',
             'message' => 'Message published successfully',
         ]);
     }
+    
 
     public function subscribeFromDevice(Request $request)
     {
