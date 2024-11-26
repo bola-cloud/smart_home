@@ -84,20 +84,16 @@ class MqttService
             // Check if the message was received or not
             if ($lastMessage !== null) {
                 Log::info("Last state received: " . json_encode($lastMessage));
-                // Return the response (controller should handle the response)
                 return $lastMessage;  // Return just the message here
             } else {
                 Log::error("No message received after 10 seconds or topic not found.");
-                // Return error state (controller should handle the response)
                 return null;  // Return null if no message received
             }
         } catch (MqttClientException $e) {
             Log::error("MQTT Client Error: {$e->getMessage()}");
-            // Handle MQTT client connection errors
             return null;
         } catch (\Exception $e) {
             Log::error("Unexpected Error: {$e->getMessage()}");
-            // Handle any other unexpected errors
             return null;
         } finally {
             // Ensure that we give a longer delay before disconnecting
@@ -113,7 +109,6 @@ class MqttService
         }
     }
     
-     
     public function disconnect()
     {
         try {
