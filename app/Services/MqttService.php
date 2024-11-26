@@ -46,7 +46,6 @@ class MqttService
             echo "Failed to publish action: {$e->getMessage()}\n";
         }
     }
-    
 
     public function getLastMessage($deviceId, $componentOrder)
     {
@@ -68,7 +67,8 @@ class MqttService
                 Log::info("Message received: {$message}");
     
                 // Disconnect immediately after receiving the message
-                $this->disconnect();
+                // Make sure disconnection doesn't interrupt the message retrieval.
+                // It can be done after handling all operations.
             }, MqttClient::QOS_AT_MOST_ONCE);
     
             // Run the loop to wait for the message
@@ -81,6 +81,11 @@ class MqttService
                     break; // Exit the loop if a message is received
                 }
             }
+    
+            // Ensure the connection is properly disconnected after message receipt
+            Log::info("Disconnecting from MQTT broker");
+            $this->disconnect();
+            Log::info("Disconnected from MQTT broker");
     
             // After breaking the loop, return the message if received
             if ($lastMessage !== null) {
@@ -104,7 +109,7 @@ class MqttService
                 'message' => 'MQTT client error'
             ], 500);
         }
-    }         
+    }        
     
     public function disconnect()
     {
