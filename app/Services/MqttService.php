@@ -4,6 +4,7 @@ namespace App\Services;
 
 use PhpMqtt\Client\MqttClient;
 use PhpMqtt\Client\Exceptions\MqttClientException;
+use Illuminate\Support\Facades\Log;
 use App\Models\Component;
 use Carbon\Carbon;
 
@@ -49,7 +50,7 @@ class MqttService
 
     public function getLastMessage($deviceId, $componentOrder)
     {
-        echo "Connected to MQTT broker asxsaax";
+        Log::info("getLastMessage");
         $topic = "Mazaya/{$deviceId}/{$componentOrder}";
         $lastMessage = null;
     
