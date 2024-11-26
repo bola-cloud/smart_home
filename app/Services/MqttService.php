@@ -49,6 +49,7 @@ class MqttService
 
     public function getLastMessage($deviceId, $componentOrder)
     {
+        echo "Connected to MQTT broker asxsaax";
         $topic = "Mazaya/{$deviceId}/{$componentOrder}";
         $lastMessage = null;
     
