@@ -82,6 +82,7 @@ class MqttService
             // Check if the message was received or not
             if ($lastMessage !== null) {
                 Log::info("Last state received: " . json_encode($lastMessage));
+                // Return the response before disconnecting
                 return response()->json([
                     'status' => 'success',
                     'last_state' => $lastMessage,
@@ -107,8 +108,13 @@ class MqttService
                 'status' => 'error',
                 'message' => 'Unexpected error occurred: ' . $e->getMessage()
             ], 500);
+        } finally {
+            // Delay for 3 seconds before disconnecting
+            sleep(3);  // Sleep for 3 seconds
+            // Ensure that disconnect happens after the delay
+            $this->disconnect();
         }
-    }    
+    }
     
     public function disconnect()
     {
