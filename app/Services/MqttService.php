@@ -50,39 +50,45 @@ class MqttService
 
     public function getLastMessage($deviceId, $componentOrder)
     {
-        Log::info("getLastMessage");
+        Log::info("getLastMessage called");
         $topic = "Mazaya/{$deviceId}/{$componentOrder}";
         $lastMessage = null;
-        Log::info("{$topic}");
-
+        Log::info("Subscribing to topic: {$topic}");
+    
         try {
             // Connect to the MQTT broker
+            Log::info("Attempting to connect to MQTT broker");
             $this->connect();
-            echo "Connected to MQTT broker\n";
+            Log::info("Connected to MQTT broker");
     
             // Subscribe to the topic
+            Log::info("Subscribing to topic: {$topic}");
             $this->mqttClient->subscribe($topic, function (string $topic, string $message) use (&$lastMessage) {
                 $lastMessage = json_decode($message, true); // Decode the received message
-                echo "Message received: {$message}\n";
+                Log::info("Message received: {$message}");
             }, MqttClient::QOS_AT_MOST_ONCE);
     
             // Run loop for 5 seconds, but break if a message is received
+            Log::info("Starting MQTT loop to wait for messages");
             $startTime = time();
             while (time() - $startTime < 5) { // Wait for up to 5 seconds
                 $this->mqttClient->loop(100); // Process network events for 100ms
                 if ($lastMessage !== null) {
+                    Log::info("Message received, exiting loop");
                     break; // Exit the loop if a message is received
                 }
             }
     
             // Disconnect from the broker
+            Log::info("Disconnecting from MQTT broker");
             $this->disconnect();
-            echo "Disconnected from MQTT broker\n";
+            Log::info("Disconnected from MQTT broker");
     
         } catch (MqttClientException $e) {
-            echo "Failed to subscribe to topic: {$e->getMessage()}\n";
+            Log::error("Failed to subscribe to topic: {$e->getMessage()}");
         }
     
+        Log::info("Returning last message: " . json_encode($lastMessage));
         return $lastMessage;
     }      
     
