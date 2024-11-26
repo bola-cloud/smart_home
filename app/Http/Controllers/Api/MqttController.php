@@ -26,7 +26,7 @@ class MqttController extends Controller
         $deviceId = $request->device_id;
         $componentId = $request->component_id;
         $message = $request->message;
-
+        dd($message);
         // Connect to the MQTT broker
         $this->mqttService->connect();
 
