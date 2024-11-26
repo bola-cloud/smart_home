@@ -41,4 +41,12 @@ class MqttController extends Controller
             'message' => 'Message published successfully',
         ]);
     }
+
+    public function subscribeFromDevice(Request $request)
+    {
+        $request->validate([
+            'device_id' => 'required|integer',
+            'component_id' => 'required|integer',
+        ]);
+    }
 }
