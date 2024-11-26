@@ -57,7 +57,7 @@ class MqttService
     
         $topic = "Mazaya/{$deviceId}/{$componentOrder}";
         $lastMessage = null;
-        
+    
         try {
             // Connect to MQTT broker if not already connected
             if (!$this->mqttClient->isConnected()) {
@@ -67,56 +67,41 @@ class MqttService
             // Subscribe to the topic
             Log::info("Subscribing to topic: {$topic}");
             $this->mqttClient->subscribe($topic, function (string $topic, string $message) use (&$lastMessage) {
-                // Once message is received, store it
+                // Store the last message when received
                 $lastMessage = json_decode($message, true);
                 Log::info("Message received on topic {$topic}: {$message}");
             }, MqttClient::QOS_AT_LEAST_ONCE);
     
-            // Timeout Handling: Give it 10 seconds to receive the message
+            // Timeout Handling: Wait for up to 10 seconds or until we receive the message
             $startTime = time();
-            $maxLoops = 50;
-            $loopCount = 0;
-            while (time() - $startTime < 10 && $loopCount < $maxLoops) {
-                $this->mqttClient->loop(500);  // Run the MQTT loop for 500ms
+            while (time() - $startTime < 10) {
+                $this->mqttClient->loop(500); // Run the MQTT loop for 500ms
                 if ($lastMessage !== null) {
-                    break;  // If message received, break the loop
+                    break; // If message received, break the loop
                 }
-                $loopCount++;
-                Log::info("Waiting for message... Loop count: {$loopCount}");
             }
     
             // Check if the message was received or not
             if ($lastMessage !== null) {
                 Log::info("Last state received: " . json_encode($lastMessage));
-                // Return the response before disconnecting
-                return response()->json([
-                    'status' => 'success',
-                    'last_state' => $lastMessage,
-                ], 200);
+                // Return the response (controller should handle the response)
+                return $lastMessage;  // Return just the message here
             } else {
-                Log::error("No message received after 10 seconds or topic not found. Last loop count: {$loopCount}");
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'No state received or topic not found',
-                ], 404);
+                Log::error("No message received after 10 seconds or topic not found.");
+                // Return error state (controller should handle the response)
+                return null;  // Return null if no message received
             }
         } catch (MqttClientException $e) {
-            // Handle MQTT client connection errors
             Log::error("MQTT Client Error: {$e->getMessage()}");
-            return response()->json([
-                'status' => 'error',
-                'message' => 'MQTT client error: ' . $e->getMessage()
-            ], 500);
+            // Handle MQTT client connection errors
+            return null;
         } catch (\Exception $e) {
-            // Handle any other unexpected errors
             Log::error("Unexpected Error: {$e->getMessage()}");
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unexpected error occurred: ' . $e->getMessage()
-            ], 500);
+            // Handle any other unexpected errors
+            return null;
         } finally {
             // Ensure that we give a longer delay before disconnecting
-            sleep(5);  // Increase delay before disconnecting
+            sleep(5);  // Increase delay before disconnecting if necessary
     
             // Check if we are connected before disconnecting
             if ($this->mqttClient->isConnected()) {
@@ -127,6 +112,7 @@ class MqttService
             }
         }
     }
+    
      
     public function disconnect()
     {
