@@ -35,18 +35,20 @@ class MqttService
         //////////////////        Note    //////////////////////////////////////
         // Change the topic to be "Mazaya/{$deviceId}/{$componentOrder}"
         $component = Component::find($componentId);
-    
+
         $topic = "Mazaya/{$deviceId}/{$component->order}";
-        // Ensure $action is an array before encoding
+
+        // Ensure the message is encoded as a JSON string
         $message = is_array($action) ? json_encode($action) : json_encode(['action' => $action]);
-    
+
         try {
+            // Publish the message after encoding to JSON
             $this->mqttClient->publish($topic, $message);
             echo "Published {$action} to device {$deviceId}, component {$component->order}\n";
         } catch (MqttClientException $e) {
             echo "Failed to publish action: {$e->getMessage()}\n";
         }
-    }    
+    }
 
     public function getLastState($componentId)
     {
