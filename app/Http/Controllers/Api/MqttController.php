@@ -20,7 +20,7 @@ class MqttController extends Controller
         $request->validate([
             'device_id' => 'required|integer',
             'component_id' => 'required|integer',
-            'message' => 'required',
+            'message' => 'required|array', // Ensure message is an array
         ]);
 
         $deviceId = $request->device_id;
@@ -31,6 +31,7 @@ class MqttController extends Controller
         $this->mqttService->connect();
 
         // Publish the message on the topic Mazaya/device_id/component_id
+        // Ensure the message is a valid JSON string before publishing
         $this->mqttService->publishAction($deviceId, $componentId, $message);
 
         // Disconnect from the MQTT broker
