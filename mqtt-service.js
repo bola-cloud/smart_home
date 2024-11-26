@@ -1,6 +1,6 @@
-const mqtt = require('mqtt');
-const express = require('express');
-const bodyParser = require('body-parser');
+import mqtt from 'mqtt';
+import express from 'express';
+import bodyParser from 'body-parser';
 
 const app = express();
 const port = 3000;
@@ -9,7 +9,7 @@ const port = 3000;
 app.use(bodyParser.json());
 
 // MQTT Broker Configuration
-const brokerUrl = 'mqtt://91.108.102.82'; // Replace with your MQTT broker IP
+const brokerUrl = 'mqtt://91.108.102.82'; // Replace with your MQTT broker URL
 const options = {
   clientId: `mqtt-js-client-${Math.random().toString(16).substr(2, 8)}`,
   clean: true,
@@ -89,6 +89,3 @@ app.get('/last-message', (req, res) => {
 app.listen(port, () => {
   console.log(`MQTT Service is running at http://localhost:${port}`);
 });
-
-
-
