@@ -31,7 +31,7 @@ class MqttController extends Controller
         $this->mqttService->connect();
 
         // Publish the message on the topic Mazaya/device_id/component_id
-        $this->mqttService->publishToDeviceTopic($deviceId, $componentId, $message);
+        $this->mqttService->publishAction($deviceId, $componentId, $message);
 
         // Disconnect from the MQTT broker
         $this->mqttService->disconnect();
