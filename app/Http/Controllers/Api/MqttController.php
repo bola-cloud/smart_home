@@ -51,7 +51,6 @@ class MqttController extends Controller
 
     public function subscribeFromDevice(Request $request)
     {
-        dd('jahsa');
         $request->validate([
             'component_id' => 'required|integer',
         ]);
