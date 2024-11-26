@@ -52,64 +52,51 @@ class MqttService
         Log::info("getLastMessage called");
         $topic = "Mazaya/{$deviceId}/{$componentOrder}";
         $lastMessage = null;
-        Log::info("Subscribing to topic: {$topic}");
     
         try {
             // Connect to the MQTT broker
-            Log::info("Attempting to connect to MQTT broker");
             $this->connect();
-            Log::info("Connected to MQTT broker");
     
             // Subscribe to the topic
-            Log::info("Subscribing to topic: {$topic}");
             $this->mqttClient->subscribe($topic, function (string $topic, string $message) use (&$lastMessage) {
-                $lastMessage = json_decode($message, true); // Decode the received message
+                // Once a message is received, store it and stop the loop
+                $lastMessage = json_decode($message, true);
                 Log::info("Message received: {$message}");
-    
-                // Once the message is received, break the loop (you can handle disconnection here)
-                // We do NOT disconnect yet; let the loop finish first
             }, MqttClient::QOS_AT_MOST_ONCE);
     
-            // Run the loop to wait for the message
-            Log::info("Starting MQTT loop to wait for messages");
+            // Run the loop and wait for up to 5 seconds for the message
             $startTime = time();
-            while (time() - $startTime < 10) { // Increased waiting time to 10 seconds
-                $this->mqttClient->loop(100); // Process network events for 100ms
+            while (time() - $startTime < 5) {
+                $this->mqttClient->loop(100);  // Run the MQTT client loop for 100ms
                 if ($lastMessage !== null) {
-                    Log::info("Exiting loop after receiving message");
-                    break; // Exit the loop if a message is received
+                    break; // If the message is received, break the loop
                 }
             }
     
-            // Ensure the connection is properly disconnected after message receipt
-            Log::info("Disconnecting from MQTT broker");
+            // Disconnect from the broker
             $this->disconnect();
-            Log::info("Disconnected from MQTT broker");
     
-            // After breaking the loop, return the message if received
+            // Return the last message if available
             if ($lastMessage !== null) {
-                Log::info("Returning last message: " . json_encode($lastMessage));
                 return response()->json([
                     'status' => 'success',
-                    'last_state' => $lastMessage
+                    'last_state' => $lastMessage,
                 ], 200);
             } else {
-                Log::error("No message received within the timeout period");
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'No state received or topic not found'
+                    'message' => 'No state received or topic not found',
                 ], 404);
             }
     
         } catch (MqttClientException $e) {
-            Log::error("Failed to subscribe to topic: {$e->getMessage()}");
+            Log::error("MQTT Error: {$e->getMessage()}");
             return response()->json([
                 'status' => 'error',
                 'message' => 'MQTT client error'
             ], 500);
         }
     }
-     
     
     public function disconnect()
     {
