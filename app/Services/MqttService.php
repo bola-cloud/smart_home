@@ -15,19 +15,23 @@ class MqttService
 
     public function __construct()
     {
+        // Generate a unique client ID based on device ID or timestamp
+        $uniqueClientId = 'mqtt-laravel-mazaya-' . uniqid();
+        
         $host = '91.108.102.82'; // Replace with your MQTT broker IP
         $port = 1883;             // Default MQTT port
-        $clientId = 'mqtt-laravel-mazaya'; // Unique client ID
-        $this->mqttClient = new MqttClient($host, $port, $clientId);
+        
+        // Initialize the MQTT client with the unique client ID
+        $this->mqttClient = new MqttClient($host, $port, $uniqueClientId);
     }
-
+    
     public function connect()
     {
         try {
             $this->mqttClient->connect();
-            echo "Connected to MQTT broker\n";
+            Log::info("Connected to MQTT broker with client ID: " . $this->mqttClient->getClientId());
         } catch (MqttClientException $e) {
-            echo "Failed to connect to MQTT broker: {$e->getMessage()}\n";
+            Log::error("Failed to connect to MQTT broker: {$e->getMessage()}");
         }
     }
 
