@@ -49,19 +49,21 @@ class MqttService
 
     public function getLastMessage($deviceId, $componentOrder)
     {
-        Log::info("getLastMessage called");
+        Log::info("getLastMessage called for device {$deviceId}, component {$componentOrder}");
+        
         $topic = "Mazaya/{$deviceId}/{$componentOrder}";
         $lastMessage = null;
-    
+        
         try {
             // Connect to MQTT broker
             $this->connect();
     
             // Subscribe to the topic
+            Log::info("Subscribing to topic: {$topic}");
             $this->mqttClient->subscribe($topic, function (string $topic, string $message) use (&$lastMessage) {
                 // Once message is received, store it
                 $lastMessage = json_decode($message, true);
-                Log::info("Message received: {$message}");
+                Log::info("Message received on topic {$topic}: {$message}");
             }, MqttClient::QOS_AT_LEAST_ONCE);
     
             // Run the loop and wait for message (increase wait time to 10 seconds)
@@ -76,31 +78,28 @@ class MqttService
                 $loopCount++;
             }
     
-            // Disconnect after receiving the message
-            $this->disconnect();
-    
-            // Return the last message if available
+            // Check if message was received
             if ($lastMessage !== null) {
+                Log::info("Last state received: " . json_encode($lastMessage));
                 return response()->json([
                     'status' => 'success',
                     'last_state' => $lastMessage,
                 ], 200);
             } else {
+                Log::error("No message received after 10 seconds or topic not found");
                 return response()->json([
                     'status' => 'error',
                     'message' => 'No state received or topic not found',
                 ], 404);
             }
-    
         } catch (MqttClientException $e) {
             Log::error("MQTT Error: {$e->getMessage()}");
             return response()->json([
                 'status' => 'error',
-                'message' => 'MQTT client error'
+                'message' => 'MQTT client error: ' . $e->getMessage()
             ], 500);
         }
-    }
-    
+    }    
     
     public function disconnect()
     {
