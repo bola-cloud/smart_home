@@ -66,15 +66,14 @@ class MqttService
                 $lastMessage = json_decode($message, true); // Decode the received message
                 Log::info("Message received: {$message}");
     
-                // Disconnect immediately after receiving the message
-                // Make sure disconnection doesn't interrupt the message retrieval.
-                // It can be done after handling all operations.
+                // Once the message is received, break the loop (you can handle disconnection here)
+                // We do NOT disconnect yet; let the loop finish first
             }, MqttClient::QOS_AT_MOST_ONCE);
     
             // Run the loop to wait for the message
             Log::info("Starting MQTT loop to wait for messages");
             $startTime = time();
-            while (time() - $startTime < 5) { // Wait for up to 5 seconds
+            while (time() - $startTime < 10) { // Increased waiting time to 10 seconds
                 $this->mqttClient->loop(100); // Process network events for 100ms
                 if ($lastMessage !== null) {
                     Log::info("Exiting loop after receiving message");
@@ -109,7 +108,8 @@ class MqttService
                 'message' => 'MQTT client error'
             ], 500);
         }
-    }        
+    }
+     
     
     public function disconnect()
     {
