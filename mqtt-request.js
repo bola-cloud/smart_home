@@ -89,3 +89,6 @@ app.get('/last-message', (req, res) => {
 app.listen(port, () => {
   console.log(`MQTT Service is running at http://localhost:${port}`);
 });
+
+
+
