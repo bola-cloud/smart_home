@@ -57,7 +57,7 @@ class MqttService
         try {
             // Connect to MQTT broker
             $this->connect();
-    
+            
             // Subscribe to the topic
             Log::info("Subscribing to topic: {$topic}");
             $this->mqttClient->subscribe($topic, function (string $topic, string $message) use (&$lastMessage) {
@@ -66,19 +66,20 @@ class MqttService
                 Log::info("Message received on topic {$topic}: {$message}");
             }, MqttClient::QOS_AT_LEAST_ONCE);
     
-            // Run the loop and wait for message (increase wait time to 10 seconds)
+            // Timeout Handling: Give it 10 seconds to receive the message, with a limit on loop count
             $startTime = time();
-            $maxLoops = 50;
+            $maxLoops = 50;  // Max attempts
             $loopCount = 0;
             while (time() - $startTime < 10 && $loopCount < $maxLoops) {
-                $this->mqttClient->loop(100);  // Run MQTT client loop
+                $this->mqttClient->loop(100);  // Run the MQTT loop for 100ms
                 if ($lastMessage !== null) {
                     break;  // If message received, break the loop
                 }
                 $loopCount++;
+                Log::info("Waiting for message... Loop count: {$loopCount}");
             }
     
-            // Check if message was received
+            // Check if the message was received or not
             if ($lastMessage !== null) {
                 Log::info("Last state received: " . json_encode($lastMessage));
                 return response()->json([
@@ -86,17 +87,25 @@ class MqttService
                     'last_state' => $lastMessage,
                 ], 200);
             } else {
-                Log::error("No message received after 10 seconds or topic not found");
+                Log::error("No message received after 10 seconds or topic not found. Last loop count: {$loopCount}");
                 return response()->json([
                     'status' => 'error',
                     'message' => 'No state received or topic not found',
                 ], 404);
             }
         } catch (MqttClientException $e) {
-            Log::error("MQTT Error: {$e->getMessage()}");
+            // Handle MQTT client connection errors
+            Log::error("MQTT Client Error: {$e->getMessage()}");
             return response()->json([
                 'status' => 'error',
                 'message' => 'MQTT client error: ' . $e->getMessage()
+            ], 500);
+        } catch (\Exception $e) {
+            // Handle any other unexpected errors
+            Log::error("Unexpected Error: {$e->getMessage()}");
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unexpected error occurred: ' . $e->getMessage()
             ], 500);
         }
     }    
