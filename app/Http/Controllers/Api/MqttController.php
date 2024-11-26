@@ -59,6 +59,7 @@ class MqttController extends Controller
         $deviceId = $request->device_id;
         $componentOrder = $request->component_order;
     
+        dd($deviceId,$componentOrder);
         // Get the last state from the MQTT topic
         $lastState = $this->mqttService->getLastMessage($deviceId, $componentOrder);
     
