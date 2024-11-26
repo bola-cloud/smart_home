@@ -60,7 +60,7 @@ class MqttController extends Controller
         $componentOrder = $request->component_order;
     
         // Get the last state from the MQTT topic
-        $lastState = $this->mqttService->getLastState($deviceId, $componentOrder);
+        $lastState = $this->mqttService->getLastMessage($deviceId, $componentOrder);
     
         if ($lastState) {
             return response()->json([
