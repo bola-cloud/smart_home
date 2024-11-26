@@ -54,7 +54,7 @@ class MqttService
     public function getLastMessage($deviceId, $componentOrder)
     {
         Log::info("getLastMessage called for device {$deviceId}, component {$componentOrder}");
-        
+    
         $topic = "Mazaya/{$deviceId}/{$componentOrder}";
         $lastMessage = null;
         
@@ -77,7 +77,7 @@ class MqttService
             $maxLoops = 50;
             $loopCount = 0;
             while (time() - $startTime < 10 && $loopCount < $maxLoops) {
-                $this->mqttClient->loop(100);  // Run the MQTT loop for 100ms
+                $this->mqttClient->loop(500);  // Run the MQTT loop for 500ms
                 if ($lastMessage !== null) {
                     break;  // If message received, break the loop
                 }
@@ -115,9 +115,9 @@ class MqttService
                 'message' => 'Unexpected error occurred: ' . $e->getMessage()
             ], 500);
         } finally {
-            // Ensure that we give a delay before disconnecting
-            sleep(3);  // Delay before disconnecting
-            
+            // Ensure that we give a longer delay before disconnecting
+            sleep(5);  // Increase delay before disconnecting
+    
             // Check if we are connected before disconnecting
             if ($this->mqttClient->isConnected()) {
                 Log::info("Disconnecting from MQTT broker...");
@@ -127,8 +127,7 @@ class MqttService
             }
         }
     }
-    
-    
+     
     public function disconnect()
     {
         try {
