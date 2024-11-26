@@ -10,7 +10,7 @@ class MqttService
 
     public function __construct()
     {
-        $this->httpClient = new Client(['base_uri' => 'http://localhost:3000']);
+        $this->httpClient = new Client(['base_uri' => 'http://localhost:13000']); // Updated port
     }
 
     public function publishAction($deviceId, $componentId, $action, $retain = false)
@@ -45,21 +45,21 @@ class MqttService
     public function getLastMessage($deviceId, $componentOrder)
     {
         $topic = "Mazaya/{$deviceId}/{$componentOrder}";
-    
+
         try {
             $response = $this->httpClient->get('/last-message', [
                 'query' => ['topic' => $topic],
             ]);
-    
+
             $result = json_decode($response->getBody(), true);
-    
+
             if (!$result['success'] || $result['message'] === null) {
                 return [
                     'status' => 'error',
                     'message' => 'No state received or topic not found',
                 ];
             }
-    
+
             return [
                 'status' => 'success',
                 'last_state' => json_decode($result['message'], true),
@@ -71,5 +71,4 @@ class MqttService
             ];
         }
     }
-    
 }
