@@ -79,13 +79,9 @@ app.get('/last-message', (req, res) => {
 
   const message = lastMessages[topic];
   if (!message) {
-    return res.status(404).json({ error: 'No message found for topic' });
+    // Return a valid response even if no message exists
+    return res.json({ success: false, topic, message: null });
   }
 
   res.json({ success: true, topic, message });
-});
-
-// Start the server
-app.listen(port, () => {
-  console.log(`MQTT Service is running at http://localhost:${port}`);
 });
