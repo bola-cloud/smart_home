@@ -51,38 +51,38 @@ class MqttService
     public function getLastMessage($deviceId, $componentOrder)
     {
         Log::info("getLastMessage");
-        $topic = "Mazaya/{$deviceId}/{$componentOrder}";
-        $lastMessage = null;
+        // $topic = "Mazaya/{$deviceId}/{$componentOrder}";
+        // $lastMessage = null;
     
-        try {
-            // Connect to the MQTT broker
-            $this->connect();
-            echo "Connected to MQTT broker\n";
+        // try {
+        //     // Connect to the MQTT broker
+        //     $this->connect();
+        //     echo "Connected to MQTT broker\n";
     
-            // Subscribe to the topic
-            $this->mqttClient->subscribe($topic, function (string $topic, string $message) use (&$lastMessage) {
-                $lastMessage = json_decode($message, true); // Decode the received message
-                echo "Message received: {$message}\n";
-            }, MqttClient::QOS_AT_MOST_ONCE);
+        //     // Subscribe to the topic
+        //     $this->mqttClient->subscribe($topic, function (string $topic, string $message) use (&$lastMessage) {
+        //         $lastMessage = json_decode($message, true); // Decode the received message
+        //         echo "Message received: {$message}\n";
+        //     }, MqttClient::QOS_AT_MOST_ONCE);
     
-            // Run loop for 5 seconds, but break if a message is received
-            $startTime = time();
-            while (time() - $startTime < 5) { // Wait for up to 5 seconds
-                $this->mqttClient->loop(100); // Process network events for 100ms
-                if ($lastMessage !== null) {
-                    break; // Exit the loop if a message is received
-                }
-            }
+        //     // Run loop for 5 seconds, but break if a message is received
+        //     $startTime = time();
+        //     while (time() - $startTime < 5) { // Wait for up to 5 seconds
+        //         $this->mqttClient->loop(100); // Process network events for 100ms
+        //         if ($lastMessage !== null) {
+        //             break; // Exit the loop if a message is received
+        //         }
+        //     }
     
-            // Disconnect from the broker
-            $this->disconnect();
-            echo "Disconnected from MQTT broker\n";
+        //     // Disconnect from the broker
+        //     $this->disconnect();
+        //     echo "Disconnected from MQTT broker\n";
     
-        } catch (MqttClientException $e) {
-            echo "Failed to subscribe to topic: {$e->getMessage()}\n";
-        }
+        // } catch (MqttClientException $e) {
+        //     echo "Failed to subscribe to topic: {$e->getMessage()}\n";
+        // }
     
-        return $lastMessage;
+        // return $lastMessage;
     }      
     
     public function disconnect()
