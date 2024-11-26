@@ -56,7 +56,7 @@ class MqttService
         }
     
         $deviceId = $component->device->id;
-        $topic = "Mazaya/{$deviceId}/{$componentId}";
+        $topic = "Mazaya/{$deviceId}/{$component->order}";
     
         try {
             $this->connect();
