@@ -49,31 +49,31 @@ class MqttController extends Controller
     }
     
 
-public function getLastStateFromDevice(Request $request)
-{
-    $request->validate([
-        'device_id' => 'required|integer',
-        'component_order' => 'required|integer',
-    ]);
-
-    $deviceId = $request->device_id;
-    $componentOrder = $request->component_order;
-
-    // Get the last state from the MQTT topic
-    $lastState = $this->mqttService->getLastMessage($deviceId, $componentOrder);
-
-    if ($lastState) {
-        return response()->json([
-            'status' => 'success',
-            'last_state' => $lastState,
-        ], 200); // Send 200 OK response
-    } else {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'No state received or topic not found',
-        ], 404); // Send 404 if no message is found
+    public function getLastStateFromDevice(Request $request)
+    {
+        $request->validate([
+            'device_id' => 'required|integer',
+            'component_order' => 'required|integer',
+        ]);
+    
+        $deviceId = $request->device_id;
+        $componentOrder = $request->component_order;
+    
+        // Get the last state from the MQTT topic
+        $lastState = $this->mqttService->getLastMessage($deviceId, $componentOrder);
+    
+        if ($lastState) {
+            return response()->json([
+                'status' => 'success',
+                'last_state' => $lastState,
+            ], 200); // Send 200 OK response
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No state received or topic not found',
+            ], 404); // Send 404 if no message is found
+        }
     }
-}
-
+    
     
 }
