@@ -54,26 +54,29 @@ class MqttService
         $lastMessage = null;
     
         try {
-            // Connect to the MQTT broker
+            // Connect to MQTT broker
             $this->connect();
     
             // Subscribe to the topic
             $this->mqttClient->subscribe($topic, function (string $topic, string $message) use (&$lastMessage) {
-                // Once a message is received, store it and stop the loop
+                // Once message is received, store it
                 $lastMessage = json_decode($message, true);
                 Log::info("Message received: {$message}");
             }, MqttClient::QOS_AT_LEAST_ONCE);
     
-            // Run the loop and wait for up to 5 seconds for the message
+            // Run the loop and wait for message (increase wait time to 10 seconds)
             $startTime = time();
-            while (time() - $startTime < 5) {
-                $this->mqttClient->loop(100);  // Run the MQTT client loop for 100ms
+            $maxLoops = 50;
+            $loopCount = 0;
+            while (time() - $startTime < 10 && $loopCount < $maxLoops) {
+                $this->mqttClient->loop(100);  // Run MQTT client loop
                 if ($lastMessage !== null) {
-                    break; // If the message is received, break the loop
+                    break;  // If message received, break the loop
                 }
+                $loopCount++;
             }
     
-            // Disconnect from the broker
+            // Disconnect after receiving the message
             $this->disconnect();
     
             // Return the last message if available
@@ -97,6 +100,7 @@ class MqttService
             ], 500);
         }
     }
+    
     
     public function disconnect()
     {
