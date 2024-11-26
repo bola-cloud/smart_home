@@ -62,7 +62,7 @@ class MqttService
                 // Once a message is received, store it and stop the loop
                 $lastMessage = json_decode($message, true);
                 Log::info("Message received: {$message}");
-            }, MqttClient::QOS_EXACTLY_ONCE);
+            }, MqttClient::QOS_AT_MOST_ONCE);
     
             // Run the loop and wait for up to 5 seconds for the message
             $startTime = time();
