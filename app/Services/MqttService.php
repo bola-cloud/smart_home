@@ -49,35 +49,39 @@ class MqttService
 
     public function getLastMessage($deviceId, $componentOrder)
     {
-        // Construct the topic to subscribe to
         $topic = "Mazaya/{$deviceId}/{$componentOrder}";
-    
         $lastMessage = null;
     
         try {
             // Connect to the MQTT broker
             $this->connect();
+            echo "Connected to MQTT broker\n";
     
-            // Subscribe to the topic and handle the received message
+            // Subscribe to the topic
             $this->mqttClient->subscribe($topic, function (string $topic, string $message) use (&$lastMessage) {
-                // Decode the received message
-                $lastMessage = json_decode($message, true);
+                $lastMessage = json_decode($message, true); // Decode the received message
+                echo "Message received: {$message}\n";
             }, MqttClient::QOS_AT_MOST_ONCE);
     
-            // Wait for the last retained message to be received
-            $this->mqttClient->loop(true, 5000); // Wait for 5 seconds
+            // Run loop for 5 seconds, but break if a message is received
+            $startTime = time();
+            while (time() - $startTime < 5) { // Wait for up to 5 seconds
+                $this->mqttClient->loop(100); // Process network events for 100ms
+                if ($lastMessage !== null) {
+                    break; // Exit the loop if a message is received
+                }
+            }
     
-            // Disconnect after receiving the message
+            // Disconnect from the broker
             $this->disconnect();
+            echo "Disconnected from MQTT broker\n";
     
         } catch (MqttClientException $e) {
-            echo "Failed to subscribe to topic for last message: {$e->getMessage()}\n";
+            echo "Failed to subscribe to topic: {$e->getMessage()}\n";
         }
     
-        // Return the last message (or null if no message received)
         return $lastMessage;
-    }    
-    
+    }      
     
     public function disconnect()
     {
