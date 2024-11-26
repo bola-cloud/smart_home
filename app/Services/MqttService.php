@@ -39,7 +39,7 @@ class MqttService
         $topic = "Mazaya/{$deviceId}/{$component->order}";
 
         // Ensure the message is encoded as a JSON string
-        $message = is_array($action) ? json_decode($action) : json_decode(['action' => $action]);
+        $message = is_array($action) ? json_encode($action) : json_encode(['action' => $action]);
 
         try {
             // Publish the message after encoding to JSON
