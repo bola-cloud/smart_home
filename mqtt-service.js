@@ -50,7 +50,6 @@ client.on('message', (topic, message) => {
   console.log(`Message received on topic ${topic}:`, message.toString());
   lastMessages[topic] = message.toString();  // Store the last message for the topic
 });
-
 // API to Subscribe to a specific topic based on device_id and component_id
 app.post('/subscribe', (req, res) => {
   const { device_id, component_id } = req.body;
@@ -61,12 +60,21 @@ app.post('/subscribe', (req, res) => {
   }
 
   const topic = `Mazaya/${device_id}/${component_id}`;
+  
+  // Subscribe to the topic
   client.subscribe(topic, { qos: 1 }, (err) => {
     if (err) {
       console.error('Subscription error:', err);
       return res.status(500).json({ error: 'Failed to subscribe to topic' });
     }
-    res.json({ success: true, message: `Subscribed to topic: ${topic}` });
+
+    // Check if there's a stored message for this topic
+    const lastMessage = lastMessages[topic];
+    if (lastMessage) {
+      return res.json({ success: true, message: `Subscribed to topic: ${topic}`, last_message: lastMessage });
+    } else {
+      return res.json({ success: true, message: `Subscribed to topic: ${topic}`, last_message: 'No messages yet for this topic' });
+    }
   });
 });
 

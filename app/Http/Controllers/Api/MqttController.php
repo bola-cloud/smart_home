@@ -51,9 +51,6 @@ class MqttController extends Controller
         return response()->json($result);
     }
 
-    /**
-     * Get the last message for a specific topic
-     */
     public function getLastMessage(Request $request)
     {
         // Validate incoming data
