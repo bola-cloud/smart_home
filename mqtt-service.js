@@ -14,8 +14,8 @@ const options = {
   clientId: `mqtt-js-client-${Math.random().toString(16).substr(2, 8)}`,
   clean: true,
   connectTimeout: 4000,
-  username: '',
-  password: '',
+  username: '', // Add if required
+  password: '', // Add if required
 };
 
 // Connect to the MQTT broker
@@ -25,50 +25,75 @@ const client = mqtt.connect(brokerUrl, options);
 const lastMessages = {};
 
 // Listen for messages on subscribed topics
-client.on('message', (topic, message) => {
-  console.log(`Message received on topic ${topic}:`, message.toString());
-  lastMessages[topic] = message.toString(); // Store the last message for the topic
+client.on('connect', () => {
+  console.log('Connected to MQTT broker');
 });
 
-// API: Publish to a topic
-app.post('/publish', (req, res) => {
-  const { topic, message, retain } = req.body;
-  if (!topic || !message) {
-    return res.status(400).json({ error: 'Topic and message are required' });
-  }
+// Handle received messages
+client.on('message', (topic, message) => {
+  console.log(`Message received on topic ${topic}:`, message.toString());
+  lastMessages[topic] = message.toString();  // Store the last message for the topic
+});
 
-  // Publish with retain flag
-  client.publish(topic, message, { qos: 1, retain: retain || false }, (err) => {
-    if (err) {
-      console.error('Publish error:', err);
-      return res.status(500).json({ error: 'Failed to publish message' });
-    }
-    res.json({ success: true, topic, message });
+// Log subscription ack (debugging subscriptions)
+client.on('suback', (packet) => {
+  packet.granted.forEach((qos, index) => {
+    const topic = packet.topics[index];
+    console.log(`Subscribed to topic: ${topic} with QoS: ${qos}`);
   });
 });
 
-// API: Get last retained message for a topic
-app.get('/last-message', (req, res) => {
-  const topic = req.query.topic;
+// API to Publish message
+app.post('/publish', (req, res) => {
+  const { topic, message, retain } = req.body;
+  if (!topic || !message) {
+      return res.status(400).json({ error: 'Topic and message are required' });
+  }
 
+  // Publish with retain flag
+  client.publish(topic, message, { qos: 1, retain: true }, (err) => {
+      if (err) {
+          console.error('Publish error:', err);
+          return res.status(500).json({ error: 'Failed to publish message' });
+      }
+      res.json({ success: true, topic, message });
+  });
+});
+
+// API to Subscribe to a topic
+app.post('/subscribe', (req, res) => {
+  const { topic } = req.body;
   if (!topic) {
     return res.status(400).json({ error: 'Topic is required' });
   }
 
-  // Check if the topic has a stored message
-  if (!lastMessages[topic]) {
-    return res.status(404).json({
-      error: `No message found for the given topic: ${topic}`,
-    });
-  }
-
-  return res.json({
-    success: true,
-    message: lastMessages[topic],
+  // Subscribe to the topic with QoS 1
+  client.subscribe(topic, { qos: 1 }, (err) => {
+    if (err) {
+      console.error('Subscribe error:', err);
+      return res.status(500).json({ error: 'Failed to subscribe to topic' });
+    }
+    res.json({ success: true, topic });
   });
 });
 
-// Start server
+// Route for getting last retained message
+app.get('/last-message', (req, res) => {
+  const topic = req.query.topic;
+
+  if (!topic || !lastMessages[topic]) {
+      return res.status(404).json({
+          error: `No message found for the given topic: ${topic}`,
+      });
+  }
+
+  return res.json({
+      success: true,
+      message: lastMessages[topic],
+  });
+});
+
+// Start the Express server
 app.listen(port, () => {
-  console.log(`Server listening at http://localhost:${port}`);
+  console.log(`Server is running on http://localhost:${port}`);
 });
