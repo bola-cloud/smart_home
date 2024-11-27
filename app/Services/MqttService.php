@@ -13,7 +13,7 @@ class MqttService
         $this->httpClient = new Client(['base_uri' => 'http://localhost:3000']);
     }
 
-    public function publishAction($deviceId, $componentId, $action, $retain = false)
+    public function publishAction($deviceId, $componentId, $action, $retain = true)
     {
         $topic = "Mazaya/{$deviceId}/{$componentId}";
         $message = json_encode(['action' => $action]);
