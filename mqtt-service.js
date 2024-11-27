@@ -32,7 +32,7 @@ client.on('connect', () => {
 // Handle received messages
 client.on('message', (topic, message) => {
   console.log(`Message received on topic ${topic}:`, message.toString());
-  lastMessages[topic] = message.toString(); // Store the last message for the topic
+  lastMessages[topic] = message.toString();  // Store the last message for the topic
 });
 
 // Log subscription ack (debugging subscriptions)
@@ -59,41 +59,6 @@ app.post('/publish', (req, res) => {
       res.json({ success: true, topic, message });
   });
 });
-
-// API to Subscribe to a Topic
-app.post('/subscribe-device', (req, res) => {
-  const { topic } = req.body;
-
-  if (!topic) {
-    return res.status(400).json({ error: 'Topic is required' });
-  }
-
-  // Subscribe to the topic with QoS 1
-  client.subscribe(topic, { qos: 1 }, (err) => {
-    if (err) {
-      console.error('Subscribe error:', err);
-      return res.status(500).json({ error: 'Failed to subscribe to topic' });
-    }
-    res.json({ success: true, topic });
-  });
-});
-
-// API to Get Last Message for a Topic
-// app.get('/last-message', (req, res) => {
-//   const { topic } = req.query;
-
-//   if (!topic) {
-//     return res.status(400).json({ error: 'Topic is required' });
-//   }
-
-//   // Retrieve the last message for the topic
-//   const message = lastMessages[topic];
-//   if (!message) {
-//     return res.status(404).json({ error: `No message found for topic: ${topic}` });
-//   }
-
-//   res.json({ success: true, topic, message });
-// });
 
 // Start the Express server
 app.listen(port, () => {
