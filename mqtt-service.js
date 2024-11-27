@@ -29,6 +29,22 @@ client.on('connect', () => {
   console.log('Connected to MQTT broker');
 });
 
+app.post('/publish', (req, res) => {
+  const { topic, message, retain } = req.body;
+  if (!topic || !message) {
+    return res.status(400).json({ error: 'Topic and message are required' });
+  }
+
+  // Publish with retain flag
+  client.publish(topic, message, { qos: 1, retain: retain || false }, (err) => {
+    if (err) {
+      console.error('Publish error:', err);
+      return res.status(500).json({ error: 'Failed to publish message' });
+    }
+    res.json({ success: true, topic, message });
+  });
+});
+
 // Handle received messages and store the last message for each topic
 client.on('message', (topic, message) => {
   console.log(`Message received on topic ${topic}:`, message.toString());
