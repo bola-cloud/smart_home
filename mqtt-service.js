@@ -70,18 +70,26 @@ app.post('/subscribe', (req, res) => {
   });
 });
 
-// API: Get last message for a topic
+// API: Get the last message for a topic
 app.get('/last-message', (req, res) => {
   const { topic } = req.query;
   if (!topic) {
     return res.status(400).json({ error: 'Topic is required' });
   }
 
-  const message = lastMessages[topic];
-  if (!message) {
-    // Return a valid response even if no message exists
-    return res.json({ success: false, topic, message: null });
+  const lastMessage = lastMessages[topic];
+  if (!lastMessage) {
+    return res.status(404).json({ error: 'No message found for the given topic' });
   }
 
-  res.json({ success: true, topic, message });
+  res.json({
+    success: true,
+    topic: topic,
+    message: lastMessage,
+  });
+});
+
+// Start the server
+app.listen(port, () => {
+  console.log(`MQTT service is running on http://localhost:${port}`);
 });

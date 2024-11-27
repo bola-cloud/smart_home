@@ -53,7 +53,7 @@ class MqttService
     
             $result = json_decode($response->getBody(), true);
     
-            if (!$result['success'] || $result['message'] === null) {
+            if (!$result['success'] || empty($result['message'])) {
                 return [
                     'status' => 'error',
                     'message' => 'No state received or topic not found',
