@@ -53,5 +53,24 @@ class MqttController extends Controller
         // Return the response from the service
         return response()->json($result);
     }
+
+    public function getLastMessage(Request $request)
+    {
+        // Validate incoming data
+        $request->validate([
+            'device_id' => 'required|integer',
+            'component_id' => 'required|integer',
+        ]);
+
+        // Get the validated data from the request
+        $deviceId = $request->device_id;
+        $componentId = $request->component_id;
+
+        // Redirect the request to the service to fetch the last message
+        $result = $this->mqttService->getLastMessage($deviceId, $componentId);
+
+        // Return the response from the service
+        return response()->json($result);
+    }
     
 }
