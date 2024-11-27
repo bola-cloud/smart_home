@@ -22,12 +22,14 @@ class ExecuteConditionAction implements ShouldQueue
     public $repetitionDays;
     public $isDelayed; // Flag to indicate if this is already a delayed job
 
-    public function __construct($conditionId, $caseId, $repetitionDays = null, $isDelayed = false)
+    public function __construct($conditionId, $caseId, $repetitionDays = null, $isDelayed = false, MqttService $mqttService)
     {
         $this->conditionId = $conditionId;
         $this->caseId = $caseId;
         $this->repetitionDays = $repetitionDays;
         $this->isDelayed = $isDelayed; // Initialize the flag
+
+        $this->mqttService = $mqttService;
 
         Log::info("Job created for condition {$conditionId}, case {$caseId}, isDelayed: " . ($isDelayed ? 'true' : 'false'));
     }
@@ -153,7 +155,16 @@ class ExecuteConditionAction implements ShouldQueue
     {
         $component = Component::find($device['component_id']);
         if ($component) {
-            $component->update(['type' => "updated_type"]);
+            // $component->update(['type' => "updated_type"]);
+            $action = Action::find($device['action']);
+            if($action->action_type == "analog"){
+                $actionContent = $action->json_data;
+            }else{
+                $data = ['status' => $action->status];
+                $actionContent = json_encode($data);
+            }
+            $result = $this->mqttService->publishAction($component->device_id, $device['action'], $message, true);
+
             Log::info("Executed action for component", [
                 'component_id' => $device['component_id'],
                 'action' => $device['action']
