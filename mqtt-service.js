@@ -59,24 +59,3 @@ app.post('/publish', (req, res) => {
       res.json({ success: true, topic, message });
   });
 });
-
-// API to Subscribe to a topic
-app.post('/last-message', (req, res) => {
-  const { topic } = req.body;
-  if (!topic) {
-    return res.status(400).json({ error: 'Topic is required' });
-  }
-
-  // Subscribe to the topic with QoS 1
-  client.subscribe(topic, { qos: 1 }, (err) => {
-    if (err) {
-      console.error('Subscribe error:', err);
-      return res.status(500).json({ error: 'Failed to subscribe to topic' });
-    }
-    res.json({ success: true, topic });
-  });
-});
-// Start the Express server
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
