@@ -34,6 +34,7 @@ class MqttController extends Controller
 
     public function subscribeToTopic(Request $request)
     {
+        dd($request->all());
         // Validate incoming data
         $request->validate([
             'device_id' => 'required|integer',
