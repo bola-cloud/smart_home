@@ -32,7 +32,7 @@ client.on('connect', () => {
 // Handle received messages
 client.on('message', (topic, message) => {
   console.log(`Message received on topic ${topic}:`, message.toString());
-  lastMessages[topic] = message.toString(); // Store the last message for the topic
+  lastMessages[topic] = message.toString();  // Store the last message for the topic
 });
 
 // Log subscription ack (debugging subscriptions)
@@ -47,16 +47,16 @@ client.on('suback', (packet) => {
 app.post('/publish', (req, res) => {
   const { topic, message, retain } = req.body;
   if (!topic || !message) {
-    return res.status(400).json({ error: 'Topic and message are required' });
+      return res.status(400).json({ error: 'Topic and message are required' });
   }
 
-  // Publish message with retain flag
-  client.publish(topic, message, { qos: 1, retain: retain || false }, (err) => {
-    if (err) {
-      console.error('Publish error:', err);
-      return res.status(500).json({ error: 'Failed to publish message' });
-    }
-    res.json({ success: true, topic, message });
+  // Publish with retain flag
+  client.publish(topic, message, { qos: 1, retain: true }, (err) => {
+      if (err) {
+          console.error('Publish error:', err);
+          return res.status(500).json({ error: 'Failed to publish message' });
+      }
+      res.json({ success: true, topic, message });
   });
 });
 
@@ -77,22 +77,19 @@ app.post('/subscribe', (req, res) => {
   });
 });
 
-// API to get the last retained message
+// Route for getting last retained message
 app.get('/last-message', (req, res) => {
-  const { topic } = req.query;
-  if (!topic) {
-    return res.status(400).json({ error: 'Topic is required' });
+  const topic = req.query.topic;
+
+  if (!topic || !lastMessages[topic]) {
+      return res.status(404).json({
+          error: `No message found for the given topic: ${topic}`,
+      });
   }
 
-  const lastMessage = lastMessages[topic];
-  if (!lastMessage) {
-    return res.status(404).json({ error: 'No message found for the given topic' });
-  }
-
-  res.json({
-    success: true,
-    topic: topic,
-    message: lastMessage,
+  return res.json({
+      success: true,
+      message: lastMessages[topic],
   });
 });
 
