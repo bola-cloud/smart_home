@@ -21,43 +21,36 @@ const options = {
 // Connect to the MQTT broker
 const client = mqtt.connect(brokerUrl, options);
 
-client.on('connect', () => {
-  console.log('Connected to MQTT broker');
-});
-
-client.on('error', (err) => {
-  console.error('MQTT Connection error:', err);
-});
-
 // Store last messages for topics (in memory)
 const lastMessages = {};
 
 // Listen for messages on subscribed topics
+client.on('connect', () => {
+  console.log('Connected to MQTT broker');
+});
+
+// Handle received messages
 client.on('message', (topic, message) => {
   console.log(`Message received on topic ${topic}:`, message.toString());
   lastMessages[topic] = message.toString(); // Store the last message for the topic
-  console.log('Last messages:', lastMessages); // Log to see the current state
 });
 
-// Listen for the 'suback' event to capture retained messages when subscribing
+// Log subscription ack (debugging subscriptions)
 client.on('suback', (packet) => {
   packet.granted.forEach((qos, index) => {
     const topic = packet.topics[index];
-    if (qos > 0) {
-      console.log(`Subscribed to topic: ${topic}`);
-      // Check if there's a retained message for the topic
-      client.publish(topic, '', { qos: 1, retain: true });
-    }
+    console.log(`Subscribed to topic: ${topic} with QoS: ${qos}`);
   });
 });
 
-// API: Publish to a topic
+// API to Publish message
 app.post('/publish', (req, res) => {
   const { topic, message, retain } = req.body;
   if (!topic || !message) {
     return res.status(400).json({ error: 'Topic and message are required' });
   }
 
+  // Publish message with retain flag
   client.publish(topic, message, { qos: 1, retain: retain || false }, (err) => {
     if (err) {
       console.error('Publish error:', err);
@@ -67,13 +60,14 @@ app.post('/publish', (req, res) => {
   });
 });
 
-// API: Subscribe to a topic
+// API to Subscribe to a topic
 app.post('/subscribe', (req, res) => {
   const { topic } = req.body;
   if (!topic) {
     return res.status(400).json({ error: 'Topic is required' });
   }
 
+  // Subscribe to the topic with QoS 1
   client.subscribe(topic, { qos: 1 }, (err) => {
     if (err) {
       console.error('Subscribe error:', err);
@@ -83,17 +77,12 @@ app.post('/subscribe', (req, res) => {
   });
 });
 
-// API: Get the last message for a topic
+// API to get the last retained message
 app.get('/last-message', (req, res) => {
   const { topic } = req.query;
-  console.log('Requested topic:', topic);  // Log the requested topic
-
   if (!topic) {
     return res.status(400).json({ error: 'Topic is required' });
   }
-
-  // Log current last messages
-  console.log('Current lastMessages:', lastMessages);
 
   const lastMessage = lastMessages[topic];
   if (!lastMessage) {
@@ -109,5 +98,5 @@ app.get('/last-message', (req, res) => {
 
 // Start the Express server
 app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+  console.log(`Server is running on http://localhost:${port}`);
 });

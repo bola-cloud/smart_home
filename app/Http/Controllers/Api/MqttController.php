@@ -1,49 +1,74 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Services;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Services\MqttService;
+use GuzzleHttp\Client;
 
-class MqttController extends Controller
+class MqttService
 {
-    protected $mqttService;
+    protected $httpClient;
 
-    public function __construct(MqttService $mqttService)
+    public function __construct()
     {
-        $this->mqttService = $mqttService;
+        $this->httpClient = new Client(['base_uri' => 'http://localhost:3000']);
     }
 
-    public function publishToDevice(Request $request)
+    public function publishAction($deviceId, $componentId, $action, $retain = false)
     {
-        $request->validate([
-            'device_id' => 'required|integer',
-            'component_id' => 'required|integer',
-            'message' => 'required|array',
+        $topic = "Mazaya/{$deviceId}/{$componentId}";
+        $message = json_encode(['action' => $action]);
+
+        $response = $this->httpClient->post('/publish', [
+            'json' => [
+                'topic' => $topic,
+                'message' => $message,
+                'retain' => $retain,
+            ],
         ]);
 
-        $deviceId = $request->device_id;
-        $componentId = $request->component_id;
-        $message = $request->message;
-
-        $result = $this->mqttService->publishAction($deviceId, $componentId, $message, true);
-
-        return response()->json($result);
+        return json_decode($response->getBody(), true);
     }
 
-    public function getLastStateFromDevice(Request $request)
+    public function subscribeToTopic($deviceId, $componentId)
     {
-        $request->validate([
-            'device_id' => 'required|integer',
-            'component_order' => 'required|integer',
+        $topic = "Mazaya/{$deviceId}/{$componentId}";
+
+        $response = $this->httpClient->post('/subscribe', [
+            'json' => [
+                'topic' => $topic,
+            ],
         ]);
 
-        $deviceId = $request->device_id;
-        $componentOrder = $request->component_order;
+        return json_decode($response->getBody(), true);
+    }
 
-        $result = $this->mqttService->getLastMessage($deviceId, $componentOrder);
-
-        return response()->json($result);
+    public function getLastMessage($deviceId, $componentOrder)
+    {
+        $topic = "Mazaya/{$deviceId}/{$componentOrder}";
+    
+        try {
+            $response = $this->httpClient->get('/last-message', [
+                'query' => ['topic' => $topic],
+            ]);
+    
+            $result = json_decode($response->getBody(), true);
+    
+            if (!$result['success'] || $result['message'] === null) {
+                return [
+                    'status' => 'error',
+                    'message' => 'No state received or topic not found',
+                ];
+            }
+    
+            return [
+                'status' => 'success',
+                'last_state' => json_decode($result['message'], true),
+            ];
+        } catch (\Exception $e) {
+            return [
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ];
+        }
     }
 }
