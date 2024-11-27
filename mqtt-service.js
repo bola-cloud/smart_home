@@ -61,7 +61,7 @@ app.post('/publish', (req, res) => {
 });
 
 // API to Subscribe to a topic
-app.post('/subscribe', (req, res) => {
+app.post('/last-message', (req, res) => {
   const { topic } = req.body;
   if (!topic) {
     return res.status(400).json({ error: 'Topic is required' });
@@ -76,23 +76,6 @@ app.post('/subscribe', (req, res) => {
     res.json({ success: true, topic });
   });
 });
-
-// Route for getting last retained message
-app.get('/last-message', (req, res) => {
-  const topic = req.query.topic;
-
-  if (!topic || !lastMessages[topic]) {
-      return res.status(404).json({
-          error: `No message found for the given topic: ${topic}`,
-      });
-  }
-
-  return res.json({
-      success: true,
-      message: lastMessages[topic],
-  });
-});
-
 // Start the Express server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
