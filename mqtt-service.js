@@ -61,7 +61,7 @@ app.post('/publish', (req, res) => {
 });
 
 // API to Subscribe to a Topic
-app.post('/subscribe', (req, res) => {
+app.post('/last-message', (req, res) => {
   const { topic } = req.body;
 
   if (!topic) {
@@ -79,21 +79,21 @@ app.post('/subscribe', (req, res) => {
 });
 
 // API to Get Last Message for a Topic
-app.get('/last-message', (req, res) => {
-  const { topic } = req.query;
+// app.get('/last-message', (req, res) => {
+//   const { topic } = req.query;
 
-  if (!topic) {
-    return res.status(400).json({ error: 'Topic is required' });
-  }
+//   if (!topic) {
+//     return res.status(400).json({ error: 'Topic is required' });
+//   }
 
-  // Retrieve the last message for the topic
-  const message = lastMessages[topic];
-  if (!message) {
-    return res.status(404).json({ error: `No message found for topic: ${topic}` });
-  }
+//   // Retrieve the last message for the topic
+//   const message = lastMessages[topic];
+//   if (!message) {
+//     return res.status(404).json({ error: `No message found for topic: ${topic}` });
+//   }
 
-  res.json({ success: true, topic, message });
-});
+//   res.json({ success: true, topic, message });
+// });
 
 // Start the Express server
 app.listen(port, () => {
