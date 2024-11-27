@@ -163,7 +163,7 @@ class ExecuteConditionAction implements ShouldQueue
                 $data = ['status' => $action->status];
                 $actionContent = json_encode($data);
             }
-            $result = $this->mqttService->publishAction($component->device_id, $device['action'], $message, true);
+            $result = $this->mqttService->publishAction($component->device_id, $actionContent, $message, true);
 
             Log::info("Executed action for component", [
                 'component_id' => $device['component_id'],
