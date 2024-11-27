@@ -61,7 +61,7 @@ app.post('/publish', (req, res) => {
 });
 
 // API to Subscribe to a Topic
-app.post('/last-message', (req, res) => {
+app.post('/subscribe-device', (req, res) => {
   const { topic } = req.body;
 
   if (!topic) {
