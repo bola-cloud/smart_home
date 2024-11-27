@@ -38,12 +38,15 @@ class MqttController extends Controller
             'device_id' => 'required|integer',
             'component_order' => 'required|integer',
         ]);
-
+    
         $deviceId = $request->device_id;
         $componentOrder = $request->component_order;
-
+    
+        // Call to the MqttService to fetch the last message
         $result = $this->mqttService->getLastMessage($deviceId, $componentOrder);
-
+    
+        // Return the response in JSON
         return response()->json($result);
     }
+    
 }

@@ -47,22 +47,30 @@ class MqttService
         $topic = "Mazaya/{$deviceId}/{$componentOrder}";
     
         try {
-            $response = $this->httpClient->get('/last-message', [
-                'query' => ['topic' => $topic],
-            ]);
+            // Try to fetch the message from the broker or local memory
+            if (isset($this->lastMessages[$topic])) {
+                $message = $this->lastMessages[$topic];
+            } else {
+                // In case the message is not found in memory, fetch from the broker
+                $response = $this->httpClient->get('/last-message', [
+                    'query' => ['topic' => $topic],
+                ]);
     
-            $result = json_decode($response->getBody(), true);
-    
-            if (!$result['success'] || $result['message'] === null) {
-                return [
-                    'status' => 'error',
-                    'message' => 'No state received or topic not found',
-                ];
+                $result = json_decode($response->getBody(), true);
+                if ($result['success'] && $result['message'] !== null) {
+                    $message = $result['message'];
+                } else {
+                    return [
+                        'status' => 'error',
+                        'message' => 'No state received or topic not found',
+                    ];
+                }
             }
     
+            // Return the last message
             return [
                 'status' => 'success',
-                'last_state' => json_decode($result['message'], true),
+                'last_state' => json_decode($message, true),
             ];
         } catch (\Exception $e) {
             return [
