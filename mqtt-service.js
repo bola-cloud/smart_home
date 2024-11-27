@@ -36,6 +36,19 @@ const lastMessages = {};
 client.on('message', (topic, message) => {
   console.log(`Message received on topic ${topic}:`, message.toString());
   lastMessages[topic] = message.toString(); // Store the last message for the topic
+  console.log('Last messages:', lastMessages); // Log to see the current state
+});
+
+// Listen for the 'suback' event to capture retained messages when subscribing
+client.on('suback', (packet) => {
+  packet.granted.forEach((qos, index) => {
+    const topic = packet.topics[index];
+    if (qos > 0) {
+      console.log(`Subscribed to topic: ${topic}`);
+      // Check if there's a retained message for the topic
+      client.publish(topic, '', { qos: 1, retain: true });
+    }
+  });
 });
 
 // API: Publish to a topic
@@ -73,9 +86,14 @@ app.post('/subscribe', (req, res) => {
 // API: Get the last message for a topic
 app.get('/last-message', (req, res) => {
   const { topic } = req.query;
+  console.log('Requested topic:', topic);  // Log the requested topic
+
   if (!topic) {
     return res.status(400).json({ error: 'Topic is required' });
   }
+
+  // Log current last messages
+  console.log('Current lastMessages:', lastMessages);
 
   const lastMessage = lastMessages[topic];
   if (!lastMessage) {
@@ -89,7 +107,7 @@ app.get('/last-message', (req, res) => {
   });
 });
 
-// Start the server
+// Start the Express server
 app.listen(port, () => {
-  console.log(`MQTT service is running on http://localhost:${port}`);
+  console.log(`Server running on http://localhost:${port}`);
 });
