@@ -22,14 +22,14 @@ class ExecuteConditionAction implements ShouldQueue
     public $repetitionDays;
     public $isDelayed; // Flag to indicate if this is already a delayed job
 
-    public function __construct($conditionId, $caseId, $repetitionDays = null, $isDelayed = false, MqttService $mqttService)
+    public function __construct($conditionId, $caseId, $repetitionDays = null, $isDelayed = false)
     {
         $this->conditionId = $conditionId;
         $this->caseId = $caseId;
         $this->repetitionDays = $repetitionDays;
         $this->isDelayed = $isDelayed; // Initialize the flag
 
-        $this->mqttService = $mqttService;
+        $this->mqttService = new MqttService();
 
         Log::info("Job created for condition {$conditionId}, case {$caseId}, isDelayed: " . ($isDelayed ? 'true' : 'false'));
     }
