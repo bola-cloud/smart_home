@@ -29,65 +29,48 @@ client.on('connect', () => {
   console.log('Connected to MQTT broker');
 });
 
-// Handle received messages
+// Handle received messages and store the last message for each topic
 client.on('message', (topic, message) => {
   console.log(`Message received on topic ${topic}:`, message.toString());
   lastMessages[topic] = message.toString();  // Store the last message for the topic
 });
 
-// Log subscription ack (debugging subscriptions)
-client.on('suback', (packet) => {
-  packet.granted.forEach((qos, index) => {
-    const topic = packet.topics[index];
-    console.log(`Subscribed to topic: ${topic} with QoS: ${qos}`);
-  });
-});
+// API to Subscribe to a specific topic based on device_id and component_id
+app.post('/subscribe', (req, res) => {
+  const { device_id, component_id } = req.body;
 
-// Subscribe to a specific topic (for example, Mazaya/11/3)
-function subscribeToTopic(deviceId, componentOrder) {
-  const topic = `Mazaya/${deviceId}/${componentOrder}`;
+  // Validate the request data
+  if (!device_id || !component_id) {
+    return res.status(400).json({ error: 'device_id and component_id are required' });
+  }
+
+  const topic = `Mazaya/${device_id}/${component_id}`;
   client.subscribe(topic, { qos: 1 }, (err) => {
     if (err) {
       console.error('Subscription error:', err);
-    } else {
-      console.log(`Successfully subscribed to: ${topic}`);
+      return res.status(500).json({ error: 'Failed to subscribe to topic' });
     }
-  });
-}
-
-// API to Publish message
-app.post('/publish', (req, res) => {
-  const { topic, message, retain } = req.body;
-  if (!topic || !message) {
-    return res.status(400).json({ error: 'Topic and message are required' });
-  }
-
-  // Publish with retain flag
-  client.publish(topic, message, { qos: 1, retain: retain || false }, (err) => {
-    if (err) {
-      console.error('Publish error:', err);
-      return res.status(500).json({ error: 'Failed to publish message' });
-    }
-    res.json({ success: true, topic, message });
+    res.json({ success: true, message: `Subscribed to topic: ${topic}` });
   });
 });
 
-// API to Subscribe to a topic
-app.post('/subscribe', (req, res) => {
-  const { device_id, component_order } = req.body;
+// API to get the last message for a specific topic
+app.post('/get-last-message', (req, res) => {
+  const { device_id, component_id } = req.body;
 
-  if (!device_id || !component_order) {
-    return res.status(400).json({ error: 'Device ID and Component Order are required' });
+  // Validate the request data
+  if (!device_id || !component_id) {
+    return res.status(400).json({ error: 'device_id and component_id are required' });
   }
 
-  // Subscribe to the topic based on provided device ID and component order
-  subscribeToTopic(device_id, component_order);
-  
-  // Send back the last message received on this topic
-  const topic = `Mazaya/${device_id}/${component_order}`;
-  const lastMessage = lastMessages[topic] || 'No message received yet.';
-  
-  res.json({ success: true, topic, lastMessage });
+  const topic = `Mazaya/${device_id}/${component_id}`;
+
+  // Check if there's a stored message for this topic
+  if (lastMessages[topic]) {
+    return res.json({ success: true, topic, last_message: lastMessages[topic] });
+  } else {
+    return res.status(404).json({ error: 'No message found for the given topic' });
+  }
 });
 
 // Start the Express server

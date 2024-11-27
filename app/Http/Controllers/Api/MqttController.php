@@ -32,20 +32,44 @@ class MqttController extends Controller
         return response()->json($result);
     }
 
-    public function getLastStateFromDevice(Request $request)
+    public function subscribeToTopic(Request $request)
     {
+        // Validate incoming data
         $request->validate([
             'device_id' => 'required|integer',
-            'component_order' => 'required|integer',
+            'component_id' => 'required|integer',
         ]);
-    
+
+        // Get the validated data from the request
         $deviceId = $request->device_id;
-        $componentOrder = $request->component_order;
-    
-        // Call to the MqttService to fetch the last message
-        $result = $this->mqttService->getLastMessage($deviceId, $componentOrder);
-    
-        // Return the response in JSON
+        $componentId = $request->component_id;
+
+        // Redirect the request to the service to subscribe to the topic
+        $result = $this->mqttService->subscribeToTopic($deviceId, $componentId);
+
+        // Return the response from the service
+        return response()->json($result);
+    }
+
+    /**
+     * Get the last message for a specific topic
+     */
+    public function getLastMessage(Request $request)
+    {
+        // Validate incoming data
+        $request->validate([
+            'device_id' => 'required|integer',
+            'component_id' => 'required|integer',
+        ]);
+
+        // Get the validated data from the request
+        $deviceId = $request->device_id;
+        $componentId = $request->component_id;
+
+        // Redirect the request to the service to fetch the last message
+        $result = $this->mqttService->getLastMessage($deviceId, $componentId);
+
+        // Return the response from the service
         return response()->json($result);
     }
     

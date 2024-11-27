@@ -31,53 +31,38 @@ class MqttService
 
     public function subscribeToTopic($deviceId, $componentId)
     {
+        // Construct the topic string
         $topic = "Mazaya/{$deviceId}/{$componentId}";
 
+        // Send a request to the Express server to subscribe to the topic
         $response = $this->httpClient->post('/subscribe', [
             'json' => [
-                'topic' => $topic,
+                'device_id' => $deviceId,
+                'component_id' => $componentId,
             ],
         ]);
 
+        // Return the response from the Express server
         return json_decode($response->getBody(), true);
     }
 
-    public function getLastMessage($deviceId, $componentOrder)
+    /**
+     * Get the last message for a specific topic
+     */
+    public function getLastMessage($deviceId, $componentId)
     {
-        $topic = "Mazaya/{$deviceId}/{$componentOrder}";
-    
-        try {
-            // Try to fetch the message from the broker or local memory
-            if (isset($this->lastMessages[$topic])) {
-                $message = $this->lastMessages[$topic];
-            } else {
-                // In case the message is not found in memory, fetch from the broker
-                $response = $this->httpClient->get('/last-message', [
-                    'query' => ['topic' => $topic],
-                ]);
-    
-                $result = json_decode($response->getBody(), true);
-                if ($result['success'] && $result['message'] !== null) {
-                    $message = $result['message'];
-                } else {
-                    return [
-                        'status' => 'error',
-                        'message' => 'No state received or topic not found',
-                    ];
-                }
-            }
-    
-            // Return the last message
-            return [
-                'status' => 'success',
-                'last_state' => json_decode($message, true),
-            ];
-        } catch (\Exception $e) {
-            return [
-                'status' => 'error',
-                'message' => $e->getMessage(),
-            ];
-        }
-    }
-    
+        // Construct the topic string
+        $topic = "Mazaya/{$deviceId}/{$componentId}";
+
+        // Send a request to the Express server to get the last message
+        $response = $this->httpClient->post('/get-last-message', [
+            'json' => [
+                'device_id' => $deviceId,
+                'component_id' => $componentId,
+            ],
+        ]);
+
+        // Return the response from the Express server (the last message)
+        return json_decode($response->getBody(), true);
+    }  
 }
