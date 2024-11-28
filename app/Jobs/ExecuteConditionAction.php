@@ -159,22 +159,29 @@ class ExecuteConditionAction implements ShouldQueue
         Log::info("Executed action for component", [
             'component' => $component,
         ]);
+
         if ($component) {
             // $component->update(['type' => "updated_type"]);
             $action = Action::find($device['action'])->first();
             Log::info("action_type", [
                 'action' => $action,
             ]);
+
             if ($action && $action->action_type == "analog") {
                 Log::info("Executed action for component", [
                     'action' => $action,
                     'json_data' => $action->json_data,
                 ]);
-                $actionContent = $action->json_data;
+
+                // Decode the json_data (if it's a JSON string) and directly use it
+                $actionContent = json_decode($action->json_data, true);
             } else {
+                // If there's no specific action or not of type 'analog', create the data manually
                 $data = ['status' => $action->status];
-                $actionContent = json_encode($data);
-            }            
+                $actionContent = $data; // This is now a simple array, no need to re-encode
+            }
+
+            // Publish the action content
             $result = $this->mqttService->publishAction($component->device_id, $component->order, $actionContent, true);
 
             Log::info("Executed action for component", [
