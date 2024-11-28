@@ -156,7 +156,7 @@ class ExecuteConditionAction implements ShouldQueue
         $component = Component::find($device['component_id']);
         Log::info("Executed action for component", [
             'component' => $component,
-            'action' => $device['action']
+            'action' => $device['action']->action
         ]);
         if ($component) {
             // $component->update(['type' => "updated_type"]);
