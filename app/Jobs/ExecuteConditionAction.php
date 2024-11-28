@@ -12,7 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use App\Services\MqttService;
+use App\Services\MqttService ;
 
 class ExecuteConditionAction implements ShouldQueue
 {
@@ -24,19 +24,20 @@ class ExecuteConditionAction implements ShouldQueue
     public $isDelayed; // Flag to indicate if this is already a delayed job
     protected $mqttService;
 
-    public function __construct($conditionId, $caseId, $repetitionDays = null, $isDelayed = false, MqttService $mqttService)
+    public function __construct($conditionId, $caseId, $repetitionDays = null, $isDelayed = false)
     {
         $this->conditionId = $conditionId;
         $this->caseId = $caseId;
         $this->repetitionDays = $repetitionDays;
         $this->isDelayed = $isDelayed; // Initialize the flag
-        $this->mqttService = $mqttService; // Dependency injection
 
         Log::info("Job created for condition {$conditionId}, case {$caseId}, isDelayed: " . ($isDelayed ? 'true' : 'false'));
     }
 
-    public function handle()
+    public function handle(MqttService $mqttService)
     {
+        $this->mqttService = $mqttService; // Injected automatically by Laravel
+
         Log::info("Job handling started for condition {$this->conditionId}, case {$this->caseId}, isDelayed: " . ($this->isDelayed ? 'true' : 'false'));
 
         // Retrieve condition and locate specific case by caseId
