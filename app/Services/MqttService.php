@@ -16,7 +16,7 @@ class MqttService
     public function publishAction($deviceId, $componentOrder, $action, $retain = true)
     {
         $topic = "Mazaya/{$deviceId}/{$componentOrder}";
-        $message = json_encode([$action]);
+        $message = json_encode($action);
 
         $response = $this->httpClient->post('/publish', [
             'json' => [
