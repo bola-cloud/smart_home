@@ -156,12 +156,15 @@ class ExecuteConditionAction implements ShouldQueue
         $component = Component::find($device['component_id']);
         Log::info("Executed action for component", [
             'component' => $component,
-            'action' => $device['action']->action
         ]);
         if ($component) {
             // $component->update(['type' => "updated_type"]);
             $action = Action::find($device['action']);
             if($action->action_type == "analog"){
+                Log::info("Executed action for component", [
+                    'action' => $action,
+                    'json_data' => $action->json_data,
+                ]);
                 $actionContent = $action->json_data;
             }else{
                 $data = ['status' => $action->status];
