@@ -159,31 +159,33 @@ class ExecuteConditionAction implements ShouldQueue
         Log::info("Executed action for component", [
             'component' => $component,
         ]);
-
+    
         if ($component) {
             // $component->update(['type' => "updated_type"]);
             $action = Action::find($device['action'])->first();
             Log::info("action_type", [
                 'action' => $action,
             ]);
-
+    
             if ($action && $action->action_type == "analog") {
                 Log::info("Executed action for component", [
                     'action' => $action,
                     'json_data' => $action->json_data,
                 ]);
-
-                // Decode the json_data (if it's a JSON string) and directly use it
-                $actionContent = json_decode($action->json_data, true);
+    
+                // Decode the json_data if it's a JSON string
+                $actionContent = json_decode($action->json_data, true);  // Decode JSON string into an array
+                // Now $actionContent is an array like ['status' => '0']
             } else {
-                // If there's no specific action or not of type 'analog', create the data manually
-                $data = ['status' => $action->status];
-                $actionContent = $data; // This is now a simple array, no need to re-encode
+                // If no action or the action type is not 'analog', manually create the content
+                $actionContent = ['status' => $action->status];  // Make sure 'status' is valid
             }
-
-            // Publish the action content
+    
+            // Now $actionContent is an array with the desired format
+            // Ensure the JSON is properly formatted without the 'action' key
+    
             $result = $this->mqttService->publishAction($component->device_id, $component->order, $actionContent, true);
-
+    
             Log::info("Executed action for component", [
                 'component_id' => $device['component_id'],
                 'action' => $device['action']
@@ -191,7 +193,7 @@ class ExecuteConditionAction implements ShouldQueue
         } else {
             Log::error("Component with ID {$device['component_id']} not found for action execution");
         }
-    }
+    }    
 
     private function scheduleNext()
     {
