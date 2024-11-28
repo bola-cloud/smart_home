@@ -22,6 +22,7 @@ class ExecuteConditionAction implements ShouldQueue
     public $caseId;
     public $repetitionDays;
     public $isDelayed; // Flag to indicate if this is already a delayed job
+    protected $mqttService;
 
     public function __construct($conditionId, $caseId, $repetitionDays = null, $isDelayed = false)
     {
