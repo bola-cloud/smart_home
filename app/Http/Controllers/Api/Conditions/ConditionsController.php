@@ -30,7 +30,7 @@ class ConditionsController extends Controller
             'cases.*.if.conditions.*.devices' => 'nullable|array',
             'cases.*.if.conditions.*.devices.*.component_id' => 'required|exists:components,id',
             'cases.*.if.conditions.*.devices.*.status' => 'nullable|string',
-            'cases.*.if.conditions.*.time' => 'nullable|date_format:Y-m-d H:i',
+            'cases.*.if.conditions.*.time' => 'nullable|date_format:Y-m-d H:i|after_or_equal:now', // Time must be in the future or null
             'cases.*.then.actions' => 'required|array',
             'cases.*.then.actions.*.devices' => 'required|array|min:1',
             'cases.*.then.actions.*.devices.*.component_id' => 'required|exists:components,id',
