@@ -13,6 +13,7 @@ class CartController extends Controller
     public function addToCart(Request $request)
     {
         try {
+            // Ensure Cart session is tied to authenticated user
             Cart::session(Auth::id());
     
             // Validate request
@@ -22,6 +23,9 @@ class CartController extends Controller
                 'product_price' => 'required|numeric',
                 'quantity' => 'required|integer|min:1',
             ]);
+    
+            // Log request data for debugging
+            Log::debug('Validated Cart Data:', $validated);
     
             // Check if product already exists in cart
             $existingItem = Cart::get($validated['product_id']);
@@ -50,12 +54,13 @@ class CartController extends Controller
                 'cart' => Cart::getContent(),
             ]);
         } catch (\Exception $e) {
+            // Log error details for debugging
             Log::error('Error adding to cart: ' . $e->getMessage());
             return response()->json([
                 'message' => 'An error occurred while adding the product to the cart.',
             ], 500);
         }
-    }    
+    }      
 
     /**
      * View the cart items.
