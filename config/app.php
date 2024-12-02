@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Session;
 
 return [
 
@@ -172,9 +171,7 @@ return [
         App\Providers\FortifyServiceProvider::class,
         App\Providers\JetstreamServiceProvider::class,
         Mcamara\LaravelLocalization\LaravelLocalizationServiceProvider::class,
-        Berkayk\OneSignal\OneSignalServiceProvider::class,
-        Darryldecode\Cart\CartServiceProvider::class,
-        Illuminate\Session\SessionServiceProvider::class,
+        Berkayk\OneSignal\OneSignalServiceProvider::class
     ])->toArray(),
 
     /*
@@ -192,7 +189,6 @@ return [
         // 'Example' => App\Facades\Example::class,
         'LaravelLocalization' => Mcamara\LaravelLocalization\Facades\LaravelLocalization::class,
         'OneSignal' => Berkayk\OneSignal\OneSignalFacade::class,
-        'Cart' => Darryldecode\Cart\Facades\CartFacade::class
     ])->toArray(),
 
 ];
