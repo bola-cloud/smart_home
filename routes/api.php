@@ -17,6 +17,8 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Conditions\ConditionsController;
 use App\Http\Controllers\Api\IrCode\IrCodeController;
 use App\Http\Controllers\Api\Products\ProductController;
+use App\Http\Controllers\Api\Cart\CartController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -113,6 +115,13 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     Route::post('/ir/deattach', [IrCodeController::class, 'deattachFilePaths']);
 
     Route::get('/products', [ProductController::class, 'index']);
+    Route::prefix('cart')->group(function () {
+        Route::post('add', [CartController::class, 'addToCart']);        // Add product to cart
+        Route::get('view', [CartController::class, 'viewCart']);         // View cart items
+        Route::put('update', [CartController::class, 'updateCart']);     // Update cart quantity
+        Route::delete('remove/{id}', [CartController::class, 'removeFromCart']);  // Remove product from cart
+        Route::delete('clear', [CartController::class, 'clearCart']);    // Clear the cart
+    });
     // Logout route
     Route::post('/logout', [AuthController::class, 'logout']);
 });
