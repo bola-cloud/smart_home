@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
 use App\Models\Product;
-use Illuminate\Support\Facades\Session;
 
 class CartController extends Controller
 {
