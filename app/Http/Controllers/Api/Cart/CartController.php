@@ -54,10 +54,10 @@ class CartController extends Controller
         // Ensure the cart is unique for the authenticated user
         Cart::session(Auth::id());
     
-        // Log the session ID and the cart content
-        Log::debug('Current User ID:', ['user_id' => Auth::id()]);
-        Log::debug('Current Session ID:', session()->getId());  // This prints the Laravel session ID
-        Log::debug('Cart Content:', Cart::getContent()->toArray());  // Log the cart content for debugging
+        // Log the session data correctly as an array
+        Log::debug('Current User ID:', ['user_id' => Auth::id()]);  // Correct logging with array context
+        Log::debug('Current Session ID:', ['session_id' => session()->getId()]);  // Correct logging with array context
+        Log::debug('Cart Content:', ['cart_content' => Cart::getContent()->toArray()]);  // Log the cart content as an array
     
         $cartItems = Cart::getContent();
     
