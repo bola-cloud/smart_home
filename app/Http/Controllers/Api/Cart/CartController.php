@@ -54,15 +54,12 @@ class CartController extends Controller
         // Ensure the cart is unique for the authenticated user
         Cart::session(Auth::id());
     
-        // Log session and cart data for debugging
+        // Log the session ID and the cart content
         Log::debug('Current User ID:', ['user_id' => Auth::id()]);
-        Log::debug('Cart Session Data:', Cart::getSession());
-        Log::debug('Current Session ID:', session()->getId());
+        Log::debug('Current Session ID:', session()->getId());  // This prints the Laravel session ID
+        Log::debug('Cart Content:', Cart::getContent()->toArray());  // Log the cart content for debugging
     
         $cartItems = Cart::getContent();
-    
-        // Log cart content
-        Log::debug('Cart Content:', $cartItems->toArray());
     
         if ($cartItems->isEmpty()) {
             return response()->json(['message' => 'Your cart is empty.'], 404);
@@ -72,7 +69,7 @@ class CartController extends Controller
             'message' => 'Cart items fetched successfully.',
             'cart' => $cartItems
         ]);
-    }    
+    }     
 
     /**
      * Update the quantity of a product in the cart.
