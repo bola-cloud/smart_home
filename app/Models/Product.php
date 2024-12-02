@@ -18,4 +18,10 @@ class Product extends Model
         'image',
         'price',
     ];
+
+    public function checkoutItems()
+    {
+        return $this->hasMany(CheckoutItem::class);
+    }
+    
 }
