@@ -172,7 +172,8 @@ return [
         App\Providers\JetstreamServiceProvider::class,
         Mcamara\LaravelLocalization\LaravelLocalizationServiceProvider::class,
         Berkayk\OneSignal\OneSignalServiceProvider::class,
-        Darryldecode\Cart\CartServiceProvider::class
+        Darryldecode\Cart\CartServiceProvider::class,
+        Illuminate\Session\SessionServiceProvider::class,
     ])->toArray(),
 
     /*
