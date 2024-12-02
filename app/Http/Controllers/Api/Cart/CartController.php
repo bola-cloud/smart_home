@@ -11,40 +11,50 @@ class CartController extends Controller
 {
     public function addToCart(Request $request)
     {
-        // Ensure the cart is unique for the authenticated user
-        Cart::session(Auth::id());  // Associate cart with user session
-
-        // Log request data for debugging
-        Log::debug('Add to Cart Request:', $request->all());
-
-        // Validate request
-        $validated = $request->validate([
-            'product_id' => 'required|integer',
-            'product_name' => 'required|string',
-            'product_price' => 'required|numeric',
-            'quantity' => 'required|integer|min:1',
-        ]);
-
-        // Log validated data
-        Log::debug('Validated Data:', $validated);
-
-        // Add product to cart
-        Cart::add([
-            'id' => $validated['product_id'],
-            'name' => $validated['product_name'],
-            'price' => $validated['product_price'],
-            'quantity' => $validated['quantity'],
-            'attributes' => [], // Additional attributes, if needed
-        ]);
-
-        // Log the cart content after adding the product
-        Log::debug('Cart Content After Adding Product:', Cart::getContent()->toArray());
-
-        return response()->json([
-            'message' => 'Product added to cart successfully.',
-            'cart' => Cart::getContent()  // Get the current user's cart content
-        ]);
-    }
+        try {
+            Cart::session(Auth::id());
+    
+            // Validate request
+            $validated = $request->validate([
+                'product_id' => 'required|integer',
+                'product_name' => 'required|string',
+                'product_price' => 'required|numeric',
+                'quantity' => 'required|integer|min:1',
+            ]);
+    
+            // Check if product already exists in cart
+            $existingItem = Cart::get($validated['product_id']);
+            if ($existingItem) {
+                // Update the quantity or show a message
+                Cart::update($existingItem->id, [
+                    'quantity' => ['relative' => true, 'value' => $validated['quantity']],
+                ]);
+                return response()->json([
+                    'message' => 'Product quantity updated in cart.',
+                    'cart' => Cart::getContent(),
+                ]);
+            }
+    
+            // Add new product to cart
+            Cart::add([
+                'id' => $validated['product_id'],
+                'name' => $validated['product_name'],
+                'price' => $validated['product_price'],
+                'quantity' => $validated['quantity'],
+                'attributes' => [],
+            ]);
+    
+            return response()->json([
+                'message' => 'Product added to cart successfully.',
+                'cart' => Cart::getContent(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error adding to cart: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'An error occurred while adding the product to the cart.',
+            ], 500);
+        }
+    }    
 
     /**
      * View the cart items.
