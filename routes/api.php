@@ -17,7 +17,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Conditions\ConditionsController;
 use App\Http\Controllers\Api\IrCode\IrCodeController;
 use App\Http\Controllers\Api\Products\ProductController;
-use App\Http\Controllers\Api\Checkout\CheckoutController;
+// use App\Http\Controllers\Api\Checkout\CheckoutController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -114,7 +114,7 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     Route::post('/ir/deattach', [IrCodeController::class, 'deattachFilePaths']);
 
     Route::get('/products', [ProductController::class, 'index']);
-    Route::post('/checkout', [CheckoutController::class, 'processCheckout']);
+    // Route::post('/checkout', [CheckoutController::class, 'processCheckout']);
     // Logout route
     Route::post('/logout', [AuthController::class, 'logout']);
 });
