@@ -5,11 +5,15 @@ namespace App\Http\Controllers\Api\Cart;
 use App\Http\Controllers\Controller;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
     public function addToCart(Request $request)
     {
+        // Ensure the cart is unique for the authenticated user
+        Cart::session(Auth::id());  // Associate cart with user session
+
         // Validate request
         $validated = $request->validate([
             'product_id' => 'required|integer',
@@ -24,12 +28,12 @@ class CartController extends Controller
             'name' => $validated['product_name'],
             'price' => $validated['product_price'],
             'quantity' => $validated['quantity'],
-            'attributes' => [], // Add any other attributes here if needed
+            'attributes' => [], // Additional attributes, if needed
         ]);
 
         return response()->json([
             'message' => 'Product added to cart successfully.',
-            'cart' => Cart::getContent()
+            'cart' => Cart::getContent()  // Get the current user's cart content
         ]);
     }
 
@@ -38,6 +42,9 @@ class CartController extends Controller
      */
     public function viewCart()
     {
+        // Ensure the cart is unique for the authenticated user
+        Cart::session(Auth::id());
+
         $cartItems = Cart::getContent();
 
         if ($cartItems->isEmpty()) {
@@ -55,6 +62,9 @@ class CartController extends Controller
      */
     public function updateCart(Request $request)
     {
+        // Ensure the cart is unique for the authenticated user
+        Cart::session(Auth::id());
+
         // Validate request
         $validated = $request->validate([
             'rowId' => 'required|string', // Cart row ID
@@ -77,6 +87,9 @@ class CartController extends Controller
      */
     public function removeFromCart($id)
     {
+        // Ensure the cart is unique for the authenticated user
+        Cart::session(Auth::id());
+
         Cart::remove($id);
 
         return response()->json([
@@ -90,6 +103,9 @@ class CartController extends Controller
      */
     public function clearCart()
     {
+        // Ensure the cart is unique for the authenticated user
+        Cart::session(Auth::id());
+
         Cart::clear();
 
         return response()->json([
