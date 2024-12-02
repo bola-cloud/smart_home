@@ -171,8 +171,7 @@ return [
         App\Providers\FortifyServiceProvider::class,
         App\Providers\JetstreamServiceProvider::class,
         Mcamara\LaravelLocalization\LaravelLocalizationServiceProvider::class,
-        Berkayk\OneSignal\OneSignalServiceProvider::class,
-        Darryldecode\Cart\CartServiceProvider::class,  // Make sure this line exists
+        Berkayk\OneSignal\OneSignalServiceProvider::class
     ])->toArray(),
 
     /*
@@ -190,7 +189,6 @@ return [
         // 'Example' => App\Facades\Example::class,
         'LaravelLocalization' => Mcamara\LaravelLocalization\Facades\LaravelLocalization::class,
         'OneSignal' => Berkayk\OneSignal\OneSignalFacade::class,
-        'Session' => Illuminate\Support\Facades\Session::class,
     ])->toArray(),
 
 ];
