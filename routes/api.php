@@ -17,7 +17,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Conditions\ConditionsController;
 use App\Http\Controllers\Api\IrCode\IrCodeController;
 use App\Http\Controllers\Api\Products\ProductController;
-// use App\Http\Controllers\Api\Checkout\CheckoutController;
+use App\Http\Controllers\Api\Checkout\CheckoutController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
