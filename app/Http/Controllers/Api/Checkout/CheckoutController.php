@@ -98,7 +98,7 @@ class CheckoutController extends Controller
     {
         do {
             // Generate a new code with a random string
-            $code = strtoupper(uniqid('ORDER-') . Str::random(6));  // Example: ORDER-12345ABCDEF
+            $code = strtoupper(Str::random(6));  // Example: ORDER-12345ABCDEF
         } while (Checkout::where('code', $code)->exists());  // Check if the code already exists in the DB
         
         return $code;
