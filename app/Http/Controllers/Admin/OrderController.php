@@ -31,7 +31,7 @@ class OrderController extends Controller
         // Paginate results
         $checkouts = $checkouts->paginate(10);
 
-        return view('admin.checkouts.index', compact('checkouts', 'users'));
+        return view('admin.orders.index', compact('checkouts', 'users'));
     }
 
     // Update order status to 'completed'
