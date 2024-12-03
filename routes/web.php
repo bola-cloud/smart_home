@@ -43,5 +43,7 @@ Route::group([
     Route::resource('blogs', App\Http\Controllers\Admin\BlogController::class);
     Route::resource('products', App\Http\Controllers\Admin\ProductController::class);
 
+    Route::get('orders', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('orders.index');
+    Route::post('orders/{id}/complete', [App\Http\Controllers\Admin\OrderController::class, 'markAsCompleted'])->name('orders.complete');
     Route::resource('device_types', \App\Http\Controllers\Admin\DeviceTypeController::class);
 });
