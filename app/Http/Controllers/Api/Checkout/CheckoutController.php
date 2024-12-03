@@ -12,7 +12,6 @@ class CheckoutController extends Controller
 {
     public function processCheckout(Request $request)
     {
-        // dd($request->all());
         // Validate the input
         $request->validate([
             'items' => 'required|array',
@@ -21,6 +20,7 @@ class CheckoutController extends Controller
             'address' => 'required|string|max:255', // Validate the address field
         ]);
     
+        dd($request->all());
         // Get the user
         $user = Auth::user();
     
