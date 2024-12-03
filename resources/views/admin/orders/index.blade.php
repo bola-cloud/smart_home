@@ -95,7 +95,7 @@
     </div>
 </div>
 @endsection
-@push('scripts')
+@push('js')
     <script>
         $(document).ready(function() {
             // Initialize Select2 for user selection dropdown
