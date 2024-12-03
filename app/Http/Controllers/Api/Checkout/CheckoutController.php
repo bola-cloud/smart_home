@@ -59,7 +59,7 @@ class CheckoutController extends Controller
             ];
     
             // Optionally, reduce the product stock
-            $product->decrement('stock', $item['quantity']);
+            $product->decrement('quantity', $item['quantity']);
         }
     
         // Create a checkout record with the address
