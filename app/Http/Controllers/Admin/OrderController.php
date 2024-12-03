@@ -12,8 +12,8 @@ class OrderController extends Controller
     public function index()
     {
         // Fetch all orders with their current status
-        $orders = Checkout::paginate(20);
-        return view('admin.orders.index', compact('orders'));
+        $checkouts  = Checkout::paginate(20);
+        return view('admin.orders.index', compact('checkouts'));
     }
 
     // Update order status to 'completed'
