@@ -18,6 +18,7 @@ class CheckoutController extends Controller
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
             'address' => 'required|string|max:255', // Validate the address field
+            'contact' => 'required|string|max:255', // Validate the mobile contact
         ]);
         
         // If validation fails, it will automatically return a response with errors.
@@ -66,6 +67,7 @@ class CheckoutController extends Controller
             'user_id' => $user->id,
             'total_amount' => $totalAmount,
             'address' => $request->input('address'),
+            'contact' => $request->input('contact'),
             'status' => 'pending', // or 'in-progress', depending on your flow
         ]);
     
