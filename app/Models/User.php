@@ -63,6 +63,11 @@ class User extends Authenticatable
         return $this->hasMany(Notification::class,'user_id');
     }
 
+    public function checkout(): HasMany
+    {
+        return $this->hasMany(Checkout::class,'user_id');
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
