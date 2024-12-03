@@ -234,5 +234,15 @@ return [
     'Delete' => 'Delete',
     'Actions' => 'Actions',
     'No products found.' => 'No products found.',
-    
+    'checkouts_list' => 'Checkouts List',
+    'id' => 'ID',
+    'customer_name' => 'Customer Name',
+    'total_amount' => 'Total Amount',
+    'status' => 'Status',
+    'address' => 'Address',
+    'actions' => 'Actions',
+    'mark_as_complete' => 'Mark as Complete',
+    'completed' => 'Completed',
+    'error_checkout_not_found' => 'Checkout not found',
+    'success_checkout_completed' => 'Checkout marked as completed',    
 ];

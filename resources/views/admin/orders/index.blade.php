@@ -1,46 +1,53 @@
+<!-- resources/views/admin/checkouts/index.blade.php -->
+
 @extends('layouts.admin')
 
 @section('content')
 <div class="container-fluid">
     <div class="card p-4">
-        <h1>{{ __('Orders List') }}</h1>
+        <h1>{{ __('messages.checkouts_list') }}</h1>
 
-        @if(session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
+        <!-- Displaying Errors -->
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
         @endif
 
-        <!-- Orders Table -->
+        <!-- Display Checkouts -->
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th>{{ __('Order ID') }}</th>
-                    <th>{{ __('Customer') }}</th>
-                    <th>{{ __('Total Amount') }}</th>
-                    <th>{{ __('Status') }}</th>
-                    <th>{{ __('Actions') }}</th>
+                    <th>{{ __('messages.id') }}</th>
+                    <th>{{ __('messages.customer_name') }}</th>
+                    <th>{{ __('messages.total_amount') }}</th>
+                    <th>{{ __('messages.status') }}</th>
+                    <th>{{ __('messages.address') }}</th>
+                    <th>{{ __('messages.actions') }}</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach ($orders as $order)
+                @foreach($checkouts as $checkout)
                     <tr>
-                        <td>{{ $order->id }}</td>
-                        <td>{{ $order->customer->name }}</td>
-                        <td>{{ $order->total_amount }}</td>
+                        <td>{{ $checkout->id }}</td>
+                        <td>{{ $checkout->user->name }}</td>
+                        <td>{{ $checkout->total_amount }}</td>
+                        <td>{{ ucfirst($checkout->status) }}</td>
+                        <td>{{ $checkout->address }}</td>
                         <td>
-                            <span class="badge {{ $order->status == 'completed' ? 'bg-success' : 'bg-warning' }}">
-                                {{ ucfirst($order->status) }}
-                            </span>
-                        </td>
-                        <td>
-                            @if($order->status !== 'completed')
-                                <form action="{{ route('orders.complete', $order->id) }}" method="POST">
+                            <!-- Form to change order status -->
+                            @if($checkout->status != 'completed')
+                                <form action="{{ route('checkouts.updateStatus', $checkout->id) }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="btn btn-success">{{ __('Mark as Completed') }}</button>
+                                    @method('PUT')
+                                    <button type="submit" class="btn btn-success">{{ __('messages.mark_as_complete') }}</button>
                                 </form>
                             @else
-                                <button class="btn btn-secondary" disabled>{{ __('Completed') }}</button>
+                                <span class="badge bg-success">{{ __('messages.completed') }}</span>
                             @endif
                         </td>
                     </tr>
@@ -49,13 +56,8 @@
         </table>
 
         <!-- Pagination Controls -->
-        <div class="d-flex justify-content-between">
-            <div>
-                Showing {{ $orders->firstItem() }} to {{ $orders->lastItem() }} of {{ $orders->total() }} orders.
-            </div>
-            <div>
-                {{ $orders->links() }} <!-- This will display pagination links -->
-            </div>
+        <div class="d-flex justify-content-center">
+            {{ $checkouts->links('pagination::bootstrap-4') }}
         </div>
     </div>
 </div>

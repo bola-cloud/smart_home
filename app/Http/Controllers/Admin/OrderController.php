@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Order;
+use App\Models\Checkout;
 
 class OrderController extends Controller
 {
@@ -12,17 +12,26 @@ class OrderController extends Controller
     public function index()
     {
         // Fetch all orders with their current status
-        $orders = Order::paginate(20);
+        $orders = Checkout::paginate(20);
         return view('admin.orders.index', compact('orders'));
     }
 
     // Update order status to 'completed'
-    public function markAsCompleted($id)
-    {
-        $order = Order::findOrFail($id);
-        $order->status = 'completed';
-        $order->save();
 
-        return redirect()->route('orders.index')->with('success', 'Order status updated to completed.');
+    public function updateStatus($checkoutId)
+    {
+        // Find the checkout by ID
+        $checkout = Checkout::find($checkoutId);
+    
+        if (!$checkout) {
+            return redirect()->route('checkouts.index')->with('error', __('messages.error_checkout_not_found'));
+        }
+    
+        // Update the status to 'completed'
+        $checkout->status = 'completed';
+        $checkout->save();
+    
+        // Redirect back with success message
+        return redirect()->route('checkouts.index')->with('success', __('messages.success_checkout_completed'));
     }
 }
