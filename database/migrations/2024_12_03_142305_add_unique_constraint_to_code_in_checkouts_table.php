@@ -12,7 +12,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('checkouts', function (Blueprint $table) {
-            $table->string('code')->unique(); // Ensure code is unique
+            $table->string('code')->nullable()->unique(); // Ensure code is unique
         });
     }
     
