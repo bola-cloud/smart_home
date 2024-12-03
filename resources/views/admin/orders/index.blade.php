@@ -52,8 +52,6 @@
                                     @method('PUT')
                                     <button type="submit" class="btn btn-success">{{ __('lang.mark_as_complete') }}</button>
                                 </form>
-                            @else
-                                <span class="badge bg-success">{{ __('lang.completed') }}</span>
                             @endif
                         
                             <!-- Form to change order status to 'Failed' -->
@@ -63,8 +61,6 @@
                                     @method('PUT')
                                     <button type="submit" class="btn btn-danger">{{ __('lang.mark_as_failed') }}</button>
                                 </form>
-                            @else
-                                <span class="badge bg-danger">{{ __('lang.failed') }}</span>
                             @endif
                         </td>                        
                     </tr>
