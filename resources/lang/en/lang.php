@@ -248,5 +248,6 @@ return [
     'completed' => 'Completed',
     'failed' => 'Failed',
     'success_checkout_failed' => 'Checkout marked as failed.',
-    'error_invalid_status' => 'Invalid status.',    
+    'error_invalid_status' => 'Invalid status.', 
+    'code' => 'Code',   
 ];

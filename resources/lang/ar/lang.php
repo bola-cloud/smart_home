@@ -251,4 +251,5 @@ return [
     'failed' => 'فشل',
     'success_checkout_failed' => 'تم تعيين الطلب كـ فشل.',
     'error_invalid_status' => 'حالة غير صالحة.',
+    'code' => 'الكود',
 ];

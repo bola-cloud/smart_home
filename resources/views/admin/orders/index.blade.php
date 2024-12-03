@@ -23,6 +23,7 @@
             <thead>
                 <tr>
                     <th>{{ __('lang.id') }}</th>
+                    <th>{{ __('lang.code') }}</th>
                     <th>{{ __('lang.customer_name') }}</th>
                     <th>{{ __('lang.total_amount') }}</th>
                     <th>{{ __('lang.status') }}</th>
@@ -34,6 +35,7 @@
                 @foreach($checkouts as $checkout)
                     <tr>
                         <td>{{ $checkout->id }}</td>
+                        <td>{{ $checkout->code }}</td>
                         <td>{{ $checkout->user->name }}</td>
                         <td>{{ $checkout->total_amount }}</td>
                         @if ($checkout->status == 'failed')
