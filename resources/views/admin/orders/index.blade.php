@@ -40,7 +40,7 @@
                         <td>{{ $checkout->address }}</td>
                         <td>
                             <!-- Form to change order status to 'Completed' -->
-                            @if($checkout->status != 'completed' && $checkout->status != 'failed')
+                            @if($checkout->status != 'completed')
                                 <form action="{{ route('checkouts.updateStatus', [$checkout->id, 'completed']) }}" method="POST" style="display:inline;">
                                     @csrf
                                     @method('PUT')
