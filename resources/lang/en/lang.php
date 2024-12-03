@@ -228,6 +228,7 @@ return [
     'English Description' => 'English Description',
     'Image' => 'Image',
     'Price' => 'Price',
+    'Quantity' => 'Quantity',
     'Create' => 'Create',
     'Update' => 'Update',
     'Delete' => 'Delete',

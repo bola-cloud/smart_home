@@ -229,6 +229,7 @@ return [
     'English Description' => 'الوصف باللغة الإنجليزية',
     'Image' => 'الصورة',
     'Price' => 'السعر',
+    'Quantity' => 'الكمية',
     'Create' => 'إنشاء',
     'Update' => 'تحديث',
     'Delete' => 'حذف',
