@@ -12,6 +12,7 @@ class CheckoutController extends Controller
 {
     public function processCheckout(Request $request)
     {
+        dd($request->all());
         // Validate the input
         $request->validate([
             'items' => 'required|array',
