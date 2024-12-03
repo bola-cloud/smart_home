@@ -114,7 +114,7 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     Route::post('/ir/deattach', [IrCodeController::class, 'deattachFilePaths']);
 
     Route::get('/products', [ProductController::class, 'index']);
-    // Route::post('/checkout', [CheckoutController::class, 'processCheckout']);
+    Route::post('/checkout', [CheckoutController::class, 'processCheckout']);
     // Logout route
     Route::post('/logout', [AuthController::class, 'logout']);
 });
