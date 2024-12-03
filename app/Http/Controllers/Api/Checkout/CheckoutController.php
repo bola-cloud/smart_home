@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Checkout;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
 {
@@ -61,14 +62,19 @@ class CheckoutController extends Controller
             // Optionally, reduce the product stock
             $product->decrement('quantity', $item['quantity']);
         }
-    
-        // Create a checkout record with the address
+
+        // Generate a unique code for the checkout (numeric only)
+        // Keep generating a code until it's unique
+        $checkoutCode = $this->generateUniqueCode();
+
+        // Create a checkout record with the address and generated code
         $checkout = Checkout::create([
             'user_id' => $user->id,
             'total_amount' => $totalAmount,
             'address' => $request->input('address'),
             'contact' => $request->input('contact'),
             'status' => 'pending', // or 'in-progress', depending on your flow
+            'code' => $checkoutCode,  // Store the generated code
         ]);
     
         // Save the checkout items
@@ -82,5 +88,19 @@ class CheckoutController extends Controller
             'data' => $checkout,
         ]);
     }
-    
+
+    /**
+     * Generate a unique checkout code.
+     *
+     * @return string
+     */
+    private function generateUniqueCode()
+    {
+        do {
+            // Generate a new code with a random string
+            $code = strtoupper(uniqid('ORDER-') . Str::random(6));  // Example: ORDER-12345ABCDEF
+        } while (Checkout::where('code', $code)->exists());  // Check if the code already exists in the DB
+        
+        return $code;
+    }
 }
