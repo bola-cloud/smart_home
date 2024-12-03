@@ -24,7 +24,7 @@ class OrderController extends Controller
         $checkout = Checkout::find($checkoutId);
     
         if (!$checkout) {
-            return redirect()->route('checkouts.index')->with('error', __('messages.error_checkout_not_found'));
+            return redirect()->route('checkouts.index')->with('error', __('lang.error_checkout_not_found'));
         }
     
         // Update the checkout status
@@ -33,11 +33,11 @@ class OrderController extends Controller
     
         // Redirect with appropriate success or error message
         if ($status == 'completed') {
-            return redirect()->route('checkouts.index')->with('success', __('messages.success_checkout_completed'));
+            return redirect()->route('checkouts.index')->with('success', __('lang.success_checkout_completed'));
         } elseif ($status == 'failed') {
-            return redirect()->route('checkouts.index')->with('error', __('messages.success_checkout_failed'));
+            return redirect()->route('checkouts.index')->with('error', __('lang.success_checkout_failed'));
         }
     
-        return redirect()->route('checkouts.index')->with('error', __('messages.error_invalid_status'));
+        return redirect()->route('checkouts.index')->with('error', __('lang.error_invalid_status'));
     }    
 }

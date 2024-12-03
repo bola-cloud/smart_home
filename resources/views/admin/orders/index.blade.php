@@ -44,10 +44,10 @@
                                 <form action="{{ route('checkouts.updateStatus', [$checkout->id, 'completed']) }}" method="POST" style="display:inline;">
                                     @csrf
                                     @method('PUT')
-                                    <button type="submit" class="btn btn-success">{{ __('messages.mark_as_complete') }}</button>
+                                    <button type="submit" class="btn btn-success">{{ __('lang.mark_as_complete') }}</button>
                                 </form>
                             @else
-                                <span class="badge bg-success">{{ __('messages.completed') }}</span>
+                                <span class="badge bg-success">{{ __('lang.completed') }}</span>
                             @endif
                         
                             <!-- Form to change order status to 'Failed' -->
@@ -55,10 +55,10 @@
                                 <form action="{{ route('checkouts.updateStatus', [$checkout->id, 'failed']) }}" method="POST" style="display:inline;">
                                     @csrf
                                     @method('PUT')
-                                    <button type="submit" class="btn btn-danger">{{ __('messages.mark_as_failed') }}</button>
+                                    <button type="submit" class="btn btn-danger">{{ __('lang.mark_as_failed') }}</button>
                                 </form>
                             @else
-                                <span class="badge bg-danger">{{ __('messages.failed') }}</span>
+                                <span class="badge bg-danger">{{ __('lang.failed') }}</span>
                             @endif
                         </td>                        
                     </tr>
