@@ -15,7 +15,7 @@ class CheckoutController extends Controller
         // Validate the input
         $validated = $request->validate([
             'items' => 'required|array',
-            // 'items.*.product_id' => 'required|exists:products,id',
+            'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
             'address' => 'required|string|max:255', // Validate the address field
             'contact' => 'nullable|string|max:255', // Validate the mobile contact
