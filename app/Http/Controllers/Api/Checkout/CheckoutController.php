@@ -77,6 +77,7 @@ class CheckoutController extends Controller
         }
     
         return response()->json([
+            'status' => true,
             'message' => 'Checkout successful',
             'checkout_data' => $checkout,
         ]);
