@@ -243,6 +243,9 @@
                                 <li class="{{ Route::currentRouteName() == 'products.create' ? 'active' : '' }}">
                                     <a class="menu-item" href="{{ route('products.create') }}" data-i18n="nav.dash.sales">{{ __('lang.create') }}</a>
                                 </li>
+                                <li class="{{ Route::currentRouteName() == 'checkouts.index' ? 'active' : '' }}">
+                                    <a class="menu-item" href="{{ route('checkouts.index') }}" data-i18n="nav.dash.sales">{{ __('lang.orders') }}</a>
+                                </li>
                             </ul>
                         </li>
                         

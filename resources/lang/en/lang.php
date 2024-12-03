@@ -253,4 +253,5 @@ return [
     'Search by code' => 'Search by code',
     'Select a user' => 'Select a user',
     'search' => 'search',
+    'orders' =>'Orders',
 ];

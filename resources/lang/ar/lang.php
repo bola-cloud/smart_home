@@ -255,4 +255,5 @@ return [
     'Search by code' => 'البحث بالكود',
     'Select a user' => 'البحث بالمستخدم',
     'search' => 'بحث',
+    'orders' =>'الطلبات',
 ];
