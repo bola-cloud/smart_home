@@ -20,7 +20,8 @@ return new class extends Migration
             $table->text('ar_description')->nullable();
             $table->text('en_description')->nullable();
             $table->string('image');
-            $table->integer('price')->nullable();
+            $table->integer('price')->default(0);
+            $table->integer('quantity')->default(0);
             $table->timestamps();
         });
     }

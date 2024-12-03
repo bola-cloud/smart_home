@@ -17,6 +17,7 @@ class Product extends Model
         'en_small_description',
         'image',
         'price',
+        'quantity',
     ];
 
     public function checkoutItems()
