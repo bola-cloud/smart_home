@@ -242,7 +242,11 @@ return [
     'address' => 'Address',
     'actions' => 'Actions',
     'mark_as_complete' => 'Mark as Complete',
-    'completed' => 'Completed',
     'error_checkout_not_found' => 'Checkout not found',
-    'success_checkout_completed' => 'Checkout marked as completed',    
+    'success_checkout_completed' => 'Checkout marked as completed',
+    'mark_as_failed' => 'Mark as Failed',
+    'completed' => 'Completed',
+    'failed' => 'Failed',
+    'success_checkout_failed' => 'Checkout marked as failed.',
+    'error_invalid_status' => 'Invalid status.',    
 ];

@@ -246,4 +246,9 @@ return [
     'completed' => 'مكتمل',
     'error_checkout_not_found' => 'الطلب غير موجود',
     'success_checkout_completed' => 'تم تعيين الطلب كـ مكتمل',
+    'mark_as_complete' => 'تعيين كـ مكتمل',
+    'mark_as_failed' => 'تعيين كـ فشل',
+    'failed' => 'فشل',
+    'success_checkout_failed' => 'تم تعيين الطلب كـ فشل.',
+    'error_invalid_status' => 'حالة غير صالحة.',
 ];

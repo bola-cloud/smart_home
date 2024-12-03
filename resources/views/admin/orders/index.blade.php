@@ -39,17 +39,28 @@
                         <td>{{ ucfirst($checkout->status) }}</td>
                         <td>{{ $checkout->address }}</td>
                         <td>
-                            <!-- Form to change order status -->
-                            @if($checkout->status != 'completed')
-                                <form action="{{ route('checkouts.updateStatus', $checkout->id) }}" method="POST">
+                            <!-- Form to change order status to 'Completed' -->
+                            @if($checkout->status != 'completed' && $checkout->status != 'failed')
+                                <form action="{{ route('checkouts.updateStatus', [$checkout->id, 'completed']) }}" method="POST" style="display:inline;">
                                     @csrf
                                     @method('PUT')
-                                    <button type="submit" class="btn btn-success">{{ __('lang.mark_as_complete') }}</button>
+                                    <button type="submit" class="btn btn-success">{{ __('messages.mark_as_complete') }}</button>
                                 </form>
                             @else
-                                <span class="badge bg-success">{{ __('lang.completed') }}</span>
+                                <span class="badge bg-success">{{ __('messages.completed') }}</span>
                             @endif
-                        </td>
+                        
+                            <!-- Form to change order status to 'Failed' -->
+                            @if($checkout->status != 'failed')
+                                <form action="{{ route('checkouts.updateStatus', [$checkout->id, 'failed']) }}" method="POST" style="display:inline;">
+                                    @csrf
+                                    @method('PUT')
+                                    <button type="submit" class="btn btn-danger">{{ __('messages.mark_as_failed') }}</button>
+                                </form>
+                            @else
+                                <span class="badge bg-danger">{{ __('messages.failed') }}</span>
+                            @endif
+                        </td>                        
                     </tr>
                 @endforeach
             </tbody>
