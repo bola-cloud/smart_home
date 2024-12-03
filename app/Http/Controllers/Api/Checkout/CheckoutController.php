@@ -19,6 +19,14 @@ class CheckoutController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'address' => 'required|string|max:255', // Validate the address field
         ]);
+        
+        // If validation fails, it will automatically return a response with errors.
+        if (!$validated) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'message' => 'Product ID does not exist or other validation issues',
+            ], 400);
+        }
     
         // Get the user
         $user = Auth::user();

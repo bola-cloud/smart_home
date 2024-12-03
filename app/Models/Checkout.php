@@ -14,6 +14,7 @@ class Checkout extends Model
         'total_amount',
         'address',
         'status',
+        'contact'
     ];
     
     public function items()
