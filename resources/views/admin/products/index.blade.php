@@ -30,6 +30,7 @@
                     <td>{{ $product->en_title }}</td>
                     <td><img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->en_title }}" width="100"></td>
                     <td>${{ $product->price }}</td>
+                    <td>{{ $product->quantity }}</td>
                     <td>
                         <a href="{{ route('products.edit', $product->id) }}" class="btn btn-warning">{{ __('lang.Edit') }}</a>
                         <form action="{{ route('products.destroy', $product->id) }}" method="POST" style="display:inline-block;">
