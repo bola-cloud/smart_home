@@ -13,7 +13,7 @@ class CheckoutController extends Controller
     public function processCheckout(Request $request)
     {
         // Validate the input
-        $request->validate([
+        $validated = $request->validate([
             'items' => 'required|array',
             // 'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
