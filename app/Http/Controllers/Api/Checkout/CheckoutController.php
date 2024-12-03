@@ -94,13 +94,24 @@ class CheckoutController extends Controller
      *
      * @return string
      */
+    use Illuminate\Support\Str;
+
     private function generateUniqueCode()
     {
         do {
-            // Generate a new code with a random string
-            $code = strtoupper(Str::random(6));  // Example: ORDER-12345ABCDEF
+            // Generate a new code with 6 random digits
+            $code = Str::random(6);  // Generates a random string like "123456"
+            
+            // Ensure the code is numeric
+            $code = preg_replace('/[^0-9]/', '', $code);  // Removes non-numeric characters, if any
+    
+            // Ensure it's exactly 6 digits long
+            if (strlen($code) < 6) {
+                $code = str_pad($code, 6, '0', STR_PAD_LEFT); // Pads the code to 6 digits
+            }
+            
         } while (Checkout::where('code', $code)->exists());  // Check if the code already exists in the DB
         
         return $code;
-    }
+    }    
 }
