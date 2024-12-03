@@ -44,6 +44,6 @@ Route::group([
     Route::resource('products', App\Http\Controllers\Admin\ProductController::class);
 
     Route::get('checkouts', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('checkouts.index');
-    Route::put('/checkouts/{checkout}', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('checkouts.updateStatus');
+    Route::put('checkouts/{checkoutId}/{status}', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('checkouts.updateStatus');
     Route::resource('device_types', \App\Http\Controllers\Admin\DeviceTypeController::class);
 });
