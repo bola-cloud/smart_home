@@ -36,7 +36,13 @@
                         <td>{{ $checkout->id }}</td>
                         <td>{{ $checkout->user->name }}</td>
                         <td>{{ $checkout->total_amount }}</td>
-                        <td>{{ ucfirst($checkout->status) }}</td>
+                        @if ($checkout->status == 'failed')
+                            <td> <span class="badge bg-danger">{{ ucfirst($checkout->status) }}</span></td>
+                        @elseif ($checkout->status == 'success')
+                            <td> <span class="badge bg-success">{{ ucfirst($checkout->status) }}</span></td>
+                        @else
+                            <td> <span class="badge bg-warning">{{ ucfirst($checkout->status) }}</span></td>
+                        @endif
                         <td>{{ $checkout->address }}</td>
                         <td>
                             <!-- Form to change order status to 'Completed' -->
