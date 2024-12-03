@@ -5,15 +5,33 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Checkout;
+use App\Models\User;  // Add User model for filtering by user
 
 class OrderController extends Controller
 {
     // Show the list of orders
-    public function index()
+    public function index(Request $request)
     {
-        // Fetch all orders with their current status
-        $checkouts  = Checkout::paginate(20);
-        return view('admin.orders.index', compact('checkouts'));
+        // Get all users for the filter dropdown
+        $users = User::all();
+
+        // Start the query to fetch checkouts
+        $checkouts = Checkout::query();
+
+        // Filter by checkout code if provided
+        if ($request->filled('search_code')) {
+            $checkouts->where('code', 'like', '%' . $request->search_code . '%');
+        }
+
+        // Filter by user if provided
+        if ($request->filled('user_id')) {
+            $checkouts->where('user_id', $request->user_id);
+        }
+
+        // Paginate results
+        $checkouts = $checkouts->paginate(10);
+
+        return view('admin.checkouts.index', compact('checkouts', 'users'));
     }
 
     // Update order status to 'completed'

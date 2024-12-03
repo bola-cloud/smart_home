@@ -1,5 +1,3 @@
-<!-- resources/views/admin/checkouts/index.blade.php -->
-
 @extends('layouts.admin')
 
 @section('content')
@@ -17,6 +15,26 @@
                 </ul>
             </div>
         @endif
+
+        <!-- Search and Filter Form -->
+        <form method="GET" action="{{ route('checkouts.index') }}">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <input type="text" name="search_code" class="form-control" placeholder="Search by code" value="{{ request('search_code') }}">
+                </div>
+                <div class="col-md-4">
+                    <select name="user_id" class="form-control select2" style="width: 100%">
+                        <option value="">Select a user</option>
+                        @foreach($users as $user)
+                            <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary">{{ __('lang.search') }}</button>
+                </div>
+            </div>
+        </form>
 
         <!-- Display Checkouts -->
         <table class="table table-striped">
@@ -77,3 +95,13 @@
     </div>
 </div>
 @endsection
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            // Initialize Select2 for user selection dropdown
+            $('.select2').select2({
+                placeholder: "Select a user"
+            });
+        });
+    </script>
+@endpush
