@@ -43,7 +43,7 @@ Route::group([
     Route::resource('blogs', App\Http\Controllers\Admin\BlogController::class);
     Route::resource('products', App\Http\Controllers\Admin\ProductController::class);
 
-    Route::get('orders', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('orders.index');
+    Route::get('checkouts', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('checkouts.index');
     Route::put('/checkouts/{checkout}', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('checkouts.updateStatus');
     Route::resource('device_types', \App\Http\Controllers\Admin\DeviceTypeController::class);
 });
