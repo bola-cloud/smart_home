@@ -19,6 +19,7 @@
                     <th>{{ __('lang.English Title') }}</th>
                     <th>{{ __('lang.Image') }}</th>
                     <th>{{ __('lang.Price') }}</th>
+                    <th>{{ __('lang.Quantity') }}</th>
                     <th>{{ __('lang.Actions') }}</th>
                 </tr>
             </thead>

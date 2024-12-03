@@ -60,6 +60,11 @@
                 <input type="number" name="price" class="form-control" min="0" value="{{ $product->price }}">
             </div>
 
+            <div class="form-group">
+                <label for="quantity">{{ __('lang.Quantity') }}</label>
+                <input type="number" name="quantity" class="form-control" min="0" value="{{ $product->quantity }}">
+            </div>
+
             <button type="submit" class="btn btn-primary">{{ __('lang.Update') }}</button>
         </form>
     </div>
