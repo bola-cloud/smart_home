@@ -37,11 +37,11 @@
                         <td>{{ $checkout->user->name }}</td>
                         <td>{{ $checkout->total_amount }}</td>
                         @if ($checkout->status == 'failed')
-                            <td> <span class="badge bg-danger">{{ ucfirst($checkout->status) }}</span></td>
-                        @elseif ($checkout->status == 'success')
-                            <td> <span class="badge bg-success">{{ ucfirst($checkout->status) }}</span></td>
+                            <td> <span class="badge bg-danger">{{ $checkout->status }}</span></td>
+                        @elseif ($checkout->status == 'completed')
+                            <td> <span class="badge bg-success">{{ $checkout->status }}</span></td>
                         @else
-                            <td> <span class="badge bg-warning">{{ ucfirst($checkout->status) }}</span></td>
+                            <td> <span class="badge bg-warning">{{ $checkout->status }}</span></td>
                         @endif
                         <td>{{ $checkout->address }}</td>
                         <td>
