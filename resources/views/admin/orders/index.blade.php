@@ -5,7 +5,7 @@
 @section('content')
 <div class="container-fluid">
     <div class="card p-4">
-        <h1>{{ __('messages.checkouts_list') }}</h1>
+        <h1>{{ __('lang.checkouts_list') }}</h1>
 
         <!-- Displaying Errors -->
         @if($errors->any())
@@ -22,12 +22,12 @@
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th>{{ __('messages.id') }}</th>
-                    <th>{{ __('messages.customer_name') }}</th>
-                    <th>{{ __('messages.total_amount') }}</th>
-                    <th>{{ __('messages.status') }}</th>
-                    <th>{{ __('messages.address') }}</th>
-                    <th>{{ __('messages.actions') }}</th>
+                    <th>{{ __('lang.id') }}</th>
+                    <th>{{ __('lang.customer_name') }}</th>
+                    <th>{{ __('lang.total_amount') }}</th>
+                    <th>{{ __('lang.status') }}</th>
+                    <th>{{ __('lang.address') }}</th>
+                    <th>{{ __('lang.actions') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -44,10 +44,10 @@
                                 <form action="{{ route('checkouts.updateStatus', $checkout->id) }}" method="POST">
                                     @csrf
                                     @method('PUT')
-                                    <button type="submit" class="btn btn-success">{{ __('messages.mark_as_complete') }}</button>
+                                    <button type="submit" class="btn btn-success">{{ __('lang.mark_as_complete') }}</button>
                                 </form>
                             @else
-                                <span class="badge bg-success">{{ __('messages.completed') }}</span>
+                                <span class="badge bg-success">{{ __('lang.completed') }}</span>
                             @endif
                         </td>
                     </tr>
