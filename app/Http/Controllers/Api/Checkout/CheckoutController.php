@@ -42,7 +42,7 @@ class CheckoutController extends Controller
             $product = Product::find($item['product_id']);
     
             // Check if the quantity requested is available
-            if ($product->stock < $item['quantity']) {
+            if ($product->quantity < $item['quantity']) {
                 return response()->json([
                     'error' => "Insufficient stock for product: {$product->name}",
                 ], 400);
