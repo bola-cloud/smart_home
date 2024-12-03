@@ -50,12 +50,17 @@
 
             <div class="form-group">
                 <label for="image">{{ __('lang.Image') }}</label>
-                <input type="file" name="image" class="form-control" required>
+                <input type="file" name="image" class="form-control" accept="image/*" required>
             </div>
 
             <div class="form-group">
                 <label for="price">{{ __('lang.Price') }}</label>
                 <input type="number" name="price" class="form-control" min="0">
+            </div>
+
+            <div class="form-group">
+                <label for="quantity">{{ __('lang.Quantity') }}</label>
+                <input type="number" name="quantity" class="form-control" min="0">
             </div>
 
             <button type="submit" class="btn btn-primary">{{ __('lang.Create') }}</button>

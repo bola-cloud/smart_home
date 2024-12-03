@@ -25,6 +25,7 @@ class ProductController extends Controller
                 'description' => $locale === 'ar' ? $product->ar_description : $product->en_description,
                 'image' => asset('storage/' . $product->image),
                 'price' => $product->price,
+                'quantity' => $product->quantity,
             ];
 
             return $localizedProduct;

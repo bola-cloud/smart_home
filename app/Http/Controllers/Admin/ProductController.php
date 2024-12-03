@@ -30,6 +30,7 @@ class ProductController extends Controller
             'en_description' => 'nullable|string',
             'image' => 'required|image|max:2048',
             'price' => 'nullable|integer|min:0',
+            'quantity' => 'nullable|integer|min:0',
         ]);
 
         $imagePath = $request->file('image')->store('products', 'public');
@@ -43,6 +44,7 @@ class ProductController extends Controller
             'en_description' => $request->input('en_description'),
             'image' => $imagePath,
             'price' => $request->input('price'),
+            'quantity' => $request->input('quantity'),
         ]);
 
         return redirect()->route('products.index')->with('success', 'Product created successfully.');
@@ -64,6 +66,7 @@ class ProductController extends Controller
             'en_description' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
             'price' => 'nullable|integer|min:0',
+            'quantity' => 'nullable|integer|min:0',
         ]);
 
         if ($request->hasFile('image')) {
@@ -79,6 +82,7 @@ class ProductController extends Controller
             'ar_description' => $request->input('ar_description'),
             'en_description' => $request->input('en_description'),
             'price' => $request->input('price'),
+            'quantity' => $request->input('quantity'),
         ]);
 
         return redirect()->route('products.index')->with('success', 'Product updated successfully.');
