@@ -7,7 +7,7 @@ use App\Models\Product;
 use App\Models\Checkout;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
+use Illuminate\Support\Str;  // Keep it only at the top
 
 class CheckoutController extends Controller
 {
@@ -64,7 +64,6 @@ class CheckoutController extends Controller
         }
 
         // Generate a unique code for the checkout (numeric only)
-        // Keep generating a code until it's unique
         $checkoutCode = $this->generateUniqueCode();
 
         // Create a checkout record with the address and generated code
@@ -94,8 +93,6 @@ class CheckoutController extends Controller
      *
      * @return string
      */
-    use Illuminate\Support\Str;
-
     private function generateUniqueCode()
     {
         do {
