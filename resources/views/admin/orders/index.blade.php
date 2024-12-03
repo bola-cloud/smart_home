@@ -20,11 +20,11 @@
         <form method="GET" action="{{ route('checkouts.index') }}">
             <div class="row mb-3">
                 <div class="col-md-4">
-                    <input type="text" name="search_code" class="form-control" placeholder="Search by code" value="{{ request('search_code') }}">
+                    <input type="text" name="search_code" class="form-control" placeholder="{{ __('lang.Search by code') }}" value="{{ request('search_code') }}">
                 </div>
                 <div class="col-md-4">
                     <select name="user_id" class="form-control select2" style="width: 100%">
-                        <option value="">Select a user</option>
+                        <option value="">{{ __('lang.Select a user') }}</option>
                         @foreach($users as $user)
                             <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
                         @endforeach
@@ -104,7 +104,7 @@
         $(document).ready(function() {
             // Initialize Select2 for user selection dropdown
             $('.select2').select2({
-                placeholder: "Select a user"
+                placeholder: "{{ __('lang.Select a user') }}"
             });
         });
     </script>

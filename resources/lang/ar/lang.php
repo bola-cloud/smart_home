@@ -252,4 +252,7 @@ return [
     'success_checkout_failed' => 'تم تعيين الطلب كـ فشل.',
     'error_invalid_status' => 'حالة غير صالحة.',
     'code' => 'الكود',
+    'Search by code' => 'البحث بالكود',
+    'Select a user' => 'البحث بالمستخدم',
+    'search' => 'بحث',
 ];

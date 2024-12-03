@@ -250,4 +250,7 @@ return [
     'success_checkout_failed' => 'Checkout marked as failed.',
     'error_invalid_status' => 'Invalid status.', 
     'code' => 'Code',   
+    'Search by code' => 'Search by code',
+    'Select a user' => 'Select a user',
+    'search' => 'search',
 ];
