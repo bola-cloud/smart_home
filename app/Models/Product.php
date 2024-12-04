@@ -16,7 +16,6 @@ class Product extends Model
         'ar_small_description',
         'en_small_description',
         'image',
-        'price',
         'quantity',
     ];
 
@@ -29,4 +28,10 @@ class Product extends Model
     {
         return $this->hasMany(CountryPrice::class);
     }    
+
+    // Dynamic price based on country
+    public function getPriceForCountry($country)
+    {
+        return $this->prices()->where('country', $country)->first()->price ?? null;
+    }
 }

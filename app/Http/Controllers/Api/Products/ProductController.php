@@ -24,7 +24,12 @@ class ProductController extends Controller
                 'small_description' => $locale === 'ar' ? $product->ar_small_description : $product->en_small_description,
                 'description' => $locale === 'ar' ? $product->ar_description : $product->en_description,
                 'image' => asset('storage/' . $product->image),
-                'price' => $product->price,
+                'prices' => $product->prices->map(function ($price) {
+                    return [
+                        'country' => $price->country,
+                        'price' => $price->price
+                    ];
+                }),
                 'quantity' => $product->quantity,
             ];
 

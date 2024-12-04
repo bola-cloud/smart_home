@@ -18,7 +18,8 @@
                     <th>{{ __('lang.Arabic Title') }}</th>
                     <th>{{ __('lang.English Title') }}</th>
                     <th>{{ __('lang.Image') }}</th>
-                    <th>{{ __('lang.Price') }}</th>
+                    <th>{{ __('lang.Price') }} ({{ __('lang.Egypt') }})</th>
+                    <th>{{ __('lang.Price') }} ({{ __('lang.Saudi') }})</th>
                     <th>{{ __('lang.Quantity') }}</th>
                     <th>{{ __('lang.Actions') }}</th>
                 </tr>
@@ -29,7 +30,31 @@
                     <td>{{ $product->ar_title }}</td>
                     <td>{{ $product->en_title }}</td>
                     <td><img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->en_title }}" width="100"></td>
-                    <td>${{ $product->price }}</td>
+                    
+                    <!-- Display Egypt Price -->
+                    <td>
+                        @php
+                            $egyptPrice = $product->prices->where('country', 'Egypt')->first();
+                        @endphp
+                        @if($egyptPrice)
+                            ${{ $egyptPrice->price }}
+                        @else
+                            {{ __('lang.Not Available') }}
+                        @endif
+                    </td>
+
+                    <!-- Display Saudi Price -->
+                    <td>
+                        @php
+                            $saudiPrice = $product->prices->where('country', 'Saudi')->first();
+                        @endphp
+                        @if($saudiPrice)
+                            ${{ $saudiPrice->price }}
+                        @else
+                            {{ __('lang.Not Available') }}
+                        @endif
+                    </td>
+
                     <td>{{ $product->quantity }}</td>
                     <td>
                         <a href="{{ route('products.edit', $product->id) }}" class="btn btn-warning">{{ __('lang.Edit') }}</a>
@@ -42,7 +67,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5">{{ __('lang.No products found.') }}</td>
+                    <td colspan="7">{{ __('lang.No products found.') }}</td>
                 </tr>
                 @endforelse
             </tbody>

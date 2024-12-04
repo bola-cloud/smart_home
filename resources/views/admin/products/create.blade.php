@@ -53,9 +53,15 @@
                 <input type="file" name="image" class="form-control" accept="image/*" required>
             </div>
 
+            <!-- Price Inputs for Egypt and Saudi -->
             <div class="form-group">
-                <label for="price">{{ __('lang.Price') }}</label>
-                <input type="number" name="price" class="form-control" min="0">
+                <label for="egypt_price">{{ __('lang.Egypt Price') }}</label>
+                <input type="number" name="egypt_price" class="form-control" min="0" required>
+            </div>
+
+            <div class="form-group">
+                <label for="saudi_price">{{ __('lang.Saudi Price') }}</label>
+                <input type="number" name="saudi_price" class="form-control" min="0" required>
             </div>
 
             <div class="form-group">

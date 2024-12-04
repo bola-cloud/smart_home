@@ -55,9 +55,16 @@
                 <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->en_title }}" width="100">
             </div>
 
+            <!-- Egypt Price Field -->
             <div class="form-group">
-                <label for="price">{{ __('lang.Price') }}</label>
-                <input type="number" name="price" class="form-control" min="0" value="{{ $product->price }}">
+                <label for="egypt_price">{{ __('lang.Egypt Price') }}</label>
+                <input type="number" name="egypt_price" class="form-control" min="0" value="{{ $product->prices->where('country', 'Egypt')->first()->price ?? '' }}" required>
+            </div>
+
+            <!-- Saudi Price Field -->
+            <div class="form-group">
+                <label for="saudi_price">{{ __('lang.Saudi Price') }}</label>
+                <input type="number" name="saudi_price" class="form-control" min="0" value="{{ $product->prices->where('country', 'Saudi')->first()->price ?? '' }}" required>
             </div>
 
             <div class="form-group">
