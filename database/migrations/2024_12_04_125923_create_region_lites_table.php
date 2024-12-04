@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('population')->nullable();
     
             // Foreign key constraint
-            $table->foreign('capital_city_id')->references('city_id')->on('cities_lite')->onDelete('cascade');
+            $table->foreign('capital_city_id')->references('city_id')->on('city_lites')->onDelete('cascade');
         });
     }
 
