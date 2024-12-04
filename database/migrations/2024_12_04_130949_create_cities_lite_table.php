@@ -17,9 +17,6 @@ return new class extends Migration
             $table->string('name_ar', 64)->default('');
             $table->string('name_en', 64)->default('');
             $table->timestamps();
-    
-            // Foreign key constraint
-            $table->foreign('region_id')->references('region_id')->on('regions_lite')->onDelete('cascade');
         });
     }
     

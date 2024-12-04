@@ -19,9 +19,6 @@ return new class extends Migration
             $table->string('name_en', 64)->default('');
             $table->integer('population')->nullable();
             $table->timestamps();
-    
-            // Foreign key constraint
-            $table->foreign('capital_city_id')->references('city_id')->on('cities_lite')->onDelete('cascade');
         });
     }
     

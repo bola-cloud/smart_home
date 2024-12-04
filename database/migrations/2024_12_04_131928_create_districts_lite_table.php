@@ -18,12 +18,27 @@ return new class extends Migration
             $table->string('name_ar', 64)->default('');
             $table->string('name_en', 64)->default('');
             $table->timestamps();
-    
-            // Foreign key constraints (if needed)
-            $table->foreign('city_id')->references('id')->on('cities_lite')->onDelete('cascade');
+        });
+
+        // Add the foreign key constraints
+        Schema::table('cities_lite', function (Blueprint $table) {
             $table->foreign('region_id')->references('region_id')->on('regions_lite')->onDelete('cascade');
         });
+
+        Schema::table('regions_lite', function (Blueprint $table) {
+            $table->foreign('capital_city_id')->references('city_id')->on('cities_lite')->onDelete('cascade');
+        });
+
+        Schema::table('districts_lite', function (Blueprint $table) {
+            $table->foreign('city_id')->references('city_id')->on('cities_lite')->onDelete('cascade');
+            $table->foreign('region_id')->references('region_id')->on('regions_lite')->onDelete('cascade');
+        });
+
     }
+
+
+
+
     
 
     /**
