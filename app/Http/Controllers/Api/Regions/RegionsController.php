@@ -22,7 +22,7 @@ class RegionsController extends Controller
     public function getRegions()
     {
         // Fetch all regions with their cities and optionally districts
-        $regions = Region::with('cities.districts')->get();
+        $regions = RegionLite::with('cities.districts')->get();
 
         // Return the data in the required format
         return response()->json([
