@@ -21,7 +21,7 @@ class CheckoutController extends Controller
             'address' => 'required|string|max:255', // Validate the address field
             'contact' => 'nullable|string|max:255', // Validate the mobile contact
         ]);
-        
+    
         // If validation fails, it will automatically return a response with errors.
         if (!$validated) {
             return response()->json([
@@ -32,6 +32,7 @@ class CheckoutController extends Controller
     
         // Get the user
         $user = Auth::user();
+        $userCountry = $user->country; // Get the user's country (Egypt or Saudi)
     
         // Initialize an array to store checkout items
         $checkoutItems = [];
@@ -49,23 +50,26 @@ class CheckoutController extends Controller
                 ], 400);
             }
     
+            // Retrieve the country-specific price
+            $price = $this->getProductPriceByCountry($product, $userCountry);
+    
             // Calculate the total price for this product
-            $totalAmount += $product->price * $item['quantity'];
+            $totalAmount += $price * $item['quantity'];
     
             // Add the item to the checkout array
             $checkoutItems[] = [
                 'product_id' => $product->id,
                 'quantity' => $item['quantity'],
-                'price' => $product->price,
+                'price' => $price,
             ];
     
             // Optionally, reduce the product stock
             $product->decrement('quantity', $item['quantity']);
         }
-
+    
         // Generate a unique code for the checkout (numeric only)
         $checkoutCode = $this->generateUniqueCode();
-
+    
         // Create a checkout record with the address and generated code
         $checkout = Checkout::create([
             'user_id' => $user->id,
@@ -87,6 +91,28 @@ class CheckoutController extends Controller
             'data' => $checkout,
         ]);
     }
+    
+    /**
+     * Get the price of a product based on the user's country.
+     *
+     * @param Product $product
+     * @param string $country
+     * @return float
+     */
+    private function getProductPriceByCountry(Product $product, string $country)
+    {
+        // Get the price for the given country
+        $countryPrice = $product->prices()->where('country', $country)->first();
+    
+        // Check if a price exists for the given country
+        if ($countryPrice) {
+            return $countryPrice->price;
+        }
+    
+        // Optionally, you can return a default price or throw an exception if no price is found
+        return null; // Or you could return $product->price if you have a fallback price
+    }    
+    
 
     /**
      * Generate a unique checkout code.
