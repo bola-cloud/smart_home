@@ -374,5 +374,104 @@ class IrCodeController extends Controller
     
         return $buttonBlock;
     }
-    
+
+    public function overwriteDeviceFileButtons(Request $request)
+    {
+        // Decode the JSON input
+        $decodedData = json_decode($request->getContent(), true);
+
+        // Validate the required fields
+        $validator = \Validator::make($decodedData, [
+            'device' => 'required|string', // Example: TVs, ACs
+            'brand_name' => 'required|string', // Example: Amazon
+            'name' => 'required|string', // Example: Component name
+            'buttons' => 'required|array', // Buttons to overwrite in the file
+            'component_id' => 'nullable|exists:components,id', // Optional: Component ID to attach file
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        // Extract validated data
+        $deviceType = $decodedData['device'];
+        $brandName = $decodedData['brand_name'];
+        $componentName = $decodedData['name']; // Component name
+        $buttons = $decodedData['buttons'];
+        $componentId = $decodedData['component_id'];
+
+        // Generate a file name based on the component name
+        $fileName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $componentName) . '.ir'; // Replace invalid characters with '_'
+
+        // Construct the directory path
+        $directoryPath = $this->basePath . '/' . $deviceType . '/' . $brandName;
+        
+        // Define the full file path
+        $filePath = $directoryPath . '/' . $fileName;
+
+        // Check if the device type directory exists
+        if (!File::exists($this->basePath . '/' . $deviceType)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Device type does not exist.',
+            ], 404);
+        }
+
+        // Ensure the brand directory exists
+        if (!File::exists($directoryPath)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Brand directory does not exist.',
+            ], 404);
+        }
+
+        // Check if the file exists
+        if (!File::exists($filePath)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'File does not exist. Cannot overwrite buttons.',
+            ], 404);
+        }
+
+        // Format the buttons data into the file structure
+        $newFileContent = "Filetype: IR signals file\nVersion: 1\n"; // Optional header
+
+        // Iterate over the buttons and append them to the file content
+        foreach ($buttons as $button) {
+            $newFileContent .= $this->formatButtonData($button);
+        }
+
+        // Save the new content to the file (this will overwrite the file content)
+        File::put($filePath, $newFileContent);
+
+        // Optional: Attach file to a component if component_id is provided
+        if ($componentId) {
+            $component = Component::find($componentId);
+
+            if (!$component) {
+                return response()->json(['message' => 'Component not found.'], 404);
+            }
+
+            if (!Auth::check() || $component->device->user_id != Auth::user()->id) {
+                return response()->json(['error' => 'You do not have permission to attach this file.'], 403);
+            }
+
+            // Update the component with the new file path and details
+            $component->update([
+                'file_path' => $deviceType . '/' . $brandName . '/' . $fileName,
+                'name' => $componentName,
+                'manual' => true,
+            ]);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Buttons data overwritten successfully.',
+            'file_path' => $deviceType . '/' . $brandName . '/' . $fileName,
+        ], 200);
+    }
+
 }
