@@ -16,7 +16,6 @@ return new class extends Migration
             $table->unsignedBigInteger('governorate_id');
             $table->string('city_name_ar', 200);
             $table->string('city_name_en', 200);
-            $table->timestamps();
     
             // Foreign key constraint
             $table->foreign('governorate_id')->references('id')->on('governorates')->onDelete('cascade');

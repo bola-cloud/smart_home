@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('governorate_name_ar', 50);
             $table->string('governorate_name_en', 50);
-            $table->timestamps();
         });
     }
 
