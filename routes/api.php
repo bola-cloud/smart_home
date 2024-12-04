@@ -123,7 +123,7 @@ Route::get('/device-types', [IrCodeController::class, 'getDeviceTypes']);
 Route::get('/{deviceType}/brands', [IrCodeController::class, 'getBrands']);
 Route::get('/{deviceType}/{brand}/files', [IrCodeController::class, 'getFiles']);
 Route::get('/{deviceType}/{brand}/{filename}', [IrCodeController::class, 'getFileContent']);
-Route::post('/device/{device}/overwrite-buttons', [YourControllerName::class, 'overwriteDeviceFileButtons']);
+Route::post('/device/overwrite-buttons', [IrCodeController::class, 'overwriteDeviceFileButtons']);
 // Route for retrieving all files with content
 Route::get('/ircode/files/content/{deviceType}/{brand}', [IrCodeController::class, 'getAllFilesContent']);
 Route::get('egypt/governments', [RegionsController::class, 'getGovernments']);
