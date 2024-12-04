@@ -126,3 +126,4 @@ Route::get('/{deviceType}/{brand}/{filename}', [IrCodeController::class, 'getFil
 // Route for retrieving all files with content
 Route::get('/ircode/files/content/{deviceType}/{brand}', [IrCodeController::class, 'getAllFilesContent']);
 Route::get('egypt/governments', [RegionsController::class, 'getGovernments']);
+Route::get('saudi/regions', [RegionsController::class, 'getRegions']);
