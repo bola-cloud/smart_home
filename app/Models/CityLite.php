@@ -9,7 +9,7 @@ class CityLite extends Model
 {
     use HasFactory;
 
-    protected $table = 'city_lites';
+    protected $table = 'cities_lite';
     protected $primaryKey = 'city_id';
 
     protected $fillable = ['city_id', 'region_id', 'name_ar', 'name_en'];

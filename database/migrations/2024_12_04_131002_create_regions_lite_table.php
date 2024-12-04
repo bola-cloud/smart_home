@@ -9,26 +9,28 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
-        Schema::create('region_lites', function (Blueprint $table) {
+        Schema::create('regions_lite', function (Blueprint $table) {
             $table->id('region_id');
             $table->unsignedBigInteger('capital_city_id');
             $table->string('code', 2)->default('');
             $table->string('name_ar', 64)->default('');
             $table->string('name_en', 64)->default('');
             $table->integer('population')->nullable();
+            $table->timestamps();
     
             // Foreign key constraint
-            $table->foreign('capital_city_id')->references('city_id')->on('city_lites')->onDelete('cascade');
+            $table->foreign('capital_city_id')->references('city_id')->on('cities_lite')->onDelete('cascade');
         });
     }
+    
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('region_lites');
+        Schema::dropIfExists('regions_lite');
     }
 };
