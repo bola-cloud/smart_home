@@ -126,32 +126,38 @@ class IrCodeController extends Controller
     public function getAllFilesContent($deviceType, $brand)
     {
         $directoryPath = $this->basePath . '/' . $deviceType . '/' . $brand;
-
+    
         // Check if the brand directory exists
         if (!File::exists($directoryPath)) {
             return response()->json(['error' => 'Brand not found'], 404);
         }
-
+    
         $files = File::files($directoryPath);
         $allFilesContent = [];
-
+    
         foreach ($files as $file) {
             $fileName = $file->getFilename();
             $fileContent = File::get($file->getPathname());
-
+    
             // Add the file content and flag
+            $isUserAdded = strpos($fileName, 'user_') === 0; // Check if the file is user-added
+            
+            // Parse the file content into structured data
+            $buttons = $this->parseIRFile($fileContent); // Assuming parseIRFile() is the method that parses the content
+            
+            // Add the parsed data to the response
             $allFilesContent[] = [
                 'file_name' => $fileName,
-                'is_user_added' => strpos($fileName, 'user_') === 0, // Check file name prefix
-                'content' => $fileContent,
+                'is_user_added' => $isUserAdded,
+                'buttons' => $buttons, // Parsed content (instead of raw content)
             ];
         }
-
+    
         // Return the content as a JSON response in the same format as getFileContent
         return response()->json([
             'data' => $allFilesContent,
         ]);
-    }
+    }    
 
     public function attachFilePaths(Request $request)
     {
