@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\Conditions\ConditionsController;
 use App\Http\Controllers\Api\IrCode\IrCodeController;
 use App\Http\Controllers\Api\Products\ProductController;
 use App\Http\Controllers\Api\Checkout\CheckoutController;
+use App\Http\Controllers\Api\Regions\RegionsController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -124,3 +125,4 @@ Route::get('/{deviceType}/{brand}/files', [IrCodeController::class, 'getFiles'])
 Route::get('/{deviceType}/{brand}/{filename}', [IrCodeController::class, 'getFileContent']);
 // Route for retrieving all files with content
 Route::get('/ircode/files/content/{deviceType}/{brand}', [IrCodeController::class, 'getAllFilesContent']);
+Route::get('egypt/governments', [RegionsController::class, 'getGovernments']);
