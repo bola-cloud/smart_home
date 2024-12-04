@@ -24,5 +24,9 @@ class Product extends Model
     {
         return $this->hasMany(CheckoutItem::class);
     }
-    
+
+    public function prices()
+    {
+        return $this->hasMany(CountryPrice::class);
+    }    
 }
