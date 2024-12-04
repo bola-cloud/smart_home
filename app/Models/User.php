@@ -34,6 +34,7 @@ class User extends Authenticatable
         'reset_code',
         'reset_code_expires_at',
         'notification',
+        'country',
     ];
 
     public function projects(): HasMany
