@@ -147,10 +147,9 @@ class IrCodeController extends Controller
             ];
         }
 
-        // Return the response as JSON
+        // Return the content as a JSON response in the same format as getFileContent
         return response()->json([
-            'status' => 'success',
-            'data' => $allFilesContent
+            'data' => $allFilesContent,
         ]);
     }
 
