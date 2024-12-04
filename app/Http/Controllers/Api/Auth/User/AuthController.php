@@ -23,6 +23,7 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'phone_number' => 'required',
+            'country' => 'required',
         ]);
         
         if ($validator->fails()) {
@@ -39,6 +40,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'phone_number' => $request->phone_number,
+            'country' => $request->country,
         ]);
     
         // Create a new project "Home 1" for the user
