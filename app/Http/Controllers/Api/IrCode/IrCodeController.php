@@ -126,19 +126,19 @@ class IrCodeController extends Controller
     public function getAllFilesContent($deviceType, $brand)
     {
         $directoryPath = $this->basePath . '/' . $deviceType . '/' . $brand;
-    
+
         // Check if the brand directory exists
         if (!File::exists($directoryPath)) {
             return response()->json(['error' => 'Brand not found'], 404);
         }
-    
+
         $files = File::files($directoryPath);
         $allFilesContent = [];
-    
+
         foreach ($files as $file) {
             $fileName = $file->getFilename();
             $fileContent = File::get($file->getPathname());
-    
+
             // Add the file content and flag
             $allFilesContent[] = [
                 'file_name' => $fileName,
@@ -146,9 +146,13 @@ class IrCodeController extends Controller
                 'content' => $fileContent,
             ];
         }
-    
-        return response()->json($allFilesContent);
-    }    
+
+        // Return the response as JSON
+        return response()->json([
+            'status' => 'success',
+            'data' => $allFilesContent
+        ]);
+    }
 
     public function attachFilePaths(Request $request)
     {
