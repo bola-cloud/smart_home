@@ -46,4 +46,9 @@ Route::group([
     Route::get('checkouts', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('checkouts.index');
     Route::put('checkouts/{checkoutId}/{status}', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('checkouts.updateStatus');
     Route::resource('device_types', \App\Http\Controllers\Admin\DeviceTypeController::class);
+
+    // Display the shipping update form
+    Route::get('admin/shipping-update', [\App\Http\Controllers\Admin\ShippingController::class, 'showShippingUpdateForm'])->name('shipping.update.form');
+    // Handle the form submission to update shipping values
+    Route::post('admin/shipping-update', [\App\Http\Controllers\Admin\ShippingController::class, 'updateShippingValues'])->name('shipping.update');
 });
