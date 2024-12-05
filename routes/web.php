@@ -48,7 +48,7 @@ Route::group([
     Route::resource('device_types', \App\Http\Controllers\Admin\DeviceTypeController::class);
 
     // Display the shipping update form
-    Route::get('admin/shipping-update', [\App\Http\Controllers\Admin\ShippingController::class, 'showShippingUpdateForm'])->name('shipping.update.form');
+    Route::get('shipping-update', [\App\Http\Controllers\Admin\ShippingController::class, 'showShippingUpdateForm'])->name('shipping.update.form');
     // Handle the form submission to update shipping values
-    Route::post('admin/shipping-update', [\App\Http\Controllers\Admin\ShippingController::class, 'updateShippingValues'])->name('shipping.update');
+    Route::post('shipping-update', [\App\Http\Controllers\Admin\ShippingController::class, 'updateShippingValues'])->name('shipping.update');
 });
