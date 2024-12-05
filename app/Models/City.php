@@ -9,7 +9,7 @@ class City extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['city_name_ar', 'city_name_en', 'governorate_id'];
+    protected $fillable = ['city_name_ar', 'city_name_en', 'governorate_id', 'shipping'];
 
     // Define the inverse of the relationship
     public function governorate()
