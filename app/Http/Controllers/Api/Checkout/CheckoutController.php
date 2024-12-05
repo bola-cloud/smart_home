@@ -42,30 +42,38 @@ class CheckoutController extends Controller
         foreach ($request->input('data') as $item) {
             // Retrieve the product from the database
             $product = Product::find($item['product_id']);
-    
+            
+            // Check if product exists
+            if (!$product) {
+                return response()->json([
+                    'error' => 'Product not found.',
+                ], 404);
+            }
+
             // Check if the quantity requested is available
             if ($product->quantity < $item['quantity']) {
                 return response()->json([
                     'error' => "Insufficient stock for product: {$product->name}",
                 ], 400);
             }
-    
+
             // Retrieve the country-specific price
             $price = $this->getProductPriceByCountry($product, $userCountry);
-    
+
             // Calculate the total price for this product
             $totalAmount += $price * $item['quantity'];
-    
+
             // Add the item to the checkout array
             $checkoutItems[] = [
                 'product_id' => $product->id,
                 'quantity' => $item['quantity'],
                 'price' => $price,
             ];
-    
+
             // Optionally, reduce the product stock
             $product->decrement('quantity', $item['quantity']);
         }
+
     
         // Generate a unique code for the checkout (numeric only)
         $checkoutCode = $this->generateUniqueCode();
