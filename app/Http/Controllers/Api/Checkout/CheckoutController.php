@@ -49,11 +49,12 @@ class CheckoutController extends Controller
                     'error' => 'Product not found.',
                 ], 404);
             }
-
+            $locale = $request->header('local', 'en'); // Default to 'en' if not provided
+            $locale == "en" ? $productName = $product->en_title : $productName  = $product->ar_title ;
             // Check if the quantity requested is available
             if ($product->quantity < $item['quantity']) {
                 return response()->json([
-                    'error' => "Insufficient stock for product: {$product->name}",
+                    'error' => "Insufficient stock for product: {$productName}",
                 ], 400);
             }
 
