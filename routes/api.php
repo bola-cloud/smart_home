@@ -113,6 +113,7 @@ Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
     Route::post('/ir/attach/file', [IrCodeController::class, 'attachFilePaths']);
     Route::post('/create/device-file', [IrCodeController::class, 'createDeviceFile']);
     Route::post('/ir/deattach', [IrCodeController::class, 'deattachFilePaths']);
+    Route::post('/device/overwrite-buttons', [IrCodeController::class, 'overwriteDeviceFileButtons']);
 
     Route::get('/products', [ProductController::class, 'index']);
     Route::post('/checkout', [CheckoutController::class, 'processCheckout']);
@@ -123,7 +124,6 @@ Route::get('/device-types', [IrCodeController::class, 'getDeviceTypes']);
 Route::get('/{deviceType}/brands', [IrCodeController::class, 'getBrands']);
 Route::get('/{deviceType}/{brand}/files', [IrCodeController::class, 'getFiles']);
 Route::get('/{deviceType}/{brand}/{filename}', [IrCodeController::class, 'getFileContent']);
-Route::post('/device/overwrite-buttons', [IrCodeController::class, 'overwriteDeviceFileButtons']);
 // Route for retrieving all files with content
 Route::get('/ircode/files/content/{deviceType}/{brand}', [IrCodeController::class, 'getAllFilesContent']);
 Route::get('egypt/governments', [RegionsController::class, 'getGovernments']);
