@@ -54,7 +54,8 @@ class CheckoutController extends Controller
             // Check if the quantity requested is available
             if ($product->quantity < $item['quantity']) {
                 return response()->json([
-                    'error' => "Insufficient stock for product: {$productName}",
+                    'status' => false,
+                    'message' => "Insufficient stock for product: {$productName}",
                 ], 400);
             }
 
