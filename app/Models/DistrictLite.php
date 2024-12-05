@@ -12,7 +12,7 @@ class DistrictLite extends Model
     protected $table = 'districts_lite';
     protected $primaryKey = 'district_id'; // Setting primary key if not "id"
 
-    protected $fillable = ['district_id', 'city_id', 'region_id', 'name_ar', 'name_en'];
+    protected $fillable = ['district_id', 'city_id', 'region_id', 'name_ar', 'name_en', 'shipping'];
 
     // Define the relationships
     public function city()
