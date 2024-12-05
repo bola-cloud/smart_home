@@ -15,9 +15,9 @@ class CheckoutController extends Controller
     {
         // Validate the input
         $validated = $request->validate([
-            'items' => 'required|array',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|integer|min:1',
+            'data' => 'required|array',
+            'data.*.product_id' => 'required|exists:products,id',
+            'data.*.quantity' => 'required|integer|min:1',
             'address' => 'required|string|max:255', // Validate the address field
             'contact' => 'nullable|string|max:255', // Validate the mobile contact
         ]);
@@ -39,7 +39,7 @@ class CheckoutController extends Controller
         $totalAmount = 0;
     
         // Loop through the received product IDs and quantities
-        foreach ($request->input('items') as $item) {
+        foreach ($request->input('data') as $item) {
             // Retrieve the product from the database
             $product = Product::find($item['product_id']);
     
