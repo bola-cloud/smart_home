@@ -210,44 +210,33 @@ class ExecuteConditionAction implements ShouldQueue
     private function executeAction($device)
     {
         $component = Component::find($device['component_id']);
-        Log::info("Executed action for component", [
+        Log::info("Executing action for component", [
             'component' => $component,
         ]);
     
         if ($component) {
-            // $component->update(['type' => "updated_type"]);
-            $action = Action::find($device['action'])->first();
-            Log::info("action_type", [
-                'action' => $action,
-            ]);
-    
-            if ($action && $action->action_type == "analog") {
-                Log::info("Executed action for component", [
-                    'action' => $action,
-                    'json_data' => $action->json_data,
-                ]);
-    
-                // Decode the json_data if it's a JSON string
-                $actionContent = json_decode($action->json_data, true);  // Decode JSON string into an array
-                // Now $actionContent is an array like ['status' => '0']
+            // Use the jsonMap directly from the $device
+            if (isset($device['jsonMap']) && is_array($device['jsonMap'])) {
+                $actionContent = $device['jsonMap']; // Use the jsonMap content
             } else {
-                // If no action or the action type is not 'analog', manually create the content
-                $actionContent = ['status' => $action->status];  // Make sure 'status' is valid
+                Log::error("jsonMap is missing or invalid for device", [
+                    'device' => $device,
+                ]);
+                return; // Skip execution if jsonMap is invalid
             }
     
-            // Now $actionContent is an array with the desired format
-            // Ensure the JSON is properly formatted without the 'action' key
-    
+            // Publish the action using the MQTT service
             $result = $this->mqttService->publishAction($component->device_id, $component->order, $actionContent, true);
     
-            Log::info("Executed action for component", [
+            Log::info("Published action for component", [
                 'component_id' => $device['component_id'],
-                'action' => $device['action']
+                'actionContent' => $actionContent,
+                'result' => $result,
             ]);
         } else {
             Log::error("Component with ID {$device['component_id']} not found for action execution");
         }
-    }    
+    }      
 
     private function scheduleNext()
     {
