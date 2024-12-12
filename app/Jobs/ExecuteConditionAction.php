@@ -109,10 +109,8 @@ class ExecuteConditionAction implements ShouldQueue
                     $component = Component::find($deviceCondition['component_id']);
                     $statusMatch = $component && isset($deviceCondition['status']) && $component->status == $deviceCondition['status'];
     
-                    // Retrieve the last message for the topic
-                    $topic = "Mazaya/{$component->device_id}/{$component->order}";
-                    $lastMessage = $this->getLastMessageFromMQTT($topic); // Custom method to get last message
-                    $lastMessageJson = json_decode($lastMessage, true);
+                    // Retrieve the last message for the topic using the controller
+                    $lastMessageJson = $this->getLastMessageFromController($component->device_id, $component->id);
     
                     // Compare jsonMap with last message content
                     $jsonMapMatch = isset($deviceCondition['jsonMap']) && $lastMessageJson === $deviceCondition['jsonMap'];
@@ -137,10 +135,8 @@ class ExecuteConditionAction implements ShouldQueue
                     $component = Component::find($deviceCondition['component_id']);
                     $statusMatch = $component && isset($deviceCondition['status']) && $component->status == $deviceCondition['status'];
     
-                    // Retrieve the last message for the topic
-                    $topic = "Mazaya/{$component->device_id}/{$component->order}";
-                    $lastMessage = $this->getLastMessageFromMQTT($topic); // Custom method to get last message
-                    $lastMessageJson = json_decode($lastMessage, true);
+                    // Retrieve the last message for the topic using the controller
+                    $lastMessageJson = $this->getLastMessageFromController($component->device_id, $component->id);
     
                     // Compare jsonMap with last message content
                     $jsonMapMatch = isset($deviceCondition['jsonMap']) && $lastMessageJson === $deviceCondition['jsonMap'];
@@ -156,7 +152,33 @@ class ExecuteConditionAction implements ShouldQueue
     
         // Final evaluation of all conditions
         return $logic === 'AND' ? !in_array(false, $results, true) : in_array(true, $results, true);
-    }    
+    }
+    
+    private function getLastMessageFromController($deviceId, $componentId)
+    {
+        $controller = app(\App\Http\Controllers\Api\MqttController::class);
+
+        // Create a mock request for the controller method
+        $request = new \Illuminate\Http\Request();
+        $request->merge([
+            'device_id' => $deviceId,
+            'component_id' => $componentId,
+        ]);
+
+        // Call the controller's method
+        $response = $controller->subscribeToTopic($request);
+
+        // Parse the response
+        $responseData = $response->getData(true);
+
+        // Return the last_message if it exists and is valid JSON
+        if (isset($responseData['last_message'])) {
+            return $responseData['last_message'];
+        }
+
+        return null; // Return null if no message is found
+    }
+
 
     private function dispatchDelayedJob($delay)
     {
