@@ -151,7 +151,7 @@ class ExecuteConditionAction implements ShouldQueue
     
                     // Combine jsonMap checks
                     $deviceResults[] = $jsonMapMatch;
-                    Log::info("deviceResults : {$deviceResults} , deviceResults : {$jsonMapMatch}");
+                    Log::info("deviceResults: " . json_encode($deviceResults) . " , jsonMapMatch: " . json_encode($jsonMapMatch));
                 }
     
                 // Apply condition logic
@@ -182,7 +182,7 @@ class ExecuteConditionAction implements ShouldQueue
 
         // Return the last_message if it exists and is valid JSON
         if (isset($responseData['last_message'])) {
-            // Log::info("message of the mqtt : {$responseData['last_message']}");
+            Log::info("message of the mqtt: " . json_encode($responseData['last_message']));
             return $responseData['last_message'];
         }
 
