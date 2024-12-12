@@ -39,7 +39,7 @@ class ConditionsController extends Controller
             'cases.*.then.actions.*.devices.*.jsonMap' => 'nullable|array', // Validate jsonMap for 'then'
             'cases.*.then.delay' => 'nullable|date_format:H:i',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json(['status' => false, 'errors' => $validator->errors()], 422);
         }
@@ -47,31 +47,52 @@ class ConditionsController extends Controller
         $user = Auth::user();
         // Check if a condition already exists for the user and project
         $existingCondition = Condition::where('user_id', $user->id)
-        ->where('project_id', $request->project_id)
-        ->first();
-
+            ->where('project_id', $request->project_id)
+            ->first();
+    
         if ($existingCondition) {
             return response()->json([
                 'status' => false,
                 'message' => 'A condition for this user and project already exists.',
             ], 409);
         }
-
+    
         $cases = $request->cases;
     
-        // Add unique IDs for each case
+        // Process each case to handle jsonMap and assign unique IDs
         $cases = array_map(function ($case) {
             $case['case_id'] = uniqid(); // Assign unique case_id
+    
+            // Process jsonMap in the 'if' block
+            foreach ($case['if']['conditions'] as &$conditionBlock) {
+                if (isset($conditionBlock['devices']) && is_array($conditionBlock['devices'])) {
+                    foreach ($conditionBlock['devices'] as &$device) {
+                        // Set jsonMap to null if it is empty or missing
+                        $device['jsonMap'] = isset($device['jsonMap']) && !empty($device['jsonMap']) ? $device['jsonMap'] : null;
+                    }
+                }
+            }
+    
+            // Process jsonMap in the 'then' block
+            foreach ($case['then']['actions'] as &$action) {
+                if (isset($action['devices']) && is_array($action['devices'])) {
+                    foreach ($action['devices'] as &$device) {
+                        // Set jsonMap to null if it is empty or missing
+                        $device['jsonMap'] = isset($device['jsonMap']) && !empty($device['jsonMap']) ? $device['jsonMap'] : null;
+                    }
+                }
+            }
+    
             return $case;
         }, $cases);
-
+    
         // Store the condition in the database
         $condition = Condition::create([
             'user_id' => $user->id,
             'project_id' => $request->project_id,
             'cases' => json_encode($cases),
         ]);
-
+    
         // Schedule actions for each case
         foreach ($cases as $case) {
             $ifConditions = $case['if']['conditions'];
@@ -94,7 +115,7 @@ class ConditionsController extends Controller
                 ],
             ],
         ], 200);
-    }
+    }    
 
     private function scheduleAction($action, $conditionId, $caseId, $ifConditions, $repetitionDays = null)
     {
