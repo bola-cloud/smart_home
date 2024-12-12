@@ -35,6 +35,7 @@ class ConditionsController extends Controller
             'cases.*.then.actions.*.devices' => 'required|array|min:1',
             'cases.*.then.actions.*.devices.*.component_id' => 'required|exists:components,id',
             'cases.*.then.actions.*.devices.*.action' => 'required|array',
+            'cases.*.then.actions.*.devices.*.jsonMap' => 'required|array', // Validate jsonMap for devices
             'cases.*.then.delay' => 'nullable|date_format:H:i',
         ]);
 
