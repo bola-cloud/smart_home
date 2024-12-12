@@ -94,47 +94,69 @@ class ExecuteConditionAction implements ShouldQueue
     private function evaluateIfConditions($conditions, $logic)
     {
         $results = [];
-
+    
         foreach ($conditions as $condition) {
             // Only time condition without devices, automatically true
             if (is_null($condition['devices']) && !is_null($condition['time'])) {
                 $results[] = true;
                 continue;
             }
-
+    
             // Both time and devices specified
             if (!is_null($condition['devices']) && !is_null($condition['time'])) {
                 $deviceResults = [];
                 foreach ($condition['devices'] as $deviceCondition) {
                     $component = Component::find($deviceCondition['component_id']);
                     $statusMatch = $component && isset($deviceCondition['status']) && $component->status == $deviceCondition['status'];
-                    $deviceResults[] = $statusMatch;
+    
+                    // Retrieve the last message for the topic
+                    $topic = "Mazaya/{$component->device_id}/{$component->order}";
+                    $lastMessage = $this->getLastMessageFromMQTT($topic); // Custom method to get last message
+                    $lastMessageJson = json_decode($lastMessage, true);
+    
+                    // Compare jsonMap with last message content
+                    $jsonMapMatch = isset($deviceCondition['jsonMap']) && $lastMessageJson === $deviceCondition['jsonMap'];
+    
+                    // Combine status and jsonMap checks
+                    $deviceResults[] = $statusMatch && $jsonMapMatch;
                 }
+    
                 // Time condition must also match
                 $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
                 $deviceResults[] = $timeConditionMet;
-
+    
                 // Apply condition logic
                 $results[] = $logic === 'AND' ? !in_array(false, $deviceResults) : in_array(true, $deviceResults);
                 continue;
             }
-
+    
             // Only devices specified
             if (!is_null($condition['devices']) && is_null($condition['time'])) {
                 $deviceResults = [];
                 foreach ($condition['devices'] as $deviceCondition) {
                     $component = Component::find($deviceCondition['component_id']);
                     $statusMatch = $component && isset($deviceCondition['status']) && $component->status == $deviceCondition['status'];
-                    $deviceResults[] = $statusMatch;
+    
+                    // Retrieve the last message for the topic
+                    $topic = "Mazaya/{$component->device_id}/{$component->order}";
+                    $lastMessage = $this->getLastMessageFromMQTT($topic); // Custom method to get last message
+                    $lastMessageJson = json_decode($lastMessage, true);
+    
+                    // Compare jsonMap with last message content
+                    $jsonMapMatch = isset($deviceCondition['jsonMap']) && $lastMessageJson === $deviceCondition['jsonMap'];
+    
+                    // Combine status and jsonMap checks
+                    $deviceResults[] = $statusMatch && $jsonMapMatch;
                 }
+    
                 // Apply condition logic
                 $results[] = $logic === 'AND' ? !in_array(false, $deviceResults) : in_array(true, $deviceResults);
             }
         }
-
+    
         // Final evaluation of all conditions
         return $logic === 'AND' ? !in_array(false, $results, true) : in_array(true, $results, true);
-    }
+    }    
 
     private function dispatchDelayedJob($delay)
     {
