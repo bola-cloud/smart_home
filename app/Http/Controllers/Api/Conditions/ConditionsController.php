@@ -233,11 +233,12 @@ class ConditionsController extends Controller
             'cases.*.if.conditions.*.devices' => 'nullable|array',
             'cases.*.if.conditions.*.devices.*.component_id' => 'required|exists:components,id',
             'cases.*.if.conditions.*.devices.*.status' => 'nullable|string',
+            'cases.*.if.conditions.*.devices.*.jsonMap' => 'nullable|array', // Validate jsonMap as an object
             'cases.*.if.conditions.*.time' => 'nullable|date_format:Y-m-d H:i',
             'cases.*.then.actions' => 'required|array',
             'cases.*.then.actions.*.devices' => 'required|array|min:1',
             'cases.*.then.actions.*.devices.*.component_id' => 'required|exists:components,id',
-            'cases.*.then.actions.*.devices.*.action' => 'required|array',
+            'cases.*.then.actions.*.devices.*.jsonMap' => 'nullable|array', // Validate jsonMap as an object
             'cases.*.then.delay' => 'nullable|date_format:H:i',
         ]);
     
@@ -250,6 +251,30 @@ class ConditionsController extends Controller
     
         // Assign a unique case ID
         $newCase['case_id'] = uniqid();
+    
+        // Check and handle jsonMap in the 'if' block
+        foreach ($newCase['if']['conditions'] as &$conditionBlock) {
+            if (isset($conditionBlock['devices']) && is_array($conditionBlock['devices'])) {
+                foreach ($conditionBlock['devices'] as &$device) {
+                    // If jsonMap is not set or empty, set it to an empty JSON object
+                    if (empty($device['jsonMap'])) {
+                        $device['jsonMap'] = null; // Set to null or '{}' as per your preference
+                    }
+                }
+            }
+        }
+    
+        // Check and handle jsonMap in the 'then' block
+        foreach ($newCase['then']['actions'] as &$action) {
+            if (isset($action['devices']) && is_array($action['devices'])) {
+                foreach ($action['devices'] as &$device) {
+                    // If jsonMap is not set or empty, set it to an empty JSON object
+                    if (empty($device['jsonMap'])) {
+                        $device['jsonMap'] = null; // Set to null or '{}' as per your preference
+                    }
+                }
+            }
+        }
     
         // Decode the existing cases, append the new case, and re-encode
         $existingCases = json_decode($condition->cases, true);
@@ -275,7 +300,7 @@ class ConditionsController extends Controller
                 ],
             ],
         ], 200);
-    }
+    }    
 
     public function inactivateCase(Request $request)
     {
