@@ -107,22 +107,25 @@ class ExecuteConditionAction implements ShouldQueue
                 $deviceResults = [];
                 foreach ($condition['devices'] as $deviceCondition) {
                     $component = Component::find($deviceCondition['component_id']);
-                    $statusMatch = $component && isset($deviceCondition['status']) && $component->status == $deviceCondition['status'];
-    
+
+                    // Check if the component exists
+                    if (!$component) {
+                        $deviceResults[] = false;
+                        continue; // Skip further checks for this device
+                    }
+
                     // Retrieve the last message for the topic using the controller
                     $lastMessageJson = $this->getLastMessageFromController($component->device_id, $component->id);
-    
+
                     // Compare jsonMap with last message content
                     $jsonMapMatch = isset($deviceCondition['jsonMap']) && $lastMessageJson === $deviceCondition['jsonMap'];
-    
-                    // Combine status and jsonMap checks
-                    $deviceResults[] = $statusMatch && $jsonMapMatch;
+
+                    // Combine jsonMap checks
+                    $deviceResults[] = $jsonMapMatch;
                 }
-    
-                // Time condition must also match
-                $timeConditionMet = Carbon::now()->greaterThanOrEqualTo(Carbon::parse($condition['time']));
-                $deviceResults[] = $timeConditionMet;
-    
+
+                Log::info("deviceResults: " . json_encode($deviceResults));
+
                 // Apply condition logic
                 $results[] = $logic === 'AND' ? !in_array(false, $deviceResults) : in_array(true, $deviceResults);
                 continue;
@@ -133,7 +136,12 @@ class ExecuteConditionAction implements ShouldQueue
                 $deviceResults = [];
                 foreach ($condition['devices'] as $deviceCondition) {
                     $component = Component::find($deviceCondition['component_id']);
-                    $statusMatch = $component && isset($deviceCondition['status']) && $component->status == $deviceCondition['status'];
+    
+                    // Check if the component exists
+                    if (!$component) {
+                        $deviceResults[] = false;
+                        continue; // Skip further checks for this device
+                    }
     
                     // Retrieve the last message for the topic using the controller
                     $lastMessageJson = $this->getLastMessageFromController($component->device_id, $component->id);
@@ -141,8 +149,9 @@ class ExecuteConditionAction implements ShouldQueue
                     // Compare jsonMap with last message content
                     $jsonMapMatch = isset($deviceCondition['jsonMap']) && $lastMessageJson === $deviceCondition['jsonMap'];
     
-                    // Combine status and jsonMap checks
-                    $deviceResults[] = $statusMatch && $jsonMapMatch;
+                    // Combine jsonMap checks
+                    $deviceResults[] = $jsonMapMatch;
+                    Log::info("deviceResults : {$deviceResults} , deviceResults : {$jsonMapMatch}");
                 }
     
                 // Apply condition logic
@@ -152,7 +161,7 @@ class ExecuteConditionAction implements ShouldQueue
     
         // Final evaluation of all conditions
         return $logic === 'AND' ? !in_array(false, $results, true) : in_array(true, $results, true);
-    }
+    }    
     
     private function getLastMessageFromController($deviceId, $componentId)
     {
