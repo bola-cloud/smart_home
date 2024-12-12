@@ -178,12 +178,12 @@ class ConditionsController extends Controller
             'cases.*.if.conditions.*.devices' => 'nullable|array',
             'cases.*.if.conditions.*.devices.*.component_id' => 'required|exists:components,id',
             'cases.*.if.conditions.*.devices.*.status' => 'nullable|string',
-            'cases.*.if.conditions.*.devices.*.jsonMap' => 'nullable|array', // Validate jsonMap as an object
+            'cases.*.if.conditions.*.devices.*.jsonMap' => 'nullable|array', // Validate jsonMap for 'if'
             'cases.*.if.conditions.*.time' => 'nullable|date_format:Y-m-d H:i',
             'cases.*.then.actions' => 'required|array',
             'cases.*.then.actions.*.devices' => 'required|array|min:1',
             'cases.*.then.actions.*.devices.*.component_id' => 'required|exists:components,id',
-            'cases.*.then.actions.*.devices.*.jsonMap' => 'nullable|array', // Validate jsonMap as an object
+            'cases.*.then.actions.*.devices.*.jsonMap' => 'nullable|array', // Validate jsonMap for 'then'
             'cases.*.then.delay' => 'nullable|date_format:H:i',
         ]);
     
@@ -220,10 +220,8 @@ class ConditionsController extends Controller
         foreach ($updatedCase['if']['conditions'] as &$conditionBlock) {
             if (isset($conditionBlock['devices']) && is_array($conditionBlock['devices'])) {
                 foreach ($conditionBlock['devices'] as &$device) {
-                    // Ensure jsonMap exists and is an object
-                    $device['jsonMap'] = isset($device['jsonMap']) && is_array($device['jsonMap'])
-                        ? $device['jsonMap']
-                        : null; // Set to null if jsonMap is missing or invalid
+                    // Ensure jsonMap is null if it is empty or missing
+                    $device['jsonMap'] = isset($device['jsonMap']) && !empty($device['jsonMap']) ? $device['jsonMap'] : null;
                 }
             }
         }
@@ -232,10 +230,8 @@ class ConditionsController extends Controller
         foreach ($updatedCase['then']['actions'] as &$action) {
             if (isset($action['devices']) && is_array($action['devices'])) {
                 foreach ($action['devices'] as &$device) {
-                    // Ensure jsonMap exists and is an object
-                    $device['jsonMap'] = isset($device['jsonMap']) && is_array($device['jsonMap'])
-                        ? $device['jsonMap']
-                        : null; // Set to null if jsonMap is missing or invalid
+                    // Ensure jsonMap is null if it is empty or missing
+                    $device['jsonMap'] = isset($device['jsonMap']) && !empty($device['jsonMap']) ? $device['jsonMap'] : null;
                 }
             }
         }
@@ -264,7 +260,7 @@ class ConditionsController extends Controller
                 ],
             ],
         ], 200);
-    }       
+    }        
 
     public function addCase(Request $request)
     {
