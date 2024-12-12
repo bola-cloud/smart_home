@@ -54,29 +54,30 @@ client.on('message', (topic, message) => {
 app.post('/subscribe', (req, res) => {
   const { device_id, component_id } = req.body;
 
-  // Validate the request data
   if (!device_id || !component_id) {
     return res.status(400).json({ error: 'device_id and component_id are required' });
   }
 
   const topic = `Mazaya/${device_id}/${component_id}`;
-  
-  // Subscribe to the topic
+
   client.subscribe(topic, { qos: 1 }, (err) => {
     if (err) {
       console.error('Subscription error:', err);
       return res.status(500).json({ error: 'Failed to subscribe to topic' });
     }
 
-    // Check if there's a stored message for this topic
-    const lastMessage = lastMessages[topic];
-    if (lastMessage) {
-      return res.json({ success: true, message: `Subscribed to topic: ${topic}`, last_message: lastMessage });
-    } else {
-      return res.json({ success: true, message: `Subscribed to topic: ${topic}`, last_message: 'No messages yet for this topic' });
-    }
+    // Wait for retained messages or confirm subscription
+    setTimeout(() => {
+      const lastMessage = lastMessages[topic];
+      if (lastMessage) {
+        return res.json({ success: true, message: `Subscribed to topic: ${topic}`, last_message: lastMessage });
+      } else {
+        return res.json({ success: true, message: `Subscribed to topic: ${topic}`, last_message: 'No messages yet for this topic' });
+      }
+    }, 500); // Delay to allow retained messages to arrive
   });
 });
+
 
 // API to get the last message for a specific topic
 app.post('/get-last-message', (req, res) => {
