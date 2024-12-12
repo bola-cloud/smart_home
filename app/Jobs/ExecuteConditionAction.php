@@ -173,6 +173,7 @@ class ExecuteConditionAction implements ShouldQueue
 
         // Return the last_message if it exists and is valid JSON
         if (isset($responseData['last_message'])) {
+            Log::info("message of the mqtt : {$responseData['last_message']}");
             return $responseData['last_message'];
         }
 
