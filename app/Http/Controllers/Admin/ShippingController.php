@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\City;
+use App\Models\CityLite;
 use App\Models\DistrictLite;
+use App\Models\RegionLite;
 
 class ShippingController extends Controller
 {
