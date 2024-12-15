@@ -193,15 +193,24 @@
 
         $('#createRegionForm').on('submit', function (e) {
             e.preventDefault();
+
             $.ajax({
-                url: "{{ route('regions.store') }}",
-                type: "POST",
+                url: "{{ route('regions.store') }}", // Ensure this matches the POST route
+                type: "POST", // Ensure the method is POST
                 data: $(this).serialize(),
-                success: function () {
-                    location.reload();
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}' // Include CSRF token for Laravel
+                },
+                success: function (response) {
+                    alert(response.message);
+                    location.reload(); // Reload the page to update the regions list
+                },
+                error: function (xhr) {
+                    alert('Error: ' + xhr.responseText);
                 }
             });
         });
+
     });
 </script>
 @endpush
