@@ -57,9 +57,16 @@ class ConnectionController extends Controller
             'status' => 'Success',
             'message' => 'Device found and activation initiated',
             'data' => [
-                'device_id' => $device->id,
-                'device_serial' => $device->serial,
+                'id' => $device->id,
+                'name' => $device->name,
+                'serial' => $device->serial,
                 'section_id' => $device->section_id,
+                'project_id' => $device->project_id,
+                'type' => $device->type,
+                'activation' => $device->activation,
+                'last_updated' => $device->last_updated,
+                'ip' => $device->ip,
+                'mac_address' => $device->mac_address,
             ]
         ]);
     }
