@@ -100,14 +100,14 @@
             }
         });
 
-        // Fetch Districts Based on City
+        // Fetch Districts Based on City Selection
         $('#city').on('change', function () {
             let cityId = $(this).val();
             $('#district').prop('disabled', true).html('<option value="">{{ __("lang.select_district") }}</option>');
 
             if (cityId) {
                 $.ajax({
-                    url: "{{ route('fetch.districts') }}",
+                    url: "{{ route('fetch.districts') }}", // Correct AJAX route
                     type: "GET",
                     data: { city_id: cityId },
                     success: function (response) {
@@ -119,6 +119,7 @@
                 });
             }
         });
+
     });
 </script>
 @endpush

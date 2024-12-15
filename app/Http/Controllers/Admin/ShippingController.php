@@ -20,18 +20,18 @@ class ShippingController extends Controller
     // Fetch Cities Based on Selected Region (AJAX)
     public function fetchCities(Request $request)
     {
-        $cities = CityLite::where('region_id', $request->region_id)->get();
+        $cities = CityLite::where('region_id', $request->region_id)->get(); // Filter by region_id
         return response()->json(['cities' => $cities]);
     }
 
     // Fetch Districts Based on Selected City (AJAX)
     public function fetchDistricts(Request $request)
     {
-        $districts = DistrictLite::where('city_id', $request->city_id)->get();
+        $districts = DistrictLite::where('city_id', $request->city_id)->get(); // Filter by city_id
         return response()->json(['districts' => $districts]);
     }
 
-    // Update Shipping Values for Cities and Districts
+    // Update Shipping Values for Selected City and District
     public function update(Request $request)
     {
         $request->validate([
@@ -41,14 +41,14 @@ class ShippingController extends Controller
         ]);
 
         try {
-            // Update City Shipping if Exists
+            // Update Shipping in City
             $city = CityLite::findOrFail($request->city_id);
-            $city->shipping = $request->input('shipping', 1); // Default to '1' (with shipping)
+            $city->shipping = $request->input('shipping', 1); // Default to 'with shipping'
             $city->save();
 
-            // Update District Shipping if Exists
+            // Update Shipping in District
             $district = DistrictLite::findOrFail($request->district_id);
-            $district->shipping = $request->input('shipping', 1); // Default to '1' (with shipping)
+            $district->shipping = $request->input('shipping', 1); // Default to 'with shipping'
             $district->save();
 
             return redirect()->back()->with('success', __('Shipping values updated successfully!'));
