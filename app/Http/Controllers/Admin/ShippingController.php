@@ -14,7 +14,7 @@ class ShippingController extends Controller
     public function index()
     {
         $regions = RegionLite::all();
-        return view('regions-districts.update', compact('regions'));
+        return view('admin.regions-districts.update', compact('regions'));
     }
 
     // Fetch Cities Based on Selected Region (AJAX)
