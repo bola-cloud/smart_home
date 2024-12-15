@@ -11,6 +11,7 @@ class RegionLite extends Model
 
     protected $table = 'regions_lite';
     protected $primaryKey = 'region_id';
+    public $timestamps = false;
 
     protected $fillable = ['region_id', 'capital_city_id', 'code', 'name_ar', 'name_en', 'population'];
 

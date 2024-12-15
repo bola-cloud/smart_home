@@ -11,6 +11,7 @@ class CityLite extends Model
 
     protected $table = 'cities_lite';
     protected $primaryKey = 'city_id';
+    public $timestamps = false;
 
     protected $fillable = ['city_id', 'region_id', 'name_ar', 'name_en'];
 
