@@ -57,6 +57,7 @@ class ShippingController extends Controller
         RegionLite::create([
             'name_en' => $request->name_en,
             'name_ar' => $request->name_ar,
+            'capital_city_id' => $request->capital_city_id ?? 0, // Default to 0
         ]);
 
         return response()->json(['message' => 'Region created successfully!']);

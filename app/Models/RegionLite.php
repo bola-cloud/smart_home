@@ -20,9 +20,4 @@ class RegionLite extends Model
     {
         return $this->hasMany(CityLite::class, 'region_id', 'region_id');
     }
-
-    public function capitalCity()
-    {
-        return $this->belongsTo(CityLite::class, 'capital_city_id', 'city_id');
-    }
 }
