@@ -9,37 +9,50 @@ use App\Models\DistrictLite;
 
 class ShippingController extends Controller
 {
-    public function showShippingUpdateForm()
+    // Display the form with Regions, Cities, and Districts
+    public function index()
     {
-        $cities = City::all();
-        $districts = DistrictLite::all();
-
-        return view('admin.shipping.shipping-update', compact('cities', 'districts'));
+        $regions = RegionLite::all();
+        return view('regions-districts.update', compact('regions'));
     }
 
-    public function updateShippingValues(Request $request)
+    // Fetch Cities Based on Selected Region (AJAX)
+    public function fetchCities(Request $request)
+    {
+        $cities = CityLite::where('region_id', $request->region_id)->get();
+        return response()->json(['cities' => $cities]);
+    }
+
+    // Fetch Districts Based on Selected City (AJAX)
+    public function fetchDistricts(Request $request)
+    {
+        $districts = DistrictLite::where('city_id', $request->city_id)->get();
+        return response()->json(['districts' => $districts]);
+    }
+
+    // Update Shipping Values for Cities and Districts
+    public function update(Request $request)
     {
         $request->validate([
-            'cities.*.id' => 'required|exists:cities,id',
-            'cities.*.shipping' => 'required|boolean',
-            'districts_lite.*.id' => 'required|exists:districts_lite,id',
-            'districts_lite.*.shipping' => 'required|boolean',
+            'region_id' => 'required|exists:regions_lite,region_id',
+            'city_id' => 'required|exists:cities_lite,city_id',
+            'district_id' => 'required|exists:districts_lite,district_id',
         ]);
 
-        // Update Cities
-        foreach ($request->cities as $city) {
-            $cityModel = City::find($city['id']);
-            $cityModel->shipping = $city['shipping'];
-            $cityModel->save();
-        }
+        try {
+            // Update City Shipping if Exists
+            $city = CityLite::findOrFail($request->city_id);
+            $city->shipping = $request->input('shipping', 1); // Default to '1' (with shipping)
+            $city->save();
 
-        // Update Districts Lite
-        foreach ($request->districts_lite as $district) {
-            $districtModel = DistrictLite::find($district['id']);
-            $districtModel->shipping = $district['shipping'];
-            $districtModel->save();
-        }
+            // Update District Shipping if Exists
+            $district = DistrictLite::findOrFail($request->district_id);
+            $district->shipping = $request->input('shipping', 1); // Default to '1' (with shipping)
+            $district->save();
 
-        return redirect()->back()->with('success', 'Shipping values updated successfully!');
+            return redirect()->back()->with('success', __('Shipping values updated successfully!'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', __('Failed to update shipping values.'));
+        }
     }
 }
