@@ -10,58 +10,91 @@ use App\Models\RegionLite;
 
 class ShippingController extends Controller
 {
-    // Display the form with Regions, Cities, and Districts
     public function index()
     {
         $regions = RegionLite::all();
         return view('admin.regions-districts.update', compact('regions'));
     }
 
-    // Fetch Cities Based on Selected Region (AJAX)
+    /**
+     * Fetch cities based on region.
+     */
     public function fetchCities(Request $request)
-    {
-        $cities = CityLite::where('region_id', $request->region_id)->get(); // Filter by region_id
-        return response()->json(['cities' => $cities]);
-    }
-
-    public function fetchDistricts(Request $request)
-    {
-        // Validate input
-        $request->validate([
-            'city_id' => 'required|exists:cities_lite,city_id',
-        ]);
-    
-        // Fetch districts based on city_id
-        $districts = DistrictLite::where('city_id', $request->city_id)->get();
-    
-        return response()->json([
-            'districts' => $districts,
-        ]);
-    }    
-
-    // Update Shipping Values for Selected City and District
-    public function update(Request $request)
     {
         $request->validate([
             'region_id' => 'required|exists:regions_lite,region_id',
-            'city_id' => 'required|exists:cities_lite,city_id',
-            'district_id' => 'required|exists:districts_lite,district_id',
         ]);
 
-        try {
-            // Update Shipping in City
-            $city = CityLite::findOrFail($request->city_id);
-            $city->shipping = $request->input('shipping', 1); // Default to 'with shipping'
-            $city->save();
+        $cities = CityLite::where('region_id', $request->region_id)->get();
 
-            // Update Shipping in District
-            $district = DistrictLite::findOrFail($request->district_id);
-            $district->shipping = $request->input('shipping', 1); // Default to 'with shipping'
-            $district->save();
+        return response()->json(['cities' => $cities]);
+    }
 
-            return redirect()->back()->with('success', __('Shipping values updated successfully!'));
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', __('Failed to update shipping values.'));
-        }
+    /**
+     * Fetch districts based on city.
+     */
+    public function fetchDistricts(Request $request)
+    {
+        $request->validate([
+            'city_id' => 'required|exists:cities_lite,city_id',
+        ]);
+
+        $districts = DistrictLite::where('city_id', $request->city_id)->get();
+
+        return response()->json(['districts' => $districts]);
+    }
+
+    /**
+     * Store a new region.
+     */
+    public function storeRegion(Request $request)
+    {
+        $request->validate([
+            'name_en' => 'required|string|max:255',
+            'name_ar' => 'required|string|max:255',
+        ]);
+
+        RegionLite::create([
+            'name_en' => $request->name_en,
+            'name_ar' => $request->name_ar,
+        ]);
+
+        return response()->json(['message' => 'Region created successfully!']);
+    }
+
+    /**
+     * Store a new city.
+     */
+    public function storeCity(Request $request)
+    {
+        $request->validate([
+            'region_id' => 'required|exists:regions_lite,region_id',
+            'city_name' => 'required|string|max:255',
+        ]);
+
+        CityLite::create([
+            'region_id' => $request->region_id,
+            'name_en' => $request->city_name,
+        ]);
+
+        return response()->json(['message' => 'City created successfully!']);
+    }
+
+    /**
+     * Store a new district.
+     */
+    public function storeDistrict(Request $request)
+    {
+        $request->validate([
+            'city_id' => 'required|exists:cities_lite,city_id',
+            'district_name' => 'required|string|max:255',
+        ]);
+
+        DistrictLite::create([
+            'city_id' => $request->city_id,
+            'name_en' => $request->district_name,
+        ]);
+
+        return response()->json(['message' => 'District created successfully!']);
     }
 }

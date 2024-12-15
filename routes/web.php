@@ -48,12 +48,16 @@ Route::group([
     Route::resource('device_types', \App\Http\Controllers\Admin\DeviceTypeController::class);
 
     // Display the shipping update form
-    Route::get('shipping-update', [\App\Http\Controllers\Admin\ShippingController::class, 'index'])->name('shipping.update.form');
-    // Handle the form submission to update shipping values
-    Route::post('shipping-update', [\App\Http\Controllers\Admin\ShippingController::class, 'updateShippingValues'])->name('shipping.update');
+    // Main page
+    Route::get('/regions-districts', [\App\Http\Controllers\Admin\ShippingController::class, 'index'])->name('shipping.form');
 
+    // Fetch cities and districts
     Route::get('/fetch-cities', [\App\Http\Controllers\Admin\ShippingController::class, 'fetchCities'])->name('fetch.cities');
     Route::get('/fetch-districts', [\App\Http\Controllers\Admin\ShippingController::class, 'fetchDistricts'])->name('fetch.districts');
-    Route::post('/shipping-update', [\App\Http\Controllers\Admin\ShippingController::class, 'update'])->name('shipping.update');
+
+    // Store regions, cities, and districts
+    Route::post('/store-region', [\App\Http\Controllers\Admin\ShippingController::class, 'storeRegion'])->name('regions.store');
+    Route::post('/store-city', [\App\Http\Controllers\Admin\ShippingController::class, 'storeCity'])->name('cities.store');
+    Route::post('/store-district', [\App\Http\Controllers\Admin\ShippingController::class, 'storeDistrict'])->name('districts.store');
     
 });
