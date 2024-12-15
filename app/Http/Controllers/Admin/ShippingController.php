@@ -24,12 +24,20 @@ class ShippingController extends Controller
         return response()->json(['cities' => $cities]);
     }
 
-    // Fetch Districts Based on Selected City (AJAX)
     public function fetchDistricts(Request $request)
     {
-        $districts = DistrictLite::where('city_id', $request->city_id)->get(); // Filter by city_id
-        return response()->json(['districts' => $districts]);
-    }
+        // Validate input
+        $request->validate([
+            'city_id' => 'required|exists:cities_lite,city_id',
+        ]);
+    
+        // Fetch districts based on city_id
+        $districts = DistrictLite::where('city_id', $request->city_id)->get();
+    
+        return response()->json([
+            'districts' => $districts,
+        ]);
+    }    
 
     // Update Shipping Values for Selected City and District
     public function update(Request $request)
