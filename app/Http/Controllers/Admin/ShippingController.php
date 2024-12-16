@@ -70,16 +70,21 @@ class ShippingController extends Controller
     {
         $request->validate([
             'region_id' => 'required|exists:regions_lite,region_id',
-            'city_name' => 'required|string|max:255',
+            'name_en' => 'required|string|max:255', // Validate name_en (English name)
+            'name_ar' => 'nullable|string|max:255', // Optional Arabic name
         ]);
-
-        CityLite::create([
+    
+        $city = CityLite::create([
             'region_id' => $request->region_id,
-            'name_en' => $request->city_name,
+            'name_en' => $request->name_en,
+            'name_ar' => $request->name_ar ?? '', // Default to empty string if not provided
         ]);
-
-        return response()->json(['message' => 'City created successfully!']);
-    }
+    
+        return response()->json([
+            'message' => 'City created successfully!',
+            'city' => $city,
+        ]);
+    }    
 
     /**
      * Store a new district.
@@ -88,14 +93,19 @@ class ShippingController extends Controller
     {
         $request->validate([
             'city_id' => 'required|exists:cities_lite,city_id',
-            'district_name' => 'required|string|max:255',
+            'name_en' => 'required|string|max:255', // Validate name_en (English name)
+            'name_ar' => 'nullable|string|max:255', // Optional Arabic name
         ]);
-
-        DistrictLite::create([
+    
+        $district = DistrictLite::create([
             'city_id' => $request->city_id,
-            'name_en' => $request->district_name,
+            'name_en' => $request->name_en,
+            'name_ar' => $request->name_ar ?? '', // Default to empty string if not provided
         ]);
-
-        return response()->json(['message' => 'District created successfully!']);
-    }
+    
+        return response()->json([
+            'message' => 'District created successfully!',
+            'district' => $district,
+        ]);
+    }    
 }
