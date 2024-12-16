@@ -306,4 +306,7 @@ return [
     'no_shipping' => 'بدون شحن',
     'with_shipping' => 'مع شحن',
     'update_shipping' => 'تحديث الشحن',
+    'shipping_fees' => 'رسوم الشحن',
+    'enter_shipping_fees' => 'أدخل رسوم الشحن',
+    'shipping_updated_successfully' => 'تم تحديث رسوم الشحن بنجاح!',
 ];

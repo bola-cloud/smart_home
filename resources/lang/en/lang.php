@@ -304,4 +304,7 @@ return [
     'no_shipping' => 'No Shipping',
     'with_shipping' => 'With Shipping',
     'update_shipping' => 'Update Shipping',
+    'shipping_fees' => 'Shipping Fees',
+    'enter_shipping_fees' => 'Enter Shipping Fees',
+    'shipping_updated_successfully' => 'Shipping fees updated successfully!',
 ];
