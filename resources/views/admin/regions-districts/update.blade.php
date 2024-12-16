@@ -222,10 +222,10 @@
             $('#createCityForm').on('submit', function (e) {
                 e.preventDefault();
 
-                let regionId = $('#region').val(); // Get selected region_id
+                let regionId = $('#region').val(); // Get the selected region_id
 
                 if (!regionId) {
-                    alert('{{ __("lang.select_region_first") }}'); // Error message if no region is selected
+                    alert('{{ __("lang.select_region_first") }}'); // Show error if no region is selected
                     return;
                 }
 
@@ -235,8 +235,8 @@
                     data: {
                         _token: '{{ csrf_token() }}',
                         region_id: regionId, // Pass the selected region_id
-                        name_en: $('input[name="name_en"]').val(), // English name from form
-                        name_ar: $('input[name="name_ar"]').val(), // Arabic name from form
+                        name_en: $('#city_name_en').val(), // Get the value from the English name input
+                        name_ar: $('#city_name_ar').val(), // Get the value from the Arabic name input
                     },
                     success: function (response) {
                         alert(response.message);
@@ -249,13 +249,14 @@
                     }
                 });
             });
+
             $('#createDistrictForm').on('submit', function (e) {
                 e.preventDefault();
 
-                let cityId = $('#city').val(); // Get selected city_id
+                let cityId = $('#city').val(); // Get the selected city_id
 
                 if (!cityId) {
-                    alert('{{ __("lang.select_city_first") }}'); // Error message if no city is selected
+                    alert('{{ __("lang.select_city_first") }}'); // Show error if no city is selected
                     return;
                 }
 
@@ -265,8 +266,8 @@
                     data: {
                         _token: '{{ csrf_token() }}',
                         city_id: cityId, // Pass the selected city_id
-                        name_en: $('input[name="name_en"]').val(), // English name from form
-                        name_ar: $('input[name="name_ar"]').val(), // Arabic name from form
+                        name_en: $('#district_name_en').val(), // Get the value from the English name input
+                        name_ar: $('#district_name_ar').val(), // Get the value from the Arabic name input
                     },
                     success: function (response) {
                         alert(response.message);
@@ -279,6 +280,7 @@
                     }
                 });
             });
+
         });
     </script>
 @endpush
