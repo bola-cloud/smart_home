@@ -97,9 +97,13 @@ class ShippingController extends Controller
             'name_ar' => 'nullable|string|max:255',
         ]);
     
+        // Fetch region_id from the city
+        $city = CityLite::findOrFail($request->city_id);
+    
         $district = DistrictLite::create([
             'district_id' => $this->generateUniqueId(), // Generate a unique ID
             'city_id' => $request->city_id,
+            'region_id' => $city->region_id, // Set region_id based on the city
             'name_en' => $request->name_en,
             'name_ar' => $request->name_ar ?? '',
         ]);
@@ -108,7 +112,7 @@ class ShippingController extends Controller
             'message' => 'District created successfully!',
             'district' => $district,
         ]);
-    }
+    }    
     
     private function generateUniqueId()
     {
