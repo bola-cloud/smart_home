@@ -16,30 +16,28 @@ class DeviceController extends Controller
      */
     public function index(Request $request)
     {
+        // Fetch filters and search query from the request
         $search = $request->input('search');
         $type = $request->input('device_type_id');
         $activation = $request->input('activation');
     
+        // Query for devices with filters and search
         $devices = Device::with('section', 'deviceType')
             ->when($search, function ($query) use ($search) {
-                $query->where('name', 'like', "%$search%");
+                return $query->where('name', 'like', "%$search%");
             })
             ->when($type, function ($query) use ($type) {
-                $query->where('device_type_id', $type);
+                return $query->where('device_type_id', $type);
             })
             ->when($activation !== null, function ($query) use ($activation) {
-                $query->where('activation', $activation);
+                return $query->where('activation', $activation);
             })
-            ->paginate(10);
+            ->paginate(10); // Paginate the results with 10 items per page
     
-        if ($request->ajax()) {
-            return view('admin.devices.partials.device_table', compact('devices'))->render();
-        }
-    
-        $deviceTypes = DeviceType::all();
+        $deviceTypes = DeviceType::all(); // Fetch all device types for the filter dropdown
     
         return view('admin.devices.index', compact('devices', 'deviceTypes'));
-    }       
+    }    
     /**
      * Show the form for creating a new device.
      */
