@@ -35,6 +35,7 @@ Route::group([
     Route::resource('projects', \App\Http\Controllers\Admin\ProjectController::class);
     Route::resource('sections', \App\Http\Controllers\Admin\SectionController::class);
     Route::resource('devices', \App\Http\Controllers\Admin\DeviceController::class);
+    Route::get('/device/channels/count', [\App\Http\Controllers\Admin\DeviceController::class, 'countChannels'])->name('device.channels.count');
     Route::get('/devices/{device}/add-components', [\App\Http\Controllers\Admin\ComponentController::class, 'addComponents'])->name('devices.add_components');
     Route::get('/devices/{device}/components', [\App\Http\Controllers\Admin\ComponentController::class, 'showComponents'])->name('devices.show_components');
     Route::post('/components/store-for-device/{device}', [\App\Http\Controllers\Admin\ComponentController::class, 'storeForDevice'])->name('components.store_for_device');  
