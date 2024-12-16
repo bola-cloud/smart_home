@@ -307,4 +307,5 @@ return [
     'shipping_fees' => 'Shipping Fees',
     'enter_shipping_fees' => 'Enter Shipping Fees',
     'shipping_updated_successfully' => 'Shipping fees updated successfully!',
+    'order_updated_successfully' => 'order updated successfully',
 ];

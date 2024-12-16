@@ -309,4 +309,5 @@ return [
     'shipping_fees' => 'رسوم الشحن',
     'enter_shipping_fees' => 'أدخل رسوم الشحن',
     'shipping_updated_successfully' => 'تم تحديث رسوم الشحن بنجاح!',
+    'order_updated_successfully' => 'تم تحديث الترتيب بنجاح',
 ];
