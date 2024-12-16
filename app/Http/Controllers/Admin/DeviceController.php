@@ -60,7 +60,7 @@ class DeviceController extends Controller
             // ]);
         }
     
-        return redirect()->route('devices.index')->with('success', 'Devices created successfully.');
+        return redirect()->route('devices.show_components',['id' => $device->id])->with('success', 'Devices created successfully.');
     }
 
     /**

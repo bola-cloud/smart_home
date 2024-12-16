@@ -99,7 +99,6 @@ class ConnectionController extends Controller
         ]);
     }
     
-    
     public function confirmActivation(Request $request)
     {
         $validator = Validator::make($request->all(), [
