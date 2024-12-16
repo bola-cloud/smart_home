@@ -144,6 +144,7 @@ class ShippingController extends Controller
             $city = CityLite::findOrFail($request->city_id);
             DistrictLite::create([
                 'district_id' => $this->generateUniqueId(), // Generate a unique ID
+                'region_id' => $city->region_id, // Set region_id based on the city
                 'city_id' => $city->city_id,
                 'name_en' => $city->name_en,
                 'name_ar' => $city->name_ar,
