@@ -184,7 +184,7 @@
                             $('#city').prop('disabled', false);
                             $('#addCityBtn').prop('disabled', false);
                             response.cities.forEach(function (city) {
-                                $('#city').append(`<option value="${city.city_id}">${city.name_en}(${city.name_en})</option>`);
+                                $('#city').append(`<option value="${city.city_id}">${city.name_en}(${city.name_ar})</option>`);
                             });
                         }
                     });
