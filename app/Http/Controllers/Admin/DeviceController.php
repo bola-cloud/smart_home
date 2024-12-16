@@ -30,20 +30,6 @@ class DeviceController extends Controller
         return view('admin.devices.create', compact('sections', 'deviceTypes'));
     }
 
-    public function countChannels(Request $request)
-    {
-        $request->validate([
-            'device_type_id' => 'required|exists:device_types,id',
-        ]);
-
-        $deviceType = DeviceType::findOrFail($request->device_type_id);
-        $channelsCount = $deviceType->channels()->count(); // Assuming 'channels' is a relationship
-
-        return response()->json([
-            'channels_count' => $channelsCount
-        ]);
-    }
-
     /**
      * Store a newly created device in storage.
      */
@@ -62,7 +48,7 @@ class DeviceController extends Controller
         for ($i = 1; $i <= $numberOfDevices; $i++) {
             // Create the device with incremented name
             $device = Device::create([
-                'name' => $request->input('name') . ' ' . $i, // Append the number to the name
+                'name' => $request->input('name'), // Append the number to the name
                 'device_type_id' => $request->input('device_type_id'),
                 'section_id' => $request->input('section_id'),
                 'activation' => $request->input('activation', false),
