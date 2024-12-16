@@ -37,31 +37,35 @@ class DeviceController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'device_type_id' => 'required',
-            // 'section_id' => 'nullable|exists:sections,id',
-            'number_of_devices' => 'required|integer|min:1', // Validate the number of devices
+            'device_type_id' => 'required|exists:device_types,id',
+            'number_of_devices' => 'required|integer|min:1',
         ]);
     
-        // Number of devices to create
-        $numberOfDevices = $request->input('number_of_devices');
+        // Fetch device type and its channels
+        $deviceType = DeviceType::findOrFail($request->input('device_type_id'));
+        $channels = $deviceType->channels; // Assuming 'channels' is the relationship on the DeviceType model
     
-        for ($i = 1; $i <= $numberOfDevices; $i++) {
-            // Create the device with incremented name
+        for ($i = 1; $i <= $request->input('number_of_devices'); $i++) {
+            // Create the device
             $device = Device::create([
-                'name' => $request->input('name') . ' ' . $i, // Append the number to the name
+                'name' => $request->input('name') . " #$i", // Append number to name
                 'device_type_id' => $request->input('device_type_id'),
                 'section_id' => $request->input('section_id'),
                 'activation' => $request->input('activation', false),
             ]);
     
-            // // Generate a unique serial number (based on the device ID)
-            // $device->update([
-            //     'serial' => $device->id . '-' . rand(1000000, 9999999), // Use device ID + random number for serial
-            // ]);
+            // Create components based on channels
+            foreach ($channels as $channel) {
+                Component::create([
+                    'device_id' => $device->id,
+                    'name' => $channel->name, // Use the channel's name for the component
+                    'channel_id' => $channel->id, // Reference the channel
+                ]);
+            }
         }
     
-        return redirect()->route('devices.index')->with('success', 'Devices created successfully.');
-    }
+        return redirect()->route('devices.index')->with('success', 'Devices and components created successfully.');
+    }    
 
     /**
      * Show the form for editing the specified device.
