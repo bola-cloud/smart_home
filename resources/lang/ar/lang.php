@@ -302,4 +302,8 @@ return [
     'save_changes' => 'حفظ التغييرات',
     'select_region_first' => 'يرجى اختيار المنطقة أولاً.',
     'select_city_first' => 'يرجى اختيار المدينة أولاً.',
+    'shipping_value' => 'قيمة الشحن',
+    'no_shipping' => 'بدون شحن',
+    'with_shipping' => 'مع شحن',
+    'update_shipping' => 'تحديث الشحن',
 ];

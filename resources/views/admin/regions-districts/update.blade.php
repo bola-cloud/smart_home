@@ -67,6 +67,21 @@
                 <button class="btn btn-success mt-4" id="addDistrictBtn" disabled data-bs-toggle="modal" data-bs-target="#createDistrictModal">{{ __('lang.add_district') }}</button>
             </div>
         </div>
+
+        <!-- Update Shipping Form -->
+        <h3>{{ __('lang.update_shipping') }}</h3>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="shipping_value">{{ __('lang.shipping_value') }}</label>
+                <select id="shipping_value" name="shipping" class="form-control select2">
+                    <option value="0">{{ __('lang.no_shipping') }}</option>
+                    <option value="1">{{ __('lang.with_shipping') }}</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <button class="btn btn-primary mt-4" id="updateShippingBtn">{{ __('lang.update_shipping') }}</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -280,7 +295,36 @@
                     }
                 });
             });
+            $('#updateShippingBtn').on('click', function (e) {
+                e.preventDefault();
 
+                let cityId = $('#city').val();
+                let districtId = $('#district').val();
+                let shippingValue = $('#shipping_value').val();
+
+                if (!cityId) {
+                    alert('{{ __("lang.select_city_first") }}');
+                    return;
+                }
+
+                $.ajax({
+                    url: "{{ route('districts.update.shipping') }}", // New route for updating shipping
+                    type: "POST",
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        city_id: cityId,
+                        district_id: districtId,
+                        shipping: shippingValue,
+                    },
+                    success: function (response) {
+                        alert(response.message);
+                        location.reload(); // Refresh the view to show updated changes
+                    },
+                    error: function (xhr) {
+                        alert('Error: ' + xhr.responseText);
+                    }
+                });
+            });
         });
     </script>
 @endpush

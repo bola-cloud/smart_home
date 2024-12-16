@@ -300,4 +300,8 @@ return [
     'save_changes' => 'Save Changes',
     'select_region_first' => 'Please select a region first.',
     'select_city_first' => 'Please select a city first.',
+    'shipping_value' => 'Shipping Value',
+    'no_shipping' => 'No Shipping',
+    'with_shipping' => 'With Shipping',
+    'update_shipping' => 'Update Shipping',
 ];
