@@ -143,6 +143,7 @@ class ShippingController extends Controller
             // If no district exists, create one with the city name
             $city = CityLite::findOrFail($request->city_id);
             DistrictLite::create([
+                'district_id' => $this->generateUniqueId(), // Generate a unique ID
                 'city_id' => $city->city_id,
                 'name_en' => $city->name_en,
                 'name_ar' => $city->name_ar,
