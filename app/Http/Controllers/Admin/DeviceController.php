@@ -14,12 +14,30 @@ class DeviceController extends Controller
     /**
      * Display a listing of the devices.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $devices = Device::with('section')->get(); // Get all devices with their related sections
-        return view('admin.devices.index', compact('devices'));
-    }
-
+        // Fetch filters and search query from the request
+        $search = $request->input('search');
+        $type = $request->input('device_type_id');
+        $activation = $request->input('activation');
+    
+        // Query for devices with filters and search
+        $devices = Device::with('section', 'deviceType')
+            ->when($search, function ($query) use ($search) {
+                return $query->where('name', 'like', "%$search%");
+            })
+            ->when($type, function ($query) use ($type) {
+                return $query->where('device_type_id', $type);
+            })
+            ->when($activation !== null, function ($query) use ($activation) {
+                return $query->where('activation', $activation);
+            })
+            ->paginate(10); // Paginate the results with 10 items per page
+    
+        $deviceTypes = DeviceType::all(); // Fetch all device types for the filter dropdown
+    
+        return view('admin.devices.index', compact('devices', 'deviceTypes'));
+    }    
     /**
      * Show the form for creating a new device.
      */
