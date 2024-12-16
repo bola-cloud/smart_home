@@ -68,6 +68,7 @@ class ShippingController extends Controller
      */
     public function storeCity(Request $request)
     {
+        dd($request->all());
         $request->validate([
             'region_id' => 'required|exists:regions_lite,region_id',
             'name_en' => 'required|string|max:255', // Validate name_en (English name)

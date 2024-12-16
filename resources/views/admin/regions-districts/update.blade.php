@@ -116,7 +116,7 @@
                         <input type="text" class="form-control" name="name_ar">
                     </div>
                     <button type="submit" class="btn btn-primary">{{ __('lang.save_changes') }}</button>
-                </form>                
+                </form>                            
             </div>
         </div>
     </div>
