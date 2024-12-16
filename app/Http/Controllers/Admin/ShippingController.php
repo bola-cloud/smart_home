@@ -125,37 +125,32 @@ class ShippingController extends Controller
         // Example of generating a unique ID
         return DistrictLite::max('district_id') + 1;
     }    
-    
-    public function updateDistrictShipping(Request $request)
+
+    public function updateShipping(Request $request)
     {
         $request->validate([
             'city_id' => 'required|exists:cities_lite,city_id',
-            'shipping' => 'required|in:0,1',
+            'district_id' => 'nullable|exists:districts_lite,district_id',
+            'shipping_fees' => 'required|integer|min:0',
         ]);
-    
-        $city = CityLite::findOrFail($request->city_id);
-    
-        // If district is not selected, check for districts
-        if (!$request->filled('district_id')) {
-            $district = DistrictLite::where('city_id', $city->city_id)->first();
-    
-            // If no district exists, create one with the city's name
-            if (!$district) {
-                $district = DistrictLite::create([
-                    'district_id' => DistrictLite::max('district_id') + 1,
-                    'city_id' => $city->city_id,
-                    'region_id' => $city->region_id,
-                    'name_en' => $city->name_en,
-                    'name_ar' => $city->name_ar,
-                    'shipping' => $request->shipping,
-                ]);
-            }
-        } else {
+
+        // Update shipping fees for a district or create a district with city name
+        if ($request->district_id) {
             $district = DistrictLite::findOrFail($request->district_id);
-            $district->update(['shipping' => $request->shipping]);
+            $district->shipping_fees = $request->shipping_fees;
+            $district->save();
+        } else {
+            // If no district exists, create one with the city name
+            $city = CityLite::findOrFail($request->city_id);
+            DistrictLite::create([
+                'city_id' => $city->city_id,
+                'name_en' => $city->name_en,
+                'name_ar' => $city->name_ar,
+                'shipping_fees' => $request->shipping_fees,
+            ]);
         }
-    
-        return response()->json(['message' => 'Shipping updated successfully!']);
+
+        return response()->json(['message' => 'Shipping fees updated successfully!']);
     }
-    
+
 }

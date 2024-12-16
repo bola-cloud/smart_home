@@ -59,6 +59,6 @@ Route::group([
     Route::post('/store-region', [\App\Http\Controllers\Admin\ShippingController::class, 'storeRegion'])->name('regions.store');
     Route::post('/store-city', [\App\Http\Controllers\Admin\ShippingController::class, 'storeCity'])->name('cities.store');
     Route::post('/store-district', [\App\Http\Controllers\Admin\ShippingController::class, 'storeDistrict'])->name('districts.store');
-    Route::post('/districts/update-shipping', [\App\Http\Controllers\Admin\ShippingController::class, 'updateDistrictShipping'])->name('districts.update.shipping');
+    Route::post('/districts/update-shipping', [\App\Http\Controllers\Admin\ShippingController::class, 'updateShipping'])->name('districts.update.shipping');
 
 });
