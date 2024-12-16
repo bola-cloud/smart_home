@@ -60,6 +60,7 @@ class DeviceController extends Controller
                 Component::create([
                     'device_id' => $device->id,
                     'name' => $channel->name, // Use the channel's name for the component
+                    'order' => $channel->order, // Use the channel's name for the component
                     'channel_id' => $channel->id, // Reference the channel
                 ]);
             }
