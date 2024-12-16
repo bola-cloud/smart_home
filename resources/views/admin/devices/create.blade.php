@@ -42,7 +42,7 @@
             </select>
         </div>
 
-        <div class="form-group">
+        {{-- <div class="form-group">
             <label for="section_id">{{ __('lang.assign_section') }}</label>
             <select name="section_id" class="form-control select2" style="width: 100%;" {{ app()->getLocale() == 'ar' ? 'dir=rtl' : '' }}>
                 <option value="">{{ __('lang.select_section') }}</option>
@@ -50,7 +50,7 @@
                     <option value="{{ $section->id }}">{{ $section->name }}</option>
                 @endforeach
             </select>
-        </div>
+        </div> --}}
 
         <button type="submit" class="btn btn-primary">{{ __('lang.submit') }}</button>
     </form>

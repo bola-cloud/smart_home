@@ -37,7 +37,7 @@ class DeviceController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'device_type_id' => 'required',
-            'section_id' => 'nullable|exists:sections,id',
+            // 'section_id' => 'nullable|exists:sections,id',
             'number_of_devices' => 'required|integer|min:1', // Validate the number of devices
         ]);
     
