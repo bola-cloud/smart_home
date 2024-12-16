@@ -16,36 +16,44 @@ class DeviceController extends Controller
      */
     public function index(Request $request)
     {
-        // Fetch device types for filtering
-        $deviceTypes = DeviceType::all();
-    
-        // Start the query for devices
+        // Fetch query parameters
+        $search = $request->input('search');
+        $deviceTypeId = $request->input('device_type_id');
+        $activation = $request->input('activation');
+
+        // Start a query for devices with related models
         $query = Device::with(['deviceType', 'section']);
-    
+
         // Apply search filter
-        if ($request->has('search') && $request->search) {
-            $query->where('name', 'LIKE', '%' . $request->search . '%');
+        if (!empty($search)) {
+            $query->where('name', 'LIKE', '%' . $search . '%');
         }
-    
+
         // Apply device type filter
-        if ($request->has('device_type_id') && $request->device_type_id) {
-            $query->where('device_type_id', $request->device_type_id);
+        if (!empty($deviceTypeId)) {
+            $query->where('device_type_id', $deviceTypeId);
         }
-    
+
         // Apply activation filter
-        if ($request->has('activation') && $request->activation !== null) {
-            $query->where('activation', $request->activation);
+        if (isset($activation)) {
+            $query->where('activation', $activation);
         }
-    
+
         // Paginate the results
         $devices = $query->paginate(10);
-    
-        // Check if the request is AJAX (for dynamic filtering)
+
+        // Fetch device types for filter dropdown
+        $deviceTypes = DeviceType::all();
+
+        // Return the view (for both initial load and AJAX)
         if ($request->ajax()) {
-            return view('admin.devices.partials.table', compact('devices'))->render();
+            return response()->json([
+                'devices' => $devices->items(), // Return only the device data for the frontend
+                'pagination' => (string) $devices->links('pagination::bootstrap-4'),
+            ]);
         }
-    
-        // Return the full view
+
+        // Render the main view
         return view('admin.devices.index', compact('devices', 'deviceTypes'));
     }
     

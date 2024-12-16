@@ -7,7 +7,6 @@
             <h1>{{ __('lang.devices') }}</h1>
             <a href="{{ route('devices.create') }}" class="btn btn-primary mb-3">{{ __('lang.create_device') }}</a>
         </div>
-
         <!-- Filters and Search -->
         <div class="row mb-3">
             <!-- Search by Name -->
@@ -48,7 +47,7 @@
                     </tr>
                 </thead>
                 <tbody id="deviceTableBody">
-                    @forelse($devices as $device)
+                    @foreach($devices as $device)
                         <tr>
                             <td>{{ $device->name }}</td>
                             <td>{{ $device->deviceType ? $device->deviceType->name : '--' }}</td>
@@ -63,20 +62,15 @@
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger">{{ __('lang.delete') }}</button>
                                 </form>
-                                <a href="{{ route('devices.show_components', $device->id) }}" class="btn btn-info">
-                                    {{ __('lang.view_components') }}
-                                </a>
+                                <a href="{{ route('devices.show_components', $device->id) }}" class="btn btn-info">{{ __('lang.view_components') }}</a>
                             </td>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="text-center">{{ __('lang.no_devices_found') }}</td>
-                        </tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
-            <div class="d-flex justify-content-center mt-3" id="paginationLinks">
-                {{ $devices->withQueryString()->links('pagination::bootstrap-4') }}
+            <!-- Pagination -->
+            <div id="pagination" class="d-flex justify-content-center mt-3">
+                {{ $devices->links('pagination::bootstrap-4') }}
             </div>
         </div>
     </div>
@@ -90,9 +84,9 @@
             $('.select2').select2();
 
             // Function to fetch and update the table
-            function fetchDevices(page = 1) {
+            function fetchDevices() {
                 let search = $('#search').val();
-                let type = $('#filterType').val();
+                let deviceTypeId = $('#filterType').val();
                 let activation = $('#filterActivation').val();
 
                 $.ajax({
@@ -100,13 +94,36 @@
                     type: "GET",
                     data: {
                         search: search,
-                        device_type_id: type,
-                        activation: activation,
-                        page: page
+                        device_type_id: deviceTypeId,
+                        activation: activation
                     },
                     success: function (response) {
-                        $('#deviceTableBody').html($(response).find('#deviceTableBody').html());
-                        $('#paginationLinks').html($(response).find('#paginationLinks').html());
+                        // Update the table body
+                        let tbody = '';
+                        response.devices.forEach(device => {
+                            tbody += `
+                                <tr>
+                                    <td>${device.name}</td>
+                                    <td>${device.device_type?.name ?? '--'}</td>
+                                    <td>${device.serial}</td>
+                                    <td>${device.activation ? '{{ __('lang.active') }}' : '{{ __('lang.inactive') }}'}</td>
+                                    <td>${device.updated_at ?? '{{ __('lang.not_available') }}'}</td>
+                                    <td>${device.section?.name ?? '{{ __('lang.not_available') }}'}</td>
+                                    <td>
+                                        <a href="/devices/${device.id}/edit" class="btn btn-warning">{{ __('lang.edit') }}</a>
+                                        <form action="/devices/${device.id}" method="POST" style="display:inline-block;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger">{{ __('lang.delete') }}</button>
+                                        </form>
+                                        <a href="/devices/${device.id}/components" class="btn btn-info">{{ __('lang.view_components') }}</a>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+
+                        $('#deviceTableBody').html(tbody);
+                        $('#pagination').html(response.pagination);
                     },
                     error: function (xhr) {
                         alert('Error: ' + xhr.responseText);
@@ -117,13 +134,6 @@
             // Real-time search and filter triggers
             $('#search, #filterType, #filterActivation').on('input change', function () {
                 fetchDevices();
-            });
-
-            // Handle pagination click
-            $(document).on('click', '#paginationLinks a', function (e) {
-                e.preventDefault();
-                let page = $(this).attr('href').split('page=')[1];
-                fetchDevices(page);
             });
         });
     </script>
