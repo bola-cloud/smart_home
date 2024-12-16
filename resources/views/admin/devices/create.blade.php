@@ -28,11 +28,6 @@
         </div>
 
         <div class="form-group">
-            <label for="number_of_devices">{{ __('lang.number_of_devices') }}</label>
-            <input type="number" name="number_of_devices" class="form-control" value="{{ old('number_of_devices', 1) }}" min="1" required>
-        </div>
-
-        <div class="form-group">
             <label for="device_type_id">{{ __('lang.device_type') }}</label>
             <select name="device_type_id" class="form-control select2" style="width: 100%;" {{ app()->getLocale() == 'ar' ? 'dir=rtl' : '' }} required>
                 <option value="">{{ __('lang.select_device_type') }}</option>
@@ -40,6 +35,11 @@
                     <option value="{{ $deviceType->id }}">{{ $deviceType->name }}</option>
                 @endforeach
             </select>
+        </div>
+
+        <div class="form-group">
+            <label for="number_of_devices">{{ __('lang.number_of_devices') }}</label>
+            <input type="number" name="number_of_devices" class="form-control" value="{{ old('number_of_devices', 1) }}" min="1" required>
         </div>
 
         {{-- <div class="form-group">
