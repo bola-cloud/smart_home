@@ -70,20 +70,26 @@ class ShippingController extends Controller
     {
         $request->validate([
             'region_id' => 'required|exists:regions_lite,region_id',
-            'name_en' => 'required|string|max:255', // Validate name_en (English name)
-            'name_ar' => 'nullable|string|max:255', // Optional Arabic name
+            'name_en' => 'required|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
         ]);
     
         $city = CityLite::create([
+            'city_id' => $this->generateUniqueCityId(), // Generate unique city_id
             'region_id' => $request->region_id,
             'name_en' => $request->name_en,
-            'name_ar' => $request->name_ar ?? '', // Default to empty string if not provided
+            'name_ar' => $request->name_ar ?? '',
         ]);
     
         return response()->json([
             'message' => 'City created successfully!',
             'city' => $city,
         ]);
+    }
+    
+    private function generateUniqueCityId()
+    {
+        return CityLite::max('city_id') + 1;
     }    
 
     /**
