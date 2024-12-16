@@ -26,7 +26,7 @@ class DeviceController extends Controller
     {
         $sections = Section::all(); // Get all sections
         $deviceTypes = DeviceType::with('channels')->get(); // Get all device types
-        dd($deviceTypes[15]);
+        dd($deviceTypes[15]->channels()->count());
         return view('admin.devices.create', compact('sections', 'deviceTypes'));
     }
 
