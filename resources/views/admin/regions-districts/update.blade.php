@@ -109,14 +109,14 @@
                     @csrf
                     <div class="mb-3">
                         <label for="name_en">{{ __('lang.name_en') }}</label>
-                        <input type="text" class="form-control" name="name_en" required>
+                        <input type="text" class="form-control" name="name_en" id="city_name_en" required>
                     </div>
                     <div class="mb-3">
                         <label for="name_ar">{{ __('lang.name_ar') }}</label>
-                        <input type="text" class="form-control" name="name_ar">
+                        <input type="text" class="form-control" name="name_ar" id="city_name_ar">
                     </div>
                     <button type="submit" class="btn btn-primary">{{ __('lang.save_changes') }}</button>
-                </form>                            
+                </form>                                        
             </div>
         </div>
     </div>
@@ -134,14 +134,14 @@
                     @csrf
                     <div class="mb-3">
                         <label for="name_en">{{ __('lang.name_en') }}</label>
-                        <input type="text" class="form-control" name="name_en" required>
+                        <input type="text" class="form-control" name="name_en" id="district_name_en" required>
                     </div>
                     <div class="mb-3">
                         <label for="name_ar">{{ __('lang.name_ar') }}</label>
-                        <input type="text" class="form-control" name="name_ar">
+                        <input type="text" class="form-control" name="name_ar" id="district_name_ar">
                     </div>
                     <button type="submit" class="btn btn-primary">{{ __('lang.save_changes') }}</button>
-                </form>                
+                </form>                         
             </div>
         </div>
     </div>
