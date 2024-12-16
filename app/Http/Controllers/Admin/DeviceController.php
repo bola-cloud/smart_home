@@ -48,7 +48,7 @@ class DeviceController extends Controller
         for ($i = 1; $i <= $numberOfDevices; $i++) {
             // Create the device with incremented name
             $device = Device::create([
-                'name' => $request->input('name'), // Append the number to the name
+                'name' => $request->input('name') . ' ' . $i, // Append the number to the name
                 'device_type_id' => $request->input('device_type_id'),
                 'section_id' => $request->input('section_id'),
                 'activation' => $request->input('activation', false),
