@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Device;
 use App\Models\DeviceType;
 use App\Models\Section;
+use App\Models\Component;
 
 class DeviceController extends Controller
 {
