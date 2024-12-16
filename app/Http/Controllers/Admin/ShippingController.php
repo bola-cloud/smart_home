@@ -77,7 +77,7 @@ class ShippingController extends Controller
         $city = CityLite::create([
             'region_id' => $request->region_id,
             'name_en' => $request->name_en,
-            'name_ar' => $request->name_ar ?? '', // Default to empty string if not provided
+            'name_ar' => $request->name_ar, // Default to empty string if not provided
         ]);
     
         return response()->json([
@@ -100,7 +100,7 @@ class ShippingController extends Controller
         $district = DistrictLite::create([
             'city_id' => $request->city_id,
             'name_en' => $request->name_en,
-            'name_ar' => $request->name_ar ?? '', // Default to empty string if not provided
+            'name_ar' => $request->name_ar, // Default to empty string if not provided
         ]);
     
         return response()->json([
