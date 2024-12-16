@@ -204,7 +204,7 @@
                             $('#district').prop('disabled', false);
                             $('#addDistrictBtn').prop('disabled', false);
                             response.districts.forEach(function (district) {
-                                $('#district').append(`<option value="${district.district_id}">${district.name_en}</option>`);
+                                $('#district').append(`<option value="${district.district_id}">${district.name_en} (${district.name_ar})</option>`);
                             });
                         }
                     });
