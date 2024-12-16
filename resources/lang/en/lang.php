@@ -308,4 +308,7 @@ return [
     'enter_shipping_fees' => 'Enter Shipping Fees',
     'shipping_updated_successfully' => 'Shipping fees updated successfully!',
     'order_updated_successfully' => 'order updated successfully',
+    'search_name' => 'Search by Name',
+    'filter_by_type' => 'Filter by Device Type',
+    'filter_by_activation' => 'Filter by Activation',
 ];
