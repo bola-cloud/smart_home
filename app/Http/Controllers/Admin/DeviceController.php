@@ -16,28 +16,39 @@ class DeviceController extends Controller
      */
     public function index(Request $request)
     {
-        // Fetch filters and search query from the request
-        $search = $request->input('search');
-        $type = $request->input('device_type_id');
-        $activation = $request->input('activation');
+        // Fetch device types for filtering
+        $deviceTypes = DeviceType::all();
     
-        // Query for devices with filters and search
-        $devices = Device::with('section', 'deviceType')
-            ->when($search, function ($query) use ($search) {
-                return $query->where('name', 'like', "%$search%");
-            })
-            ->when($type, function ($query) use ($type) {
-                return $query->where('device_type_id', $type);
-            })
-            ->when($activation !== null, function ($query) use ($activation) {
-                return $query->where('activation', $activation);
-            })
-            ->paginate(10); // Paginate the results with 10 items per page
+        // Start the query for devices
+        $query = Device::with(['deviceType', 'section']);
     
-        $deviceTypes = DeviceType::all(); // Fetch all device types for the filter dropdown
+        // Apply search filter
+        if ($request->has('search') && $request->search) {
+            $query->where('name', 'LIKE', '%' . $request->search . '%');
+        }
     
+        // Apply device type filter
+        if ($request->has('device_type_id') && $request->device_type_id) {
+            $query->where('device_type_id', $request->device_type_id);
+        }
+    
+        // Apply activation filter
+        if ($request->has('activation') && $request->activation !== null) {
+            $query->where('activation', $request->activation);
+        }
+    
+        // Paginate the results
+        $devices = $query->paginate(10);
+    
+        // Check if the request is AJAX (for dynamic filtering)
+        if ($request->ajax()) {
+            return view('admin.devices.partials.table', compact('devices'))->render();
+        }
+    
+        // Return the full view
         return view('admin.devices.index', compact('devices', 'deviceTypes'));
-    }    
+    }
+    
     /**
      * Show the form for creating a new device.
      */
