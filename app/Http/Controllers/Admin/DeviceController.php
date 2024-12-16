@@ -40,7 +40,7 @@ class DeviceController extends Controller
         }
 
         // Paginate the results
-        $devices = $query->paginate(10);
+        $devices = $query->paginate(30);
 
         // Fetch device types for filter dropdown
         $deviceTypes = DeviceType::all();
