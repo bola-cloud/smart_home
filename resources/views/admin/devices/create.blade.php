@@ -39,7 +39,7 @@
 
         <div class="form-group">
             <label for="number_of_devices">{{ __('lang.number_of_devices') }}</label>
-            <input type="number" name="number_of_devices" class="form-control" value="{{$deviceType->channels()->count() }}" min="1" required>
+            <input type="number" name="number_of_devices" class="form-control" value="{{ old('number_of_devices', 1) }}" min="1" required>
         </div>
 
         {{-- <div class="form-group">
