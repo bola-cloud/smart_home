@@ -89,7 +89,7 @@ class ConnectionController extends Controller
                 'serial' => $device->serial,
                 'section_id' => (int) $device->section_id, // Explicitly cast to integer
                 'project_id' => optional($device->section)->project->id ?? null,
-                'type' => $device->type,
+                'type' => $device->deviceType->name,
                 'activation' => (int) $device->activation, // Explicitly cast to integer
                 'last_updated' => $device->last_updated,
                 'ip' => $device->ip,
