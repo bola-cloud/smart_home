@@ -62,10 +62,10 @@
                                                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
                                                     <strong>{{ $device->name }}</strong>
                                                     <div>
-                                                        <a href="{{ route('devices.edit', $device->id) }}" class="btn btn-warning btn-sm">
+                                                        <a href="{{ route('devices.edit', $device) }}" class="btn btn-warning btn-sm">
                                                             <i class="fas fa-edit"></i>
                                                         </a>
-                                                        <form action="{{ route('devices.destroy', $device->id) }}" method="POST" style="display:inline-block;">
+                                                        <form action="{{ route('devices.destroy', $device) }}" method="POST" style="display:inline-block;">
                                                             @csrf
                                                             @method('DELETE')
                                                             <button type="submit" class="btn btn-danger btn-sm">
@@ -113,21 +113,16 @@
 
 @push('css')
 <style>
-    /* Ensure the entire page is scrollable */
-    html, body {
-        height: 100%;
-        overflow-y: auto;
+    /* Limit the height of collapsible content and enable scrolling */
+    .card-body {
+        max-height: 400px; /* Adjust as per your layout */
+        overflow-y: auto; /* Enable vertical scrolling */
     }
 
-    /* Prevent unnecessary horizontal scrolling */
+    /* Prevent horizontal expansion */
     .container-fluid {
         max-width: 100%;
-        overflow-x: hidden;
-    }
-
-    /* Adjust collapsible padding */
-    .card-body {
-        padding: 1rem;
+        overflow-x: hidden; /* Prevent horizontal scrollbars */
     }
 </style>
 @endpush
