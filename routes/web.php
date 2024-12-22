@@ -32,6 +32,7 @@ Route::group([
 ], function () {
     Route::get('/', [\App\Http\Controllers\Admin\Dashboard::class, 'index'])->name('admin.dashboard');
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+    Route::get('/admin/users/{user}/details', [\App\Http\Controllers\Admin\UserController::class, 'showDetails'])->name('users.details');
     Route::resource('projects', \App\Http\Controllers\Admin\ProjectController::class);
     Route::resource('sections', \App\Http\Controllers\Admin\SectionController::class);
     Route::resource('devices', \App\Http\Controllers\Admin\DeviceController::class);

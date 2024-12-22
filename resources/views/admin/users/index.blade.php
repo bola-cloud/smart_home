@@ -27,12 +27,13 @@
                         <td>{{ ucfirst($user->category) }}</td>
                         <td>
                             <a href="{{ route('users.edit', $user) }}" class="btn btn-warning">@lang('lang.edit')</a>
+                            <a href="{{ route('users.details', $user) }}" class="btn btn-info">@lang('lang.show_details')</a>
                             <form action="{{ route('users.destroy', $user) }}" method="POST" style="display:inline-block;">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-danger">@lang('lang.delete')</button>
                             </form>
-                        </td>
+                        </td>                        
                     </tr>
                 @endforeach
             </tbody>

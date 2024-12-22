@@ -59,6 +59,13 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }
     
+    public function showDetails(User $user)
+    {
+        // Fetch user's projects with sections and components
+        $projects = $user->projects()->with('sections.devices.components')->get();
+
+        return view('admin.users.details', compact('user', 'projects'));
+    }
 
     public function destroy(User $user)
     {
