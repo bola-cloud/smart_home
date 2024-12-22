@@ -113,16 +113,21 @@
 
 @push('css')
 <style>
-    /* Limit the height of collapsible content and enable scrolling */
-    .card-body {
-        max-height: 400px; /* Adjust as per your layout */
-        overflow-y: auto; /* Enable vertical scrolling */
+    /* Ensure page-wide scrolling works smoothly */
+    body {
+        overflow-y: auto; /* Allow vertical scrolling */
+        height: auto;
     }
 
-    /* Prevent horizontal expansion */
+    /* Prevent unnecessary horizontal scroll */
     .container-fluid {
         max-width: 100%;
-        overflow-x: hidden; /* Prevent horizontal scrollbars */
+        overflow-x: hidden;
+    }
+
+    /* Improve readability for collapsible elements */
+    .card-body {
+        padding: 1rem;
     }
 </style>
 @endpush
