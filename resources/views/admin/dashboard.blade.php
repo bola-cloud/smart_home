@@ -25,42 +25,42 @@
         <div class="row g-4">
             <!-- Total Devices -->
             <div class="col-md-4">
-                <div class="card bg-light shadow-sm text-center p-4">
+                <div class="card bg-primary shadow-sm text-center p-4 text-white">
                     <h5 class="fw-bold">Total Devices</h5>
-                    <h2 class="text-primary fw-bold">{{ $totalDevices }}</h2>
+                    <h2 class="fw-bold">{{ $totalDevices }}</h2>
                     <p>Active: {{ $activeDevices }} | Inactive: {{ $inactiveDevices }}</p>
                 </div>
             </div>
 
             <!-- Purchased Products -->
             <div class="col-md-4">
-                <div class="card bg-light shadow-sm text-center p-4">
+                <div class="card bg-success shadow-sm text-center p-4 text-white">
                     <h5 class="fw-bold">Purchased Products</h5>
-                    <h2 class="text-success fw-bold">{{ $purchasedProducts }}</h2>
+                    <h2 class="fw-bold">{{ $purchasedProducts }}</h2>
                 </div>
             </div>
 
             <!-- Total Income -->
             <div class="col-md-4">
-                <div class="card bg-light shadow-sm text-center p-4">
+                <div class="card bg-danger shadow-sm text-center p-4 text-white">
                     <h5 class="fw-bold">Total Income</h5>
-                    <h2 class="text-danger fw-bold">${{ number_format($totalIncome, 2) }}</h2>
+                    <h2 class="fw-bold">${{ number_format($totalIncome, 2) }}</h2>
                 </div>
             </div>
 
             <!-- Users (Category: User) -->
             <div class="col-md-4">
-                <div class="card bg-light shadow-sm text-center p-4">
+                <div class="card bg-info shadow-sm text-center p-4 text-white">
                     <h5 class="fw-bold">Users (Category: User)</h5>
-                    <h2 class="text-info fw-bold">{{ $usersCount }}</h2>
+                    <h2 class="fw-bold">{{ $usersCount }}</h2>
                 </div>
             </div>
 
             <!-- Device Types -->
             <div class="col-md-4">
-                <div class="card bg-light shadow-sm text-center p-4">
+                <div class="card bg-warning shadow-sm text-center p-4 text-dark">
                     <h5 class="fw-bold">Device Types</h5>
-                    <h2 class="text-warning fw-bold">{{ $deviceTypesCount }}</h2>
+                    <h2 class="fw-bold">{{ $deviceTypesCount }}</h2>
                 </div>
             </div>
         </div>
