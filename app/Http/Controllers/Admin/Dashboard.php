@@ -29,8 +29,8 @@ class Dashboard extends Controller
 
         // Statistics
         $totalDevices = $devicesQuery->count();
-        $activeDevices = $devicesQuery->where('activation', 1)->count();
-        $inactiveDevices = $devicesQuery->where('activation', 0)->count();
+        $activeDevices = $devicesQuery->where('activation', true)->count();
+        $inactiveDevices = $devicesQuery->where('activation', false)->count();
 
         $purchasedProducts = $purchasedProductsQuery->count();
         $totalIncome = $purchasedProductsQuery->sum('price');
