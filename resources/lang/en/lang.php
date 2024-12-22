@@ -335,4 +335,6 @@ return [
     'sections' => 'Sections',
     'devices' => 'Devices',
     'components' => 'Components',
+    'connection_devices' => 'Connection Devices',
+    'home_devices' => 'Home Devices',
 ];

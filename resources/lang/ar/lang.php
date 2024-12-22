@@ -337,4 +337,6 @@ return [
     'sections' => 'الأقسام',
     'devices' => 'الأجهزة',
     'components' => 'المكونات',
+    'connection_devices' => 'أجهزة الاتصال',
+    'home_devices' => 'الأجهزة المنزلية',
 ];
