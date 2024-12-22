@@ -14,6 +14,10 @@ class Device extends Model
     protected $fillable = ['section_id', 'name', 'activation', 'last_updated',
     'device_type_id','serial','user_id','cancelled','ip','mac_address'];
 
+    protected $casts = [
+        'activation' => 'boolean',
+    ];
+
     public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);
