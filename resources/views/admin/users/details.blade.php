@@ -112,8 +112,12 @@
 @endsection
 
 @push('js')
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMN3W5ZZe28nHTzHeE7ubfdkUULV20jV0V67hfg" crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76Aqj6E5QN3mq8E5rHklzM4zcOynPp2VX87z7VuMGFQRS5oWB6yFjmJQgiqgtp" crossorigin="anonymous"></script>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7Yg1zMO2EYzQs7SMmIaPpkF/VbA4GDpHAt" crossorigin="anonymous">
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQNNtgsOI4h6uwJ3w84dNH6sZMAePQ3Z5mC1o8F3L9fUklm5G95LGFBrC" crossorigin="anonymous">
+
+<!-- Bootstrap JS Bundle (with Popper.js) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-5CmzC02R9TyfVgAWiP2U66WLCg6l3TmaT9EfU+1hSljf7LOVW3tvk9DAmH+9354d" crossorigin="anonymous"></script>
+<!-- FontAwesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" integrity="sha512-dky/jy1vlzpXOuZVo+FcJm5VjJbBLkqirFc8W9MsUOFgM9bThR/AdfDiNKNqcT6H4gRfyxOXVMBPL/IhO8mijQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 @endpush
