@@ -38,6 +38,7 @@ Route::group([
     Route::resource('devices', \App\Http\Controllers\Admin\DeviceController::class);
     Route::get('/devices/{device}/add-components', [\App\Http\Controllers\Admin\ComponentController::class, 'addComponents'])->name('devices.add_components');
     Route::get('/devices/{device}/components', [\App\Http\Controllers\Admin\ComponentController::class, 'showComponents'])->name('devices.show_components');
+    Route::resource('/components', [\App\Http\Controllers\Admin\ComponentController::class]);
     Route::post('/components/store-for-device/{device}', [\App\Http\Controllers\Admin\ComponentController::class, 'storeForDevice'])->name('components.store_for_device');  
     Route::post('/devices/{device}/update-order', [\App\Http\Controllers\Admin\ComponentController::class, 'updateOrderAndEdit'])->name('components.update_order_and_edit');
     Route::resource('components', \App\Http\Controllers\Admin\DeviceController::class);
