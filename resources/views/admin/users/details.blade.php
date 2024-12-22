@@ -111,6 +111,22 @@
 </div>
 @endsection
 
+@push('css')
+<style>
+    /* Limit the height of collapsible content and enable scrolling */
+    .card-body {
+        max-height: 400px; /* Adjust as per your layout */
+        overflow-y: auto; /* Enable vertical scrolling */
+    }
+
+    /* Prevent horizontal expansion */
+    .container-fluid {
+        max-width: 100%;
+        overflow-x: hidden; /* Prevent horizontal scrollbars */
+    }
+</style>
+@endpush
+
 @push('js')
 <!-- Bootstrap CSS -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
