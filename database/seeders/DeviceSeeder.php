@@ -21,7 +21,7 @@ class DeviceSeeder extends Seeder
                 'name' => "Device $i", // Unique name for each device
                 'activation' => (bool)rand(0, 1), // Random true/false activation
                 'last_updated' => null, // Nullable field
-                'device_type_id' => 18, // Default value
+                'device_type_id' => 16, // Default value
                 'serial' => null, // Nullable field
                 'user_id' => null, // Nullable field
                 'cancelled' => false, // Default to not cancelled
