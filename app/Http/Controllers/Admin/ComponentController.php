@@ -62,7 +62,7 @@ class ComponentController extends Controller
 
     public function addComponents($deviceId)
     {
-        $device = Device::with('deviceType.channels')->findOrFail($deviceId);
+        $device = Device::with('deviceType.channels','components')->findOrFail($deviceId);
         return view('admin.components.create_for_device', compact('device'));
     }
 
