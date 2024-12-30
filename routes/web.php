@@ -41,7 +41,7 @@ Route::group([
     Route::resource('/components', \App\Http\Controllers\Admin\ComponentController::class);
     Route::post('/components/store-for-device/{device}', [\App\Http\Controllers\Admin\ComponentController::class, 'storeForDevice'])->name('components.store_for_device');  
     Route::post('/devices/{device}/update-order', [\App\Http\Controllers\Admin\ComponentController::class, 'updateOrderAndEdit'])->name('components.update_order_and_edit');
-    Route::resource('components', \App\Http\Controllers\Admin\DeviceController::class);
+    Route::resource('components', \App\Http\Controllers\Admin\ComponentController::class);
     Route::resource('blogs', App\Http\Controllers\Admin\BlogController::class);
     Route::resource('products', App\Http\Controllers\Admin\ProductController::class);
 

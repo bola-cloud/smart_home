@@ -63,6 +63,9 @@
                                     <button type="submit" class="btn btn-danger">{{ __('lang.delete') }}</button>
                                 </form>
                                 <a href="{{ route('devices.show_components', $device->id) }}" class="btn btn-info">{{ __('lang.view_components') }}</a>
+                                @if ($device->components)
+                                    <a href="{{ route('devices.add_components', $device->id) }}" class="btn btn-success">{{ __('lang.add_components') }}</a>
+                                @endif
                             </td>
                         </tr>
                     @endforeach
