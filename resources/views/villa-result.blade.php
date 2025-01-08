@@ -40,10 +40,23 @@
         @if(session('error'))
             <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
+
+        <!-- Dynamic Summary -->
+        <p class="text-center">
+            عرض سعر لفله تتكون من 
+            @foreach ($selectedRooms as $room)
+                {{ $room['quantity'] }} {{ $room['name'] }}
+                @if (!$loop->last) و @endif
+            @endforeach
+            بإجمالي عدد {{ $totalPartitions }} تقسيمات.
+        </p>
+
         <!-- Room Details -->
         @foreach ($selectedRooms as $room)
         <div class="card mb-4">
-            <div class="card-header bg-primary text-white">{{ $room['name'] }}</div>
+            <div class="card-header bg-primary text-white">
+                {{ $room['name'] }} (عدد: {{ $room['quantity'] }})
+            </div>
             <div class="card-body">
                 <table class="table table-bordered">
                     <thead>

@@ -27,17 +27,20 @@ class PricingUserController extends Controller
             'room_quantities.*.integer' => 'عدد الغرف يجب أن يكون عددًا صحيحًا.', // Custom message for non-integer quantities
             'room_quantities.*.min' => 'عدد الغرف يجب أن يكون على الأقل 1.', // Custom message for invalid quantity
         ]);
-
+    
         $selectedRooms = [];
         $totalCost = 0;
-
-        foreach ($request->room_types as $roomId) {
+        $totalPartitions = 0; // Count the total partitions (rooms)
+    
+        foreach ($request->room_types as $index => $roomId) {
             $room = Room::with('devices')->find($roomId);
             if ($room) {
+                $roomQuantity = $request->room_quantities[$index]; // Number of this room type
                 $roomTotal = 0;
                 $devices = [];
+    
                 foreach ($room->devices as $device) {
-                    $deviceCost = $device->quantity * $device->unit_price;
+                    $deviceCost = $device->quantity * $device->unit_price * $roomQuantity;
                     $roomTotal += $deviceCost;
                     $devices[] = [
                         'name' => $device->name,
@@ -46,21 +49,24 @@ class PricingUserController extends Controller
                         'total_price' => $deviceCost,
                     ];
                 }
+    
                 $totalCost += $roomTotal;
+                $totalPartitions += $roomQuantity; // Add to total partitions
                 $selectedRooms[] = [
                     'name' => $room->name,
+                    'quantity' => $roomQuantity,
                     'devices' => $devices,
                     'total_cost' => $roomTotal,
                 ];
             }
         }
-
-        // Add internet access points (minimum 5, one per room)
-        $numberOfRooms = count($request->room_types);
-        $accessPoints = max($numberOfRooms, 5);
-        $accessPointsCost = $accessPoints * 500;
+    
+        // Calculate internet access points (minimum 5, one per partition)
+        $accessPoints = max($totalPartitions, 5); // At least 5 access points
+        $accessPointsCost = $accessPoints * 500; // Assume 500 is the cost per access point
         $totalCost += $accessPointsCost;
-
-        return view('villa-result', compact('selectedRooms', 'accessPoints', 'accessPointsCost', 'totalCost'));
+    
+        return view('villa-result', compact('selectedRooms', 'accessPoints', 'accessPointsCost', 'totalCost', 'totalPartitions'));
     }
+    
 }
