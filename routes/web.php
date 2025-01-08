@@ -17,6 +17,9 @@ Route::get('/mqtt/listen', [\App\Http\Controllers\MqttController::class, 'startL
 Route::get('/error/not-admin', function () {
     return view('errors_not_admin');
 })->name('error.not_admin');
+Route::get('/pricing', function () {
+    return view('layouts.pricing');
+})->name('error.not_admin');
 
 Route::group([
     'prefix' => LaravelLocalization::setLocale(),
