@@ -1,93 +1,183 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cost Estimation Tool</title>
+  <title>عرض سعر - تحويل الفلة إلى سمارت</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-
   <style>
     body {
-        background-color: #f8f9fa;
+      background-color: #f8f9fa;
+      font-family: 'Cairo', sans-serif;
     }
     .card-header {
-        font-weight: bold;
+      font-size: 1.25rem;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="container my-4">
-    <h1 class="text-center">Smart Home Cost Estimation</h1>
-    
-    {{-- <!-- Input Form -->
+  <div class="container my-5">
+    <h1 class="text-center mb-4">عرض سعر لفلة 11 غرفة - سمارت</h1>
+
+    <!-- غرف -->
     <div class="card mb-4">
-      <div class="card-header bg-primary text-white">
-        Add Item
-      </div>
+      <div class="card-header bg-primary text-white">أولاً: الغرف</div>
       <div class="card-body">
-        <form id="addItemForm">
-          <div class="row">
-            <div class="col-md-4">
-              <label for="area" class="form-label">Room/Area</label>
-              <input type="text" id="area" class="form-control" placeholder="E.g., Living Room" required>
-            </div>
-            <div class="col-md-3">
-              <label for="item" class="form-label">Item</label>
-              <input type="text" id="item" class="form-control" placeholder="E.g., Mini R2" required>
-            </div>
-            <div class="col-md-2">
-              <label for="quantity" class="form-label">Quantity</label>
-              <input type="number" id="quantity" class="form-control" required>
-            </div>
-            <div class="col-md-2">
-              <label for="price" class="form-label">Unit Price</label>
-              <input type="number" id="price" class="form-control" required>
-            </div>
-            <div class="col-md-1 d-flex align-items-end">
-              <button type="submit" class="btn btn-primary">Add</button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div> --}}
-    
-    <!-- Cost Table -->
-    <div class="card mb-4">
-      <div class="card-header bg-success text-white">
-        Cost Breakdown
-      </div>
-      <div class="card-body">
-        <table class="table table-striped">
+        <table class="table table-bordered">
           <thead>
             <tr>
-              <th>#</th>
-              <th>Room/Area</th>
-              <th>Item</th>
-              <th>Quantity</th>
-              <th>Unit Price</th>
-              <th>Total</th>
-              <th>Actions</th>
+              <th>العنصر</th>
+              <th>الكمية</th>
+              <th>سعر القطعة</th>
+              <th>السعر الكلي</th>
             </tr>
           </thead>
-          <tbody id="costTableBody">
-            <!-- Rows will be dynamically inserted -->
+          <tbody>
+            <tr>
+              <td>Mini R2 (خط واحد)</td>
+              <td>2</td>
+              <td>120</td>
+              <td>240</td>
+            </tr>
+            <tr>
+              <td>Dual R3 (خطين)</td>
+              <td>1</td>
+              <td>200</td>
+              <td>200</td>
+            </tr>
+            <tr>
+              <td>THR316D (قياس درجة حرارة غرفة)</td>
+              <td>1</td>
+              <td>200</td>
+              <td>200</td>
+            </tr>
+            <tr>
+              <td>Touch 3 line (مفتاح تاتش 3 خطوط)</td>
+              <td>1</td>
+              <td>210</td>
+              <td>210</td>
+            </tr>
+            <tr>
+              <td>Infrared device (تحكم بالتلفزيون والتكييف)</td>
+              <td>2</td>
+              <td>200</td>
+              <td>400</td>
+            </tr>
           </tbody>
         </table>
+        <h5 class="text-end">إجمالي الغرف: 13,750 ريال</h5>
       </div>
     </div>
-    
-    <!-- Summary -->
-    <div class="card">
+
+    <!-- الريسيبشن -->
+    <div class="card mb-4">
+      <div class="card-header bg-success text-white">ثانياً: الريسيبشن</div>
+      <div class="card-body">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>العنصر</th>
+              <th>الكمية</th>
+              <th>سعر القطعة</th>
+              <th>السعر الكلي</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>SPM-MAIN</td>
+              <td>1</td>
+              <td>450</td>
+              <td>450</td>
+            </tr>
+            <tr>
+              <td>SPM-4RELAY (4 خطوط)</td>
+              <td>3</td>
+              <td>550</td>
+              <td>1,650</td>
+            </tr>
+            <tr>
+              <td>THR316D (قياس درجة حرارة غرفة)</td>
+              <td>2</td>
+              <td>200</td>
+              <td>400</td>
+            </tr>
+            <tr>
+              <td>Touch 3 line (مفتاح تاتش 3 خطوط)</td>
+              <td>5</td>
+              <td>210</td>
+              <td>1,050</td>
+            </tr>
+            <tr>
+              <td>Infrared device</td>
+              <td>5</td>
+              <td>200</td>
+              <td>1,000</td>
+            </tr>
+            <tr>
+              <td>Dual R3 (خطين)</td>
+              <td>2</td>
+              <td>200</td>
+              <td>400</td>
+            </tr>
+          </tbody>
+        </table>
+        <h5 class="text-end">إجمالي الريسيبشن: 4,950 ريال</h5>
+      </div>
+    </div>
+
+    <!-- المطبخ -->
+    <div class="card mb-4">
+      <div class="card-header bg-warning text-dark">ثالثاً: المطبخ</div>
+      <div class="card-body">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>العنصر</th>
+              <th>الكمية</th>
+              <th>سعر القطعة</th>
+              <th>السعر الكلي</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Mini R2 (خط واحد)</td>
+              <td>2</td>
+              <td>120</td>
+              <td>240</td>
+            </tr>
+            <tr>
+              <td>Dual R3 (خطين)</td>
+              <td>1</td>
+              <td>200</td>
+              <td>200</td>
+            </tr>
+            <tr>
+              <td>Touch 3 line</td>
+              <td>1</td>
+              <td>210</td>
+              <td>210</td>
+            </tr>
+            <tr>
+              <td>B02-F-A60 (لمبة تحكم بشدة الإضاءة)</td>
+              <td>1</td>
+              <td>150</td>
+              <td>150</td>
+            </tr>
+          </tbody>
+        </table>
+        <h5 class="text-end">إجمالي المطبخ: 800 ريال</h5>
+      </div>
+    </div>
+
+    <!-- التكلفة الكلية -->
+    <div class="card mt-4">
       <div class="card-body text-end">
-        <h5>Total Cost: <span id="totalCost">0</span> SAR</h5>
-        <button class="btn btn-secondary" id="exportBtn">Export as PDF</button>
+        <h4>إجمالي التكلفة الكلية: 30,920 ريال</h4>
+        <p class="text-muted">* هذه التكلفة تشمل الأجهزة فقط ولا تشمل الأسلاك أو الإمدادات الكهربائية.</p>
       </div>
     </div>
   </div>
-
-  <script>
-    // JavaScript for dynamic functionality will go here
-  </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
