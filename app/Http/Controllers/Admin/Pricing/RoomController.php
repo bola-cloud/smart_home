@@ -24,7 +24,7 @@ class RoomController extends Controller
     {
         $request->validate(['name' => 'required|string|max:255']);
         Room::create(['name' => $request->name]);
-        return redirect()->route('admin.rooms.index')->with('success', 'Room added successfully.');
+        return redirect()->route('pricing.rooms.index')->with('success', 'Room added successfully.');
     }
 
     public function edit($id)
@@ -38,13 +38,13 @@ class RoomController extends Controller
         $request->validate(['name' => 'required|string|max:255']);
         $room = Room::findOrFail($id);
         $room->update(['name' => $request->name]);
-        return redirect()->route('admin.rooms.index')->with('success', 'Room updated successfully.');
+        return redirect()->route('pricing.rooms.index')->with('success', 'Room updated successfully.');
     }
 
     public function destroy($id)
     {
         $room = Room::findOrFail($id);
         $room->delete();
-        return redirect()->route('admin.rooms.index')->with('success', 'Room deleted successfully.');
+        return redirect()->route('pricing.rooms.index')->with('success', 'Room deleted successfully.');
     }
 }
