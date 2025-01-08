@@ -24,13 +24,6 @@
             <h1>تقدير تكلفة الفلة</h1>
         </div>
 
-        @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
-
-        @if(session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
-        @endif
         <!-- Form to Add Rooms -->
         <form id="villaForm" action="{{ route('user.villa-pricing.calculate') }}" method="POST">
             @csrf
@@ -69,14 +62,6 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function () {
-            // Generate room options as a JavaScript variable
-            const roomOptions = `
-                <option value="" selected disabled>اختر نوع الغرفة</option>
-                @foreach ($rooms as $room)
-                    <option value="{{ $room->id }}">{{ $room->name }}</option>
-                @endforeach
-            `;
-
             // Initialize Select2
             $('.room-select').select2({ width: '100%' });
 
@@ -86,7 +71,10 @@
                     <tr>
                         <td>
                             <select name="room_types[]" class="form-select room-select" required>
-                                ${roomOptions}
+                                <option value="" selected disabled>اختر نوع الغرفة</option>
+                                @foreach ($rooms as $room)
+                                    <option value="{{ $room->id }}">{{ $room->name }}</option>
+                                @endforeach
                             </select>
                         </td>
                         <td>
