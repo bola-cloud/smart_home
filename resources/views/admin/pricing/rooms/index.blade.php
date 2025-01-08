@@ -12,7 +12,7 @@
     @endif
 
     <!-- Add Room Button -->
-    <a href="{{ route('admin.pricing.rooms.create') }}" class="btn btn-primary mb-3">Add New Room</a>
+    <a href="{{ route('pricing.rooms.create') }}" class="btn btn-primary mb-3">Add New Room</a>
 
     <!-- Room List Table -->
     <table class="table table-bordered table-striped">
@@ -29,9 +29,9 @@
                 <td>{{ $room->id }}</td>
                 <td>{{ $room->name }}</td>
                 <td>
-                    <a href="{{ route('admin.pricing.rooms.edit', $room->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                    <a href="{{ route('admin.pricing.devices.index', $room->id) }}" class="btn btn-info btn-sm">Manage Devices</a>
-                    <form action="{{ route('admin.pricing.rooms.destroy', $room->id) }}" method="POST" style="display:inline;">
+                    <a href="{{ route('pricing.rooms.edit', $room->id) }}" class="btn btn-warning btn-sm">Edit</a>
+                    <a href="{{ route('pricing.devices.index', $room->id) }}" class="btn btn-info btn-sm">Manage Devices</a>
+                    <form action="{{ route('pricing.rooms.destroy', $room->id) }}" method="POST" style="display:inline;">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
