@@ -21,6 +21,9 @@ Route::get('/pricing', function () {
     return view('layouts.pricing');
 })->name('error.not_admin');
 
+Route::get('/villa-pricing', [UserInterfaceController::class, 'index'])->name('user.villa-pricing');
+Route::post('/villa-pricing/calculate', [UserInterfaceController::class, 'calculate'])->name('user.villa-pricing.calculate');
+
 Route::group([
     'prefix' => LaravelLocalization::setLocale(),
     'middleware' => [
