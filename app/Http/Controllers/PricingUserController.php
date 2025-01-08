@@ -16,9 +16,16 @@ class PricingUserController extends Controller
     public function calculate(Request $request)
     {
         $request->validate([
-            'number_of_rooms' => 'required|integer|min:1',
-            'room_types' => 'required|array',
-            'room_types.*' => 'exists:rooms,id',
+            'room_types' => 'required|array|min:1', // Ensure room_types is an array with at least one item
+            'room_types.*' => 'required|exists:rooms,id', // Validate each room type ID exists in the rooms table
+            'room_quantities' => 'required|array|min:1', // Ensure room_quantities is an array with at least one item
+            'room_quantities.*' => 'required|integer|min:1', // Each room quantity must be an integer >= 1
+        ], [
+            'room_types.required' => 'يجب اختيار نوع الغرفة.', // Custom validation message for missing room types
+            'room_types.*.exists' => 'نوع الغرفة المحدد غير موجود.', // Custom message for invalid room type
+            'room_quantities.required' => 'يجب إدخال عدد الغرف.', // Custom message for missing quantities
+            'room_quantities.*.integer' => 'عدد الغرف يجب أن يكون عددًا صحيحًا.', // Custom message for non-integer quantities
+            'room_quantities.*.min' => 'عدد الغرف يجب أن يكون على الأقل 1.', // Custom message for invalid quantity
         ]);
 
         $selectedRooms = [];
