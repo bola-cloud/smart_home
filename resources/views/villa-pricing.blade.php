@@ -21,7 +21,7 @@
     <div class="container my-5">
         <div class="text-center">
             <img src="your-logo.png" alt="Logo" class="logo">
-            <h1>تقدير تكلفة الفلة</h1>
+            <h1>تقدير تكلفة الفيلا</h1>
         </div>
 
         <!-- Form to Add Rooms -->
@@ -58,45 +58,44 @@
         </form>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        $(document).ready(function () {
-            // Generate room options as a JavaScript variable
-            const roomOptions = `
-                <option value="" selected disabled>اختر نوع الغرفة</option>
-                @foreach ($rooms as $room)
-                    <option value="{{ $room->id }}">{{ $room->name }}</option>
-                @endforeach
-            `;
+        // JavaScript to dynamically add a new row
+        document.addEventListener('click', function (e) {
+            if (e.target && e.target.classList.contains('add-row')) {
+                // Prevent default action
+                e.preventDefault();
 
-            // Initialize Select2
-            $('.room-select').select2({ width: '100%' });
+                // Get the roomTable element
+                const roomTable = document.getElementById('roomTable');
 
-            // Add a new row
-            $(document).on('click', '.add-row', function () {
-                const newRow = `
-                    <tr>
-                        <td>
-                            <select name="room_types[]" class="form-select room-select" required>
-                                ${roomOptions}
-                            </select>
-                        </td>
-                        <td>
-                            <input type="number" name="room_quantities[]" class="form-control" required min="1">
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-danger remove-row">حذف</button>
-                        </td>
-                    </tr>`;
-                $('#roomTable').append(newRow);
-                $('.room-select').select2({ width: '100%' });
-            });
+                // Create a new row
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>
+                        <select name="room_types[]" class="form-select room-select" required>
+                            <option value="" selected disabled>اختر نوع الغرفة</option>
+                            @foreach ($rooms as $room)
+                                <option value="{{ $room->id }}">{{ $room->name }}</option>
+                            @endforeach
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" name="room_quantities[]" class="form-control" required min="1">
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger remove-row">حذف</button>
+                    </td>
+                `;
 
-            // Remove a row
-            $(document).on('click', '.remove-row', function () {
-                $(this).closest('tr').remove();
-            });
+                // Append the new row to the table
+                roomTable.appendChild(newRow);
+            }
+
+            // Remove a row if the delete button is clicked
+            if (e.target && e.target.classList.contains('remove-row')) {
+                e.preventDefault();
+                e.target.closest('tr').remove();
+            }
         });
     </script>
 </body>
