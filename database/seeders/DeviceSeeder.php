@@ -16,7 +16,8 @@ class DeviceSeeder extends Seeder
     {
         // Loop to create 20 devices
         for ($i = 1; $i <= 20; $i++) {
-            Device::create([
+            // Create the device
+            $device = Device::create([
                 'section_id' => null, // Nullable field
                 'name' => "Device $i", // Unique name for each device
                 'activation' => (bool)rand(0, 1), // Random true/false activation
@@ -36,6 +37,20 @@ class DeviceSeeder extends Seeder
                     rand(0, 255)
                 ), // Random MAC address
             ]);
+    
+            // Create 4 related components for each device
+            for ($j = 1; $j <= 5; $j++) {
+                Component::create([
+                    'device_id' => $device->id, // Relate to the device
+                    'name' => "Component $j for Device $i", // Unique name for each component
+                    'type' => "Type $j", // Example type (modify as needed)
+                    'order' => $j, // Order of the component
+                    'image_id' => null, // Nullable field
+                    'file_path' => null, // Nullable field
+                    'manual' => false, // Default value
+                ]);
+            }
         }
     }
+    
 }
