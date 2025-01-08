@@ -32,7 +32,7 @@ class RoomDeviceController extends Controller
 
         $total_price = $request->quantity * $request->unit_price;
 
-        Device::create([
+        RoomDevice::create([
             'room_id' => $room_id,
             'name' => $request->name,
             'quantity' => $request->quantity,
@@ -45,7 +45,7 @@ class RoomDeviceController extends Controller
 
     public function destroy($id)
     {
-        $device = Device::findOrFail($id);
+        $device = RoomDevice::findOrFail($id);
         $room_id = $device->room_id;
         $device->delete();
         return redirect()->route('pricing.devices.index', $room_id)->with('success', 'Device deleted successfully.');
