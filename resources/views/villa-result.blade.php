@@ -36,8 +36,12 @@
             <h1>نتيجة تقدير التكلفة</h1>
             <!-- Dynamic Header -->
             <p class="dynamic-header">
-                عرض سعر لفله تتكون من {{ $totalRooms }} غرفه ومطبخ و{{ $bathrooms }} دورات مياه 
-                وحديقه وريسبشن {{ $receptionDoors }} أبواب رئيسيه كمدخل لفله لتحويلها بالكامل الي سمارت
+                عرض سعر لفله تتكون من 
+                @foreach ($selectedRooms as $room)
+                    {{ $room['quantity'] }} {{ $room['name'] }}
+                    @if (!$loop->last) و @endif
+                @endforeach
+                لتحويلها بالكامل الي سمارت
             </p>
         </div>
 
