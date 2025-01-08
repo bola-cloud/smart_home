@@ -19,7 +19,7 @@
   <div class="container my-4">
     <h1 class="text-center">Smart Home Cost Estimation</h1>
     
-    <!-- Input Form -->
+    {{-- <!-- Input Form -->
     <div class="card mb-4">
       <div class="card-header bg-primary text-white">
         Add Item
@@ -49,7 +49,7 @@
           </div>
         </form>
       </div>
-    </div>
+    </div> --}}
     
     <!-- Cost Table -->
     <div class="card mb-4">
