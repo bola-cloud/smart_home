@@ -31,6 +31,13 @@
             <h1>نتيجة تقدير التكلفة</h1>
         </div>
 
+        @if(session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
         <!-- Room Details -->
         @foreach ($selectedRooms as $room)
         <div class="card mb-4">
