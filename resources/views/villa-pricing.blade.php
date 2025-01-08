@@ -62,8 +62,16 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function () {
+            // Generate room options as a JavaScript variable
+            const roomOptions = `
+                <option value="" selected disabled>اختر نوع الغرفة</option>
+                @foreach ($rooms as $room)
+                    <option value="{{ $room->id }}">{{ $room->name }}</option>
+                @endforeach
+            `;
+
             // Initialize Select2
-            // $('.room-select').select2({ width: '100%' });
+            $('.room-select').select2({ width: '100%' });
 
             // Add a new row
             $(document).on('click', '.add-row', function () {
@@ -71,10 +79,7 @@
                     <tr>
                         <td>
                             <select name="room_types[]" class="form-select room-select" required>
-                                <option value="" selected disabled>اختر نوع الغرفة</option>
-                                @foreach ($rooms as $room)
-                                    <option value="{{ $room->id }}">{{ $room->name }}</option>
-                                @endforeach
+                                ${roomOptions}
                             </select>
                         </td>
                         <td>
