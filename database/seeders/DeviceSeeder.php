@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Device;
+use App\Models\Component;
 
 class DeviceSeeder extends Seeder
 {
