@@ -21,7 +21,7 @@ class DeviceSeeder extends Seeder
             $device = Device::create([
                 'section_id' => null, // Nullable field
                 'name' => "Device $i", // Unique name for each device
-                'activation' => (bool)rand(0, 1), // Random true/false activation
+                'activation' => 0, // Random true/false activation
                 'last_updated' => null, // Nullable field
                 'device_type_id' => 16, // Default value
                 'serial' => null, // Nullable field
