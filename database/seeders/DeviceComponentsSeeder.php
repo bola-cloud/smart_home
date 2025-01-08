@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Device;
+use App\Models\Component;
 
 class DeviceComponentsSeeder extends Seeder
 {
@@ -15,7 +17,7 @@ class DeviceComponentsSeeder extends Seeder
         // Fetch all devices with device_type_id = 16
         $devices = Device::where('device_type_id', 16)->get();
 
-        foreach ($devices as $device) {
+        foreach ($devices as $device) { 
             // Count existing components for the device
             $existingComponentsCount = $device->components()->count();
 
