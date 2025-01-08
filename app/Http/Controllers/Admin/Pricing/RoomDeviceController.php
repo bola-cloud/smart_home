@@ -13,13 +13,13 @@ class RoomDeviceController extends Controller
     {
         $room = Room::findOrFail($room_id);
         $devices = $room->devices;
-        return view('pricing.admin.devices.index', compact('room', 'devices'));
+        return view('admin.pricing.devices.index', compact('room', 'devices'));
     }
 
     public function create($room_id)
     {
         $room = Room::findOrFail($room_id);
-        return view('pricing.admin.devices.create', compact('room'));
+        return view('admin.pricing.devices.create', compact('room'));
     }
 
     public function store(Request $request, $room_id)
