@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تقدير تكلفة الفلة</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
         body {
             background: linear-gradient(135deg, #f8f9fa, #e9ecef);
@@ -23,52 +24,75 @@
             <h1>تقدير تكلفة الفلة</h1>
         </div>
 
-        <!-- Form to Enter Number of Rooms -->
+        <!-- Form to Add Rooms -->
         <form id="villaForm" action="{{ route('user.villa-pricing.calculate') }}" method="POST">
             @csrf
-            <div class="mb-3">
-                <label for="number_of_rooms" class="form-label">عدد الغرف</label>
-                <input type="number" id="number_of_rooms" name="number_of_rooms" class="form-control" required min="1" oninput="generateRoomFields()">
-            </div>
-
-            <!-- Room Type Fields -->
-            <div id="roomFields"></div>
-
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>نوع الغرفة</th>
+                        <th>عدد الغرف</th>
+                        <th>إجراء</th>
+                    </tr>
+                </thead>
+                <tbody id="roomTable">
+                    <tr>
+                        <td>
+                            <select name="room_types[]" class="form-select room-select" required>
+                                <option value="" selected disabled>اختر نوع الغرفة</option>
+                                @foreach ($rooms as $room)
+                                    <option value="{{ $room->id }}">{{ $room->name }}</option>
+                                @endforeach
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" name="room_quantities[]" class="form-control" required min="1">
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-success add-row">إضافة</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
             <button type="submit" class="btn btn-primary w-100 mt-4">حساب التكلفة</button>
         </form>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        const rooms = @json($rooms);
+        $(document).ready(function () {
+            // Initialize Select2
+            $('.room-select').select2({ width: '100%' });
 
-        function generateRoomFields() {
-            const numberOfRooms = document.getElementById('number_of_rooms').value;
-            const roomFields = document.getElementById('roomFields');
-            roomFields.innerHTML = ''; // Clear previous fields
+            // Add a new row
+            $(document).on('click', '.add-row', function () {
+                const newRow = `
+                    <tr>
+                        <td>
+                            <select name="room_types[]" class="form-select room-select" required>
+                                <option value="" selected disabled>اختر نوع الغرفة</option>
+                                @foreach ($rooms as $room)
+                                    <option value="{{ $room->id }}">{{ $room->name }}</option>
+                                @endforeach
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" name="room_quantities[]" class="form-control" required min="1">
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-danger remove-row">حذف</button>
+                        </td>
+                    </tr>`;
+                $('#roomTable').append(newRow);
+                $('.room-select').select2({ width: '100%' });
+            });
 
-            for (let i = 0; i < numberOfRooms; i++) {
-                const select = document.createElement('select');
-                select.name = `room_types[${i}]`;
-                select.classList.add('form-select', 'mb-3');
-                select.required = true;
-
-                const defaultOption = document.createElement('option');
-                defaultOption.value = '';
-                defaultOption.textContent = 'اختر نوع الغرفة';
-                defaultOption.disabled = true;
-                defaultOption.selected = true;
-                select.appendChild(defaultOption);
-
-                rooms.forEach(room => {
-                    const option = document.createElement('option');
-                    option.value = room.id;
-                    option.textContent = room.name;
-                    select.appendChild(option);
-                });
-
-                roomFields.appendChild(select);
-            }
-        }
+            // Remove a row
+            $(document).on('click', '.remove-row', function () {
+                $(this).closest('tr').remove();
+            });
+        });
     </script>
 </body>
 </html>

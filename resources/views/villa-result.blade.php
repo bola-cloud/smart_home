@@ -22,18 +22,6 @@
             font-size: 1.25rem;
             font-weight: bold;
         }
-        .card-header.bg-primary {
-            background-color: #007bff !important;
-            color: white;
-        }
-        .card-header.bg-success {
-            background-color: #28a745 !important;
-            color: white;
-        }
-        .card-header.bg-warning {
-            background-color: #ffc107 !important;
-            color: #212529;
-        }
     </style>
 </head>
 <body>
@@ -44,39 +32,34 @@
         </div>
 
         <!-- Room Details -->
+        @foreach ($selectedRooms as $room)
         <div class="card mb-4">
-            <div class="card-header bg-primary text-white">تفاصيل الغرف</div>
+            <div class="card-header bg-primary text-white">{{ $room['name'] }}</div>
             <div class="card-body">
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th>اسم الغرفة</th>
-                            <th>الأجهزة</th>
-                            <th>التكلفة الإجمالية</th>
+                            <th>اسم الجهاز</th>
+                            <th>الكمية</th>
+                            <th>سعر الوحدة</th>
+                            <th>الإجمالي</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($selectedRooms as $room)
+                        @foreach ($room['devices'] as $device)
                         <tr>
-                            <td>{{ $room['name'] }}</td>
-                            <td>
-                                <ul>
-                                    @foreach ($room['devices'] as $device)
-                                    <li>
-                                        {{ $device['name'] }}: الكمية {{ $device['quantity'] }},
-                                        سعر الوحدة {{ $device['unit_price'] }} ريال,
-                                        الإجمالي {{ $device['total_price'] }} ريال
-                                    </li>
-                                    @endforeach
-                                </ul>
-                            </td>
-                            <td>{{ $room['total_cost'] }} ريال</td>
+                            <td>{{ $device['name'] }}</td>
+                            <td>{{ $device['quantity'] }}</td>
+                            <td>{{ $device['unit_price'] }} ريال</td>
+                            <td>{{ $device['total_price'] }} ريال</td>
                         </tr>
                         @endforeach
                     </tbody>
                 </table>
+                <h5 class="text-end">إجمالي تكلفة الغرفة: {{ $room['total_cost'] }} ريال</h5>
             </div>
         </div>
+        @endforeach
 
         <!-- Internet Points -->
         <div class="card mb-4">
@@ -95,7 +78,5 @@
             </div>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
