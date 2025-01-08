@@ -29,7 +29,7 @@
 <body>
     <div class="container my-5">
         <div class="text-center">
-            <img src="{{asset('app-assets/images/logo/mazaya-logo-dark.png')}}" alt="Logo" class="logo">
+            <img src="{{asset('app-assets/images/logo/mazaya-logo-dark.png')}}" alt="Logo" class="logo"> Mazaya
             <h1>نتيجة تقدير التكلفة</h1>
         </div>
 
