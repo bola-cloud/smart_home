@@ -12,8 +12,9 @@
             font-family: 'Cairo', sans-serif;
         }
         .logo {
-            max-height: 60px;
-            margin-bottom: 20px;
+            max-height: 86px !important;
+            margin-bottom: 25px;
+            width: 100px !important;
         }
         .card {
             border-radius: 15px;
