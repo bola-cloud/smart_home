@@ -16,7 +16,7 @@ class DeviceSeeder extends Seeder
     public function run()
     {
         // Loop to create 20 devices
-        for ($i = 1; $i <= 20; $i++) {
+        for ($i = 1; $i <= 50; $i++) {
             // Create the device
             $device = Device::create([
                 'section_id' => null, // Nullable field
@@ -40,7 +40,7 @@ class DeviceSeeder extends Seeder
             ]);
     
             // Create 4 related components for each device
-            for ($j = 1; $j <= 5; $j++) {
+            for ($j = 1; $j <= 6; $j++) {
                 Component::create([
                     'device_id' => $device->id, // Relate to the device
                     'name' => "Component $j for Device $i", // Unique name for each component
