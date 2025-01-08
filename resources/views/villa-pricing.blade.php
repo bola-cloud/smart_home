@@ -63,7 +63,7 @@
     <script>
         $(document).ready(function () {
             // Initialize Select2
-            $('.room-select').select2({ width: '100%' });
+            // $('.room-select').select2({ width: '100%' });
 
             // Add a new row
             $(document).on('click', '.add-row', function () {
