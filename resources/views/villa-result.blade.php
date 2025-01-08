@@ -44,7 +44,7 @@
 
         <!-- Dynamic Summary -->
         <p class="text-center">
-            عرض سعر لفله تتكون من 
+            عرض سعر لفيلا تتكون من 
             @foreach ($selectedRooms as $room)
                 {{ $room['quantity'] }} {{ $room['name'] }}
                 @if (!$loop->last) و @endif
