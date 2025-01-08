@@ -22,13 +22,23 @@
             font-size: 1.25rem;
             font-weight: bold;
         }
+        .dynamic-header {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #212529;
+        }
     </style>
 </head>
 <body>
     <div class="container my-5">
         <div class="text-center">
-            <img src="your-logo.png" alt="Logo" class="logo">
+            <img src="{{ asset('app-assets/images/logo/mazaya-logo-dark.png') }}" alt="Logo" class="logo">
             <h1>نتيجة تقدير التكلفة</h1>
+            <!-- Dynamic Header -->
+            <p class="dynamic-header">
+                عرض سعر لفله تتكون من {{ $totalRooms }} غرفه ومطبخ و{{ $bathrooms }} دورات مياه 
+                وحديقه وريسبشن {{ $receptionDoors }} أبواب رئيسيه كمدخل لفله لتحويلها بالكامل الي سمارت
+            </p>
         </div>
 
         @if(session('success'))
@@ -38,6 +48,7 @@
         @if(session('error'))
             <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
+
         <!-- Room Details -->
         @foreach ($selectedRooms as $room)
         <div class="card mb-4">
