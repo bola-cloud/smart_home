@@ -44,7 +44,7 @@
     <div class="sidebar">
         <h4 class="text-center">Admin Panel</h4>
         <hr class="bg-light">
-        <a href="{{ route('admin.rooms.index') }}">Manage Rooms</a>
+        <a href="{{ route('pricing.rooms.index') }}">Manage Rooms</a>
         <a href="#">Manage Pricing</a>
         <a href="#">Reports</a>
         <a href="#">Settings</a>
