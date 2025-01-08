@@ -9,42 +9,51 @@ class PricingUserController extends Controller
 {
     public function index()
     {
-        $rooms = Room::with('devices')->get(); // Get all rooms with devices
+        $rooms = Room::all(); // Get all room types
         return view('villa-pricing', compact('rooms'));
     }
 
     public function calculate(Request $request)
     {
         $request->validate([
-            'room_quantities' => 'required|array',
-            'room_quantities.*' => 'integer|min:0',
+            'number_of_rooms' => 'required|integer|min:1',
+            'room_types' => 'required|array',
+            'room_types.*' => 'exists:rooms,id',
         ]);
 
-        $total = 0;
-        $details = [];
-        foreach ($request->room_quantities as $roomId => $quantity) {
-            $room = Room::with('devices')->find($roomId);
-            if ($room && $quantity > 0) {
-                $roomTotal = 0;
-                foreach ($room->devices as $device) {
-                    $deviceTotal = $device->total_price * $quantity;
-                    $roomTotal += $deviceTotal;
-                }
+        $selectedRooms = [];
+        $totalCost = 0;
 
-                $total += $roomTotal;
-                $details[] = [
-                    'room_name' => $room->name,
-                    'quantity' => $quantity,
+        foreach ($request->room_types as $roomId) {
+            $room = Room::with('devices')->find($roomId);
+            if ($room) {
+                $roomTotal = 0;
+                $devices = [];
+                foreach ($room->devices as $device) {
+                    $deviceCost = $device->quantity * $device->unit_price;
+                    $roomTotal += $deviceCost;
+                    $devices[] = [
+                        'name' => $device->name,
+                        'quantity' => $device->quantity,
+                        'unit_price' => $device->unit_price,
+                        'total_price' => $deviceCost,
+                    ];
+                }
+                $totalCost += $roomTotal;
+                $selectedRooms[] = [
+                    'name' => $room->name,
+                    'devices' => $devices,
                     'total_cost' => $roomTotal,
                 ];
             }
         }
 
-        // Add internet access points (one per room, minimum 5)
-        $internetPoints = max(array_sum($request->room_quantities), 5);
-        $internetCost = $internetPoints * 500; // Example: 500 SAR per access point
-        $total += $internetCost;
+        // Add internet access points (minimum 5, one per room)
+        $numberOfRooms = count($request->room_types);
+        $accessPoints = max($numberOfRooms, 5);
+        $accessPointsCost = $accessPoints * 500;
+        $totalCost += $accessPointsCost;
 
-        return view('villa-result', compact('details', 'internetPoints', 'internetCost', 'total'));
+        return view('villa-result', compact('selectedRooms', 'accessPoints', 'accessPointsCost', 'totalCost'));
     }
 }

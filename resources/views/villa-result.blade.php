@@ -43,24 +43,34 @@
             <h1>نتيجة تقدير التكلفة</h1>
         </div>
 
-        <!-- Room Costs -->
+        <!-- Room Details -->
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">تفاصيل الغرف</div>
             <div class="card-body">
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th>الغرفة</th>
-                            <th>الكمية</th>
+                            <th>اسم الغرفة</th>
+                            <th>الأجهزة</th>
                             <th>التكلفة الإجمالية</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($details as $detail)
+                        @foreach ($selectedRooms as $room)
                         <tr>
-                            <td>{{ $detail['room_name'] }}</td>
-                            <td>{{ $detail['quantity'] }}</td>
-                            <td>{{ $detail['total_cost'] }} ريال</td>
+                            <td>{{ $room['name'] }}</td>
+                            <td>
+                                <ul>
+                                    @foreach ($room['devices'] as $device)
+                                    <li>
+                                        {{ $device['name'] }}: الكمية {{ $device['quantity'] }},
+                                        سعر الوحدة {{ $device['unit_price'] }} ريال,
+                                        الإجمالي {{ $device['total_price'] }} ريال
+                                    </li>
+                                    @endforeach
+                                </ul>
+                            </td>
+                            <td>{{ $room['total_cost'] }} ريال</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -72,8 +82,8 @@
         <div class="card mb-4">
             <div class="card-header bg-success text-white">نقاط الإنترنت</div>
             <div class="card-body">
-                <p>عدد نقاط الإنترنت المطلوبة: {{ $internetPoints }}</p>
-                <p>تكلفة نقاط الإنترنت: {{ $internetCost }} ريال</p>
+                <p>عدد نقاط الإنترنت المطلوبة: {{ $accessPoints }}</p>
+                <p>التكلفة الإجمالية لنقاط الإنترنت: {{ $accessPointsCost }} ريال</p>
             </div>
         </div>
 
@@ -81,7 +91,7 @@
         <div class="card mb-4">
             <div class="card-header bg-warning text-dark">إجمالي التكلفة</div>
             <div class="card-body">
-                <h4>{{ $total }} ريال</h4>
+                <h4>{{ $totalCost }} ريال</h4>
             </div>
         </div>
     </div>
