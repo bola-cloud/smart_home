@@ -5,7 +5,7 @@
     <h1>Add Device to {{ $room->name }}</h1>
 
     <!-- Form to Add Device -->
-    <form action="{{ route('admin.devices.store', $room->id) }}" method="POST">
+    <form action="{{ route('pricing.devices.store', $room->id) }}" method="POST">
         @csrf
         <div class="mb-3">
             <label for="name" class="form-label">Device Name</label>

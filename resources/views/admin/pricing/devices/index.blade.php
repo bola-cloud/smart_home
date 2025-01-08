@@ -12,7 +12,7 @@
     @endif
 
     <!-- Add Device Button -->
-    <a href="{{ route('admin.devices.create', $room->id) }}" class="btn btn-primary mb-3">Add New Device</a>
+    <a href="{{ route('pricing.devices.create', $room->id) }}" class="btn btn-primary mb-3">Add New Device</a>
 
     <!-- Devices Table -->
     <table class="table table-bordered table-striped">
@@ -35,7 +35,7 @@
                 <td>{{ $device->unit_price }}</td>
                 <td>{{ $device->total_price }}</td>
                 <td>
-                    <form action="{{ route('admin.devices.destroy', $device->id) }}" method="POST" style="display:inline;">
+                    <form action="{{ route('pricing.devices.destroy', $device->id) }}" method="POST" style="display:inline;">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
