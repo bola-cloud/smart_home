@@ -100,7 +100,7 @@
             </div>
         </div>
         <div class="card mb-4">
-            <div class="card-header bg-warning text-dark">إجمالي التكلفة</div>
+            <div class="card-header bg-secondary text-dark">إجمالي التكلفة</div>
             <div class="card-body">
                 ملحوظة : هذه تكلفه الاجهزه فقط لا تشمل تكلفه اي اسلاك او امدادت كهربيه او امدادت خاصه بالانترنت 
             </div>
