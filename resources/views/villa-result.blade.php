@@ -30,7 +30,7 @@
     <div class="container my-5">
         <div class="text-center">
             <img src="{{asset('app-assets/images/logo/mazaya-logo-dark.png')}}" alt="Logo" class="logo"> <strong style="font-size: x-large;">Mazaya</strong> 
-            <h1>نتيجة تقدير التكلفة</h1>
+            <h1>نتيجة تقدير التكلفة الخاصة بالمنزل او الفيلا</h1>
         </div>
 
         @if(session('success'))
