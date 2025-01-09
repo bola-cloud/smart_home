@@ -84,7 +84,7 @@
                     {{ $room['total_cost'] / $room['quantity'] }} ريال
                 </h5>
                 <h5 class="text-end">
-                    إجمالي تكلفة {{$room['quantity']}}{{ $room['name'] }} : 
+                    إجمالي تكلفة {{$room['quantity']}} {{ $room['name'] }} : 
                     {{ $room['total_cost'] }} ريال
                 </h5>
             </div>
