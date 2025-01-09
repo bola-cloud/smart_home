@@ -76,7 +76,25 @@
         $(document).ready(function () {
             // Initialize Select2
             $('.room-select').select2({ width: '100%' });
-
+    
+            // Function to refresh buttons (Add for the last row, Remove for others)
+            function refreshButtons() {
+                $('#roomTable tr').each(function (index) {
+                    const isLastRow = (index === $('#roomTable tr').length - 1);
+                    const actionCell = $(this).find('td:last');
+    
+                    if (isLastRow) {
+                        actionCell.html(`
+                            <button type="button" class="btn btn-success add-row">إضافة</button>
+                        `);
+                    } else {
+                        actionCell.html(`
+                            <button type="button" class="btn btn-danger remove-row">حذف</button>
+                        `);
+                    }
+                });
+            }
+    
             // Add a new row
             $(document).on('click', '.add-row', function () {
                 const newRow = `
@@ -93,17 +111,22 @@
                             <input type="number" name="room_quantities[]" class="form-control" required min="1">
                         </td>
                         <td>
-                            <button type="button" class="btn btn-danger remove-row">حذف</button>
+                            <!-- Action buttons will be updated dynamically -->
                         </td>
                     </tr>`;
                 $('#roomTable').append(newRow);
                 $('.room-select').select2({ width: '100%' });
+                refreshButtons();
             });
-
+    
             // Remove a row
             $(document).on('click', '.remove-row', function () {
                 $(this).closest('tr').remove();
+                refreshButtons();
             });
+    
+            // Initial button setup
+            refreshButtons();
         });
     </script>
 </body>
