@@ -46,8 +46,8 @@
         <hr class="bg-light">
         <a href="{{ route('pricing.rooms.index') }}">Manage Rooms</a>
         <a href="#">Manage Pricing</a>
-        <a href="#">Reports</a>
-        <a href="#">Settings</a>
+        {{-- <a href="#">Reports</a>
+        <a href="#">Settings</a> --}}
     </div>
 
     <!-- Main Content -->
