@@ -248,7 +248,12 @@
                                 </li>
                             </ul>
                         </li>
-                        
+                        <li class="nav-item {{ Route::currentRouteName() == 'pricing.rooms.index' ? 'active' : '' }}">
+                            <a href="{{ route('pricing.rooms.index') }}">
+                                <i class="la la-share-alt"></i>
+                                <span class="menu-title" data-i18n="nav.morris_charts.main">{{ __('lang.pricing_panel') }}</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>

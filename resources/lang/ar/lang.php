@@ -339,4 +339,5 @@ return [
     'components' => 'المكونات',
     'connection_devices' => 'أجهزة الاتصال',
     'home_devices' => 'الأجهزة المنزلية',
+    'pricing_panel' => 'لوحة الاسعار',
 ];
