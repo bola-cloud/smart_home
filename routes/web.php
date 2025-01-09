@@ -84,4 +84,7 @@ Route::group([
     Route::get('/rooms/{room_id}/devices/create', [\App\Http\Controllers\Admin\Pricing\RoomDeviceController::class, 'create'])->name('pricing.devices.create');
     Route::post('/rooms/{room_id}/devices', [\App\Http\Controllers\Admin\Pricing\RoomDeviceController::class, 'store'])->name('pricing.devices.store');
     Route::delete('/devices/{id}', [\App\Http\Controllers\Admin\Pricing\RoomDeviceController::class, 'destroy'])->name('pricing.devices.destroy');
+    Route::get('/devices/{id}/edit', [\App\Http\Controllers\Admin\Pricing\RoomDeviceController::class, 'edit'])->name('pricing.devices.edit');
+    Route::put('/devices/{id}', [\App\Http\Controllers\Admin\Pricing\RoomDeviceController::class, 'update'])->name('pricing.devices.update');
+
 });
