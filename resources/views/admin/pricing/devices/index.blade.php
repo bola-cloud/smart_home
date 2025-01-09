@@ -35,12 +35,13 @@
                 <td>{{ $device->unit_price }}</td>
                 <td>{{ $device->total_price }}</td>
                 <td>
+                    <a href="{{ route('pricing.devices.edit', $device->id) }}" class="btn btn-warning btn-sm">Edit</a>
                     <form action="{{ route('pricing.devices.destroy', $device->id) }}" method="POST" style="display:inline;">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                     </form>
-                </td>
+                </td>                
             </tr>
             @endforeach
         </tbody>
