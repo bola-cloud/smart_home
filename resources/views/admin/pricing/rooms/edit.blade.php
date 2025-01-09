@@ -5,7 +5,7 @@
     <h1 class="mb-4">Edit Room</h1>
 
     <!-- Form to Edit Room -->
-    <form action="{{ route('admin.pricing.rooms.update', $room->id) }}" method="POST">
+    <form action="{{ route('pricing.rooms.update', $room->id) }}" method="POST">
         @csrf
         @method('PUT')
         <div class="mb-3">
