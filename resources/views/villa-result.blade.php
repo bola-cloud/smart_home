@@ -80,7 +80,7 @@
                     </tbody>
                 </table>
                 <h5 class="text-end">
-                    إجمالي تكلفة {{ $room['name'] }} لغرفة واحدة: 
+                    إجمالي تكلفة {{ $room['name'] }}  للواحدة: 
                     {{ $room['total_cost'] / $room['quantity'] }} ريال
                 </h5>
                 <h5 class="text-end">
