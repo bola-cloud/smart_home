@@ -65,7 +65,7 @@
                             <th>اسم الجهاز</th>
                             <th>الكمية</th>
                             <th>سعر الوحدة</th>
-                            <th>الإجمالي</th>
+                            <th>الإجمالي (غرفة واحدة)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -74,15 +74,23 @@
                             <td>{{ $device['name'] }}</td>
                             <td>{{ $device['quantity'] }}</td>
                             <td>{{ $device['unit_price'] }} ريال</td>
-                            <td>{{ $device['total_price'] }} ريال</td>
+                            <td>{{ $device['total_price'] / $room['quantity'] }} ريال</td>
                         </tr>
                         @endforeach
                     </tbody>
                 </table>
-                <h5 class="text-end">إجمالي تكلفة الغرفة: {{ $room['total_cost'] }} ريال</h5>
+                <h5 class="text-end">
+                    إجمالي تكلفة {{ $room['name'] }} لغرفة واحدة: 
+                    {{ $room['total_cost'] / $room['quantity'] }} ريال
+                </h5>
+                <h5 class="text-end">
+                    إجمالي تكلفة {{ $room['name'] }} لجميع الغرف: 
+                    {{ $room['total_cost'] }} ريال
+                </h5>
             </div>
         </div>
         @endforeach
+
 
         <!-- Internet Points -->
         <div class="card mb-4">
