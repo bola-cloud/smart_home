@@ -45,7 +45,7 @@
         <h4 class="text-center">Admin Panel</h4>
         <hr class="bg-light">
         <a href="{{ route('pricing.rooms.index') }}">Manage Rooms</a>
-        <a href="#">Manage Pricing</a>
+        <a href="{{route('user.villa-pricing')}}">Manage Pricing</a>
         {{-- <a href="#">Reports</a>
         <a href="#">Settings</a> --}}
     </div>
@@ -54,7 +54,7 @@
     <div class="content">
         <nav class="navbar navbar-light bg-light shadow-sm mb-4">
             <div class="container-fluid">
-                <a class="navbar-brand" href="{{route('user.villa-pricing')}}">Pricing Estimation</a>
+                <a class="navbar-brand" href="#">Pricing Administration</a>
             </div>
         </nav>
 
