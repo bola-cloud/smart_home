@@ -10,7 +10,8 @@ class PricingController extends Controller
 {
     public function getRooms()
     {
-        $rooms = Room::all();
+        $rooms = Room::all(['id', 'name']);
         return response()->json($rooms);
     }
+    
 }
