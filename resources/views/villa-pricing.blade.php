@@ -14,15 +14,16 @@
             font-family: 'Cairo', sans-serif;
         }
         .logo {
-            max-height: 60px;
-            margin-bottom: 20px;
+            max-height: 86px !important;
+            margin-bottom: 25px;
+            width: 100px !important;
         }
     </style>
 </head>
 <body>
     <div class="container my-5">
         <div class="text-center">
-            <img src="{{asset('app-assets/images/logo/mazaya-logo-dark.png')}}" alt="Logo" class="logo">
+            <img src="{{asset('app-assets/images/logo/mazaya-logo-dark.png')}}" alt="Logo" class="logo"> <strong style="font-size: x-large;">Mazaya</strong> 
             <h1>تقدير تكلفة الي المنزل او الفيلا</h1>
         </div>
 
