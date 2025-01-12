@@ -59,7 +59,7 @@ Route::post('/member/password/reset', [MemberController::class, 'resetPassword']
 Route::post('/publish-device', [MqttController::class, 'publishToDevice']);
 Route::post('/get-last-message', [MqttController::class, 'subscribeToTopic']);
 
-Route::post('/get-rooms', [PricingController::class, 'getRooms']);
+Route::get('/get-rooms', [PricingController::class, 'getRooms']);
 
 
 // Protected Routes (Require authentication)
