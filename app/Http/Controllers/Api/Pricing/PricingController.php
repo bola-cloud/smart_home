@@ -16,6 +16,7 @@ class PricingController extends Controller
 
     public function calculate(Request $request)
     {
+        dd($request->all());
         // Validate the request
         $validated = $request->validate([
             'room_types' => 'required|array|min:1',
