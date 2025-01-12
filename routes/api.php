@@ -60,7 +60,7 @@ Route::post('/publish-device', [MqttController::class, 'publishToDevice']);
 Route::post('/get-last-message', [MqttController::class, 'subscribeToTopic']);
 
 Route::get('/get-rooms', [PricingController::class, 'getRooms']);
-Route::post('/pricing/calclate', [PricingController::class, 'calculate']);
+Route::post('/calculate', [PricingUserController::class, 'calculate']);
 
 
 // Protected Routes (Require authentication)
