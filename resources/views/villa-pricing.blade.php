@@ -61,11 +61,14 @@
                             <input type="number" name="room_quantities[]" class="form-control" required min="1">
                         </td>
                         <td>
-                            <button type="button" class="btn btn-success add-row">إضافة</button>
+                            <button type="button" class="btn btn-danger remove-row" disabled>حذف</button>
                         </td>
                     </tr>
                 </tbody>
             </table>
+            <div class="text-center">
+                <button type="button" class="btn btn-success add-row">إضافة</button>
+            </div>
             <button type="submit" class="btn btn-primary w-100 mt-4">حساب التكلفة</button>
         </form>
     </div>
@@ -76,25 +79,7 @@
         $(document).ready(function () {
             // Initialize Select2
             $('.room-select').select2({ width: '100%' });
-    
-            // Function to refresh buttons (Add for the last row, Remove for others)
-            function refreshButtons() {
-                $('#roomTable tr').each(function (index) {
-                    const isLastRow = (index === $('#roomTable tr').length - 1);
-                    const actionCell = $(this).find('td:last');
-    
-                    if (isLastRow) {
-                        actionCell.html(`
-                            <button type="button" class="btn btn-success add-row">إضافة</button>
-                        `);
-                    } else {
-                        actionCell.html(`
-                            <button type="button" class="btn btn-danger remove-row">حذف</button>
-                        `);
-                    }
-                });
-            }
-    
+
             // Add a new row
             $(document).on('click', '.add-row', function () {
                 const newRow = `
@@ -111,22 +96,30 @@
                             <input type="number" name="room_quantities[]" class="form-control" required min="1">
                         </td>
                         <td>
-                            <!-- Action buttons will be updated dynamically -->
+                            <button type="button" class="btn btn-danger remove-row">حذف</button>
                         </td>
                     </tr>`;
                 $('#roomTable').append(newRow);
                 $('.room-select').select2({ width: '100%' });
-                refreshButtons();
+                updateDeleteButtons();
             });
-    
+
             // Remove a row
             $(document).on('click', '.remove-row', function () {
-                $(this).closest('tr').remove();
-                refreshButtons();
+                if ($('#roomTable tr').length > 1) {
+                    $(this).closest('tr').remove();
+                    updateDeleteButtons();
+                }
             });
-    
-            // Initial button setup
-            refreshButtons();
+
+            // Ensure at least one delete button is disabled if there is only one row
+            function updateDeleteButtons() {
+                const rows = $('#roomTable tr');
+                rows.find('.remove-row').prop('disabled', rows.length <= 1);
+            }
+
+            // Initial setup for delete buttons
+            updateDeleteButtons();
         });
     </script>
 </body>
