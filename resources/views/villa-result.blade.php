@@ -109,9 +109,9 @@
             </div>
         </div>
         <div class="card mb-4">
-            <div class="card-header bg-secondary text-dark">ملحوظة:</div>
+            <div class="card-header bg-secondary text-dark">ملاحظات:</div>
             <div class="card-body">
-                 : هذه تكلفه الاجهزه فقط لا تشمل تكلفه اي اسلاك او امدادت كهربيه او امدادت خاصه بالانترنت 
+                1-هذه تكلفه الاجهزه فقط لا تشمل تكلفه اي اسلاك او امدادت كهربيه او امدادت خاصه بالانترنت 
             </div>
         </div>
     </div>
