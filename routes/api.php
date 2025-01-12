@@ -19,6 +19,8 @@ use App\Http\Controllers\Api\IrCode\IrCodeController;
 use App\Http\Controllers\Api\Products\ProductController;
 use App\Http\Controllers\Api\Checkout\CheckoutController;
 use App\Http\Controllers\Api\Regions\RegionsController;
+use App\Http\Controllers\Api\Pricing\PricingController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -56,6 +58,9 @@ Route::post('/member/password/reset', [MemberController::class, 'resetPassword']
 
 Route::post('/publish-device', [MqttController::class, 'publishToDevice']);
 Route::post('/get-last-message', [MqttController::class, 'subscribeToTopic']);
+
+Route::post('/get-rooms', [PricingController::class, 'getRooms']);
+
 
 // Protected Routes (Require authentication)
 Route::middleware(['auth:sanctum', 'identifyUserOrMember'])->group(function () {
